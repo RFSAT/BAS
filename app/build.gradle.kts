@@ -33,6 +33,39 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.1.0 — feature: make the integrated app behave like STS and VTB
+        //          out of the box. Diagnosis first, because it matters: the
+        //          detection, registration, scoring and vapour-trail code is
+        //          BYTE-IDENTICAL to the originals (verified by normalised
+        //          diff), and no assets were dropped. The reported regressions
+        //          — a different bounding box, hits not found, and no wind
+        //          chart — were all downstream of ONE thing: the unified
+        //          profile store auto-applies its first seeded set (10 m air
+        //          rifle) as the active rig on a fresh install. Under an air
+        //          pellet the ballistic solver never reaches a rifle target,
+        //          so AdjustmentCalculator returns invalid and
+        //          BallisticsResultsActivity suppresses the chart by design;
+        //          and scoring, being scale- and face-dependent, registers a
+        //          different box until the matching target and rig are chosen.
+        //
+        //   FIRST-RUN RIG PICKER. Home now asks, once, which rig the shooter
+        //   uses and applies that seeded set (the catalogue already carries
+        //   the VTB rifle/ammo/scope presets — STS ported them verbatim — and
+        //   six sets are seeded, from 10 m air to .308 F-TR and .223 service
+        //   rifle). Picking a rifle rig makes the vapour-trail solution valid
+        //   and the chart appears; picking an air rig sets the right scoring
+        //   gauge. Stored under first_run_rig_done so it asks only once.
+        //
+        //   CHART REACHABILITY. The ballistics results (with the wind chart)
+        //   were only shown in the instant after a capture; the Results tab
+        //   shows SCORING results. Capture now carries a "View last analysis"
+        //   button that reopens BallisticsResultsActivity from the persisted
+        //   session, so the chart is reachable at any time.
+        //
+        //   TARGET SURFACING. The Score screen already carries the target-face
+        //   spinner; Home's Target row is now tappable and opens it, so a
+        //   fresh install can be pointed at the right face without hunting.
+        //
         // 1.0.1 — correction: two symbol renames the first CI compile caught,
         //          both invisible to the static pre-checks because they are
         //          resolution errors, not shape errors.
@@ -2715,8 +2748,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 2
-        versionName = "1.0.1"
+        versionCode = 3
+        versionName = "1.1.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

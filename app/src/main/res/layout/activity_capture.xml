@@ -186,5 +186,11 @@
             android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
     </LinearLayout>
 
+    <Button android:id="@+id/btnLastAnalysis"
+        android:text="View last analysis ▸"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:textSize="13sp"
+        style="?attr/borderlessButtonStyle" />
+
     <include layout="@layout/include_bottom_nav" />
 </LinearLayout>

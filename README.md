@@ -153,6 +153,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.1.0** — feature. Makes the integrated app behave like STS and VTB out of the box. The detection/scoring/vapour-trail code is byte-identical to the originals (verified by normalised diff); the reported regressions all traced to the unified profile store auto-applying its first seeded set (10 m air rifle) as the active rig, under which the ballistic solver never reaches a rifle target (so the wind chart is suppressed) and scoring registers a different box. Adds a one-time first-run rig picker on Home (six seeded rigs from 10 m air to .308 F-TR), a "View last analysis" button so the wind chart is reachable beyond the post-capture moment, and a tappable Home Target row that opens the face selector.
+
 **1.0.1** — correction. Two symbol renames caught by the first CI compile: `StsApp` call sites in `MainActivity` (the class was renamed `BasApp` but not its references) and `R.style.Theme_STS_*` in `ThemeManager` (the rename matched the dotted `Theme.STS` style names but not the underscore R-field form). Both fixed; the resource, data-binding and manifest phases had already passed.
 
 **1.0.0** — first release: the integration itself. BAS merges STS and VTB into

@@ -187,6 +187,9 @@ class CaptureActivity : BaseActivity() {
         }
         binding.btnImportVideo.setOnClickListener { importVideoLauncher.launch("video/*") }
         binding.btnAnalyze.setOnClickListener { runAnalysis() }
+        binding.btnLastAnalysis.setOnClickListener {
+            startActivity(Intent(this, BallisticsResultsActivity::class.java))
+        }
         binding.btnAnalyze.isEnabled = false
 
         binding.btnArm.setOnClickListener { toggleArm() }

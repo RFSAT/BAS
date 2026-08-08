@@ -62,7 +62,37 @@ class MainActivity : BaseActivity() {
         }
 
         refreshSetup()
+        // Fix (v1.1.0): surface target-face selection from Home — the Score
+        // screen carries the face spinner.
+        binding.tvSetupTarget.setOnClickListener {
+            startActivity(Intent(this, SessionActivity::class.java))
+        }
         setupBottomNav(R.id.nav_home)
+        runCatching { maybeFirstRunPicker() }
+    }
+
+    /**
+     * First launch only: let the shooter pick the rig closest to what they
+     * shoot, so BOTH the scoring gauge and the ballistic solution start on a
+     * valid, self-consistent setup. Without this the app defaults to the first
+     * seeded set (10 m air rifle), under which the vapour-trail solver never
+     * reaches a rifle target and the chart is suppressed.
+     */
+    private fun maybeFirstRunPicker() {
+        val prefs = getSharedPreferences(BaseActivity.PREFS, MODE_PRIVATE)
+        if (prefs.getBoolean("first_run_rig_done", false)) return
+        val repo = ProfileRepository(this)
+        val sets = repo.getSets()
+        if (sets.isEmpty()) { prefs.edit().putBoolean("first_run_rig_done", true).apply(); return }
+        val names = sets.map { it.name }.toTypedArray()
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Choose your setup")
+            .setItems(names) { _, which ->
+                runCatching { repo.applySet(sets[which]); refreshSetup() }
+                prefs.edit().putBoolean("first_run_rig_done", true).apply()
+            }
+            .setCancelable(false)
+            .show()
     }
 
     override fun onResume() {
