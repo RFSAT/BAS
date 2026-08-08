@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <!-- Viewfinder. The PreviewView and the RTSP TextureView are stacked and
+         swapped by visibility: only one source is ever live, and keeping both
+         inflated avoids re-laying out the whole screen on a source change. -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="#000000">
+
+        <androidx.camera.view.PreviewView
+            android:id="@+id/preview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <TextureView
+            android:id="@+id/streamView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <com.rfsat.bas.detect.RegistrationOverlayView
+            android:id="@+id/overlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <!-- Above the registration overlay so it is never hidden by it, and
+             below the status text so a long message still reads. -->
+        <com.rfsat.bas.ui.CrosshairView
+            android:id="@+id/crosshair"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <TextView
+            android:id="@+id/tvStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:background="#AA000000"
+            android:padding="8dp"
+            android:textColor="?attr/colorAccent"
+            android:textSize="12sp"
+            android:maxLines="4" />
+    </FrameLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="14dp">
+
+            <TextView style="@style/Sts.SectionHeading" android:text="Course of fire" />
+
+            <TextView style="@style/Sts.FieldLabel" android:text="Rules" />
+            <Spinner android:id="@+id/spRules"
+                android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+            <TextView style="@style/Sts.FieldLabel" android:text="Target face" />
+            <Spinner android:id="@+id/spTarget"
+                android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+            <TextView android:id="@+id/lblDistance" style="@style/Sts.FieldLabel" android:text="Distance" />
+            <EditText android:id="@+id/etDistance"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:autofillHints="" />
+
+            <TextView style="@style/Sts.SectionHeading" android:text="Frame source" />
+            <Spinner android:id="@+id/spSource"
+                android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+            <EditText android:id="@+id/etStreamUrl"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:hint="http://192.168.1.50:8080/video  or  rtsp://…"
+                android:inputType="textUri"
+                android:imeOptions="actionDone"
+                android:visibility="gone"
+                android:autofillHints="" />
+
+            <!-- The stream connects on its own now, so this is a small
+                 reconnect beside the address rather than a full-width
+                 button — kept because a stream that has dropped needs one
+                 tap to bring back, and hunting through a menu for it on a
+                 firing point is not a design. -->
+            <Button android:id="@+id/btnCameraProbe"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:text="What can this camera be told?"
+                android:visibility="gone"
+                style="@style/Sts.TextButton" />
+
+            <Button android:id="@+id/btnStreamConnect"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:text="↻ Reconnect"
+                android:visibility="gone"
+                style="@style/Sts.ActionButton.Dense" />
+
+            <TextView style="@style/Sts.SectionHeading" android:text="Registration" />
+
+            <Button android:id="@+id/btnIdentify"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Identify target and register"
+                style="@style/Sts.ActionButton" />
+
+            <TextView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="6dp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:text="Fits the printed rings, works out which target face it is, and takes the scale from the ring spacing. More accurate than the aiming mark alone, and it does not depend on the face selected above being right."
+                android:justificationMode="inter_word" />
+
+            <Button android:id="@+id/btnAutoDetect"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Auto-detect the target"
+                style="@style/Sts.ActionButton" />
+
+            <TextView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:layout_marginTop="6dp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:text="The app finds the black centre and draws a square box around the scoring area. Drag a handle to adjust it, or the middle to move it. Registration ties image pixels to millimetres; without it nothing can be scored."
+                android:justificationMode="inter_word" />
+
+            <CheckBox style="@style/Sts.CheckBox" android:id="@+id/cbCornerMode"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Target viewed at an angle — register by tapping the four card corners instead" />
+
+            <LinearLayout
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginTop="8dp">
+                <Button android:id="@+id/btnRegister"
+                    android:layout_width="0dp" android:layout_weight="1"
+                    android:layout_height="wrap_content" android:text="Register"
+                style="@style/Sts.ActionButton" />
+                <Button android:id="@+id/btnUndoCorner"
+                    android:layout_width="0dp" android:layout_weight="1"
+                    android:layout_height="wrap_content" android:text="Reset"
+                    style="@style/Sts.ActionButton" />
+            </LinearLayout>
+
+
+            <TextView style="@style/Sts.SectionHeading" android:text="Tilt and rotation" />
+
+            <TextView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:text="Match the dashed outline to the rings. Rotation turns the target in the picture; the two tilts lean it away from the camera, one about each axis. If the outline gets worse, drag the slider the other way — a symmetric mark cannot say which way a target leans, so the starting guess picks a side."
+                android:justificationMode="inter_word" />
+
+            <TextView android:id="@+id/lblRotation" style="@style/Sts.FieldLabel" android:text="Rotation" />
+            <SeekBar android:id="@+id/sbRotation"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:max="180" android:progress="90" />
+
+            <TextView android:id="@+id/lblTiltX" style="@style/Sts.FieldLabel" android:text="Horizontal tilt" />
+            <SeekBar android:id="@+id/sbTiltX"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:max="160" android:progress="80" />
+
+            <TextView android:id="@+id/lblTiltY" style="@style/Sts.FieldLabel" android:text="Vertical tilt" />
+            <SeekBar android:id="@+id/sbTiltY"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:max="160" android:progress="80" />
+
+            <LinearLayout
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <Button android:id="@+id/btnApplyTilt"
+                    android:layout_width="0dp" android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    style="@style/Sts.ActionButton"
+                    android:text="Apply estimated tilt" />
+                <Button android:id="@+id/btnResetTilt"
+                    android:layout_width="0dp" android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    style="@style/Sts.ActionButton"
+                    android:text="Reset tilt" />
+            </LinearLayout>
+
+            <TextView style="@style/Sts.SectionHeading" android:text="Scoring" />
+
+            <!-- First, because it needs neither registration nor a
+                 reference frame. A shooter who just wants to score the card
+                 in their hand should not have to read past the whole
+                 live-capture workflow to find it. -->
+            <Button android:id="@+id/btnImport"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Upload a target photo to score"
+                style="@style/Sts.ActionButton" />
+
+            <TextView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="2dp"
+                android:textSize="12sp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:text="Or score live, as you shoot:" />
+
+            <!-- Camera, above the capture controls because both of these have
+                 to be right BEFORE anything is captured. -->
+            <TextView style="@style/Sts.FieldLabel" android:text="Alignment guide" />
+            <Spinner android:id="@+id/spGuide"
+                android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+            <TextView android:id="@+id/lblGuideSize" style="@style/Sts.FieldLabel"
+                android:text="Guide size" />
+            <SeekBar android:id="@+id/sbGuideSize"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:max="100" android:progress="80" />
+
+            <TextView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:justificationMode="inter_word"
+                android:text="Drawing the selected face's own rings over the preview does more than centre the shot. The circles are at that face's true proportions, so a card whose rings are spaced differently will not line up however far you move — which is the quickest way to catch the wrong target face, and a wrong face is the commonest reason nothing is detected. Lining the rings up also squares the camera to the card, and perspective is the one error the scorer cannot fully undo." />
+
+            <TextView style="@style/Sts.FieldLabel" android:text="Analysis resolution" />
+            <Spinner android:id="@+id/spResolution"
+                android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+            <Button android:id="@+id/btnLockCamera"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="Lock exposure and focus"
+                style="@style/Sts.ActionButton" />
+
+            <TextView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:layout_marginTop="2dp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:justificationMode="inter_word"
+                android:text="A phone camera re-meters and re-focuses continuously. Between two frames of the same card that changes the brightness of everything, which is precisely what differential detection looks for, and re-focusing shifts the field of view enough to make the registration stale. Locking happens automatically when you register; this releases it if the light changes for real." />
+
+            <Button android:id="@+id/btnReference"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Capture clean target (reference)"
+                style="@style/Sts.ActionButton" />
+
+            <Button android:id="@+id/btnLive"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="Start live detection"
+                style="@style/Sts.ActionButton" />
+
+            <Button android:id="@+id/btnScoreNow"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="Score the target now (single frame)"
+                style="@style/Sts.ActionButton" />
+
+            <LinearLayout
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginTop="6dp">
+                <Button android:id="@+id/btnUndoShot"
+                    android:layout_width="0dp" android:layout_weight="1"
+                    android:layout_height="wrap_content" android:text="Undo shot"
+                    style="@style/Sts.ActionButton" />
+                <Button android:id="@+id/btnClearShots"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                style="@style/Sts.ActionButton"
+                android:text="Clear all recorded shots" />
+
+            <Button android:id="@+id/btnResults"
+                    android:layout_width="0dp" android:layout_weight="1"
+                    android:layout_height="wrap_content" android:text="Results"
+                style="@style/Sts.ActionButton" />
+            </LinearLayout>
+
+            <CheckBox style="@style/Sts.CheckBox" android:id="@+id/cbSighter"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Record the next shots as sighters" />
+
+            <CheckBox style="@style/Sts.CheckBox" android:id="@+id/cbAcoustic"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:checked="false"
+                android:text="Use the microphone to time shots (helps outdoors; turn off on a busy indoor range)" />
+
+            <TextView android:id="@+id/tvShots"
+                style="@style/Sts.Value"
+                android:layout_marginTop="12dp"
+                android:typeface="monospace"
+                android:textSize="12sp" />
+
+            <TextView style="@style/Sts.SectionHeading" android:text="Shot distribution" />
+            <TextView android:id="@+id/tvDistribution"
+                style="@style/Sts.Value"
+                android:textSize="12sp" />
+            <com.rfsat.bas.ui.ScoreHistogramView
+                android:id="@+id/histogram"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:layout_marginBottom="12dp" />
+
+        </LinearLayout>
+    </ScrollView>
+
+    <include layout="@layout/include_bottom_nav" />
+
+</LinearLayout>

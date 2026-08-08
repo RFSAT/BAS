@@ -1,0 +1,531 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="14dp">
+
+            <!-- ===== Display ===== -->
+            <TextView style="@style/Sts.SectionHeading" android:text="Display and units" />
+
+            <TextView style="@style/Sts.FieldLabel" android:text="Theme" />
+            <Spinner android:id="@+id/spTheme"
+                android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+            <TextView style="@style/Sts.FieldLabel" android:text="Units" />
+            <Spinner android:id="@+id/spUnits"
+                android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+            <CheckBox style="@style/Sts.CheckBox" android:id="@+id/cbShowLog"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Show the diagnostic log on the Home screen" />
+
+            <CheckBox style="@style/Sts.CheckBox" android:id="@+id/cbFullScreen"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Full screen (hide the system bars)" />
+
+            <!-- ===== Algorithms =====
+                 Every new detection algorithm gets a switch here while the
+                 app is being developed, so each can be measured on its own
+                 and in combination. What stays selectable is a decision for
+                 the point at which the accuracy is good enough to ship. -->
+            <TextView style="@style/Sts.SectionHeading" android:text="Viewfinder reticle" />
+
+            <TextView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:justificationMode="inter_word"
+                android:text="Drawn over the camera picture to help line it up. Choose None when the camera looks through a scope that already shows one." />
+
+            <TextView android:id="@+id/infoReticle"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textSize="12sp" android:paddingTop="1dp" android:paddingBottom="3dp"
+                android:textColor="?attr/colorAccent"
+                android:text="More info" />
+
+            <Spinner android:id="@+id/spReticle"
+                android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+            <TextView android:id="@+id/tvReticle"
+                style="@style/Sts.Value" android:textSize="12sp" android:layout_marginTop="2dp" />
+
+            <TextView style="@style/Sts.SectionHeading" android:text="Wi-Fi camera setup" />
+
+            <TextView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:justificationMode="inter_word"
+                android:text="Tell the app how the camera itself is set. It changes nothing on the camera — it lets the app know what the picture will be, and say so when a setting will cost you a score." />
+
+            <TextView android:id="@+id/infoCamera"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textSize="12sp" android:paddingTop="1dp" android:paddingBottom="3dp"
+                android:textColor="?attr/colorAccent"
+                android:text="More info" />
+
+            <TextView style="@style/Sts.FieldLabel" android:text="Zoom" />
+            <Spinner android:id="@+id/spCamZoom"
+                android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+            <TextView style="@style/Sts.FieldLabel" android:text="Video size" />
+            <Spinner android:id="@+id/spCamVideo"
+                android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+            <TextView style="@style/Sts.FieldLabel" android:text="White balance" />
+            <Spinner android:id="@+id/spCamWb"
+                android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+            <TextView style="@style/Sts.FieldLabel" android:text="Exposure compensation (EV)" />
+            <Spinner android:id="@+id/spCamEv"
+                android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+            <TextView style="@style/Sts.FieldLabel" android:text="Mains frequency" />
+            <Spinner android:id="@+id/spCamMains"
+                android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+            <CheckBox style="@style/Sts.CheckBox" android:id="@+id/cbCamRedDot"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Red dot is switched on" />
+
+            <CheckBox style="@style/Sts.CheckBox" android:id="@+id/cbCamStab"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Image stabilisation is switched on" />
+
+            <TextView android:id="@+id/tvCameraAdvice"
+                style="@style/Sts.Value" android:textSize="12sp" android:layout_marginTop="4dp"
+                android:justificationMode="inter_word" />
+
+            <TextView style="@style/Sts.SectionHeading" android:text="Stream lens correction" />
+
+            <TextView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:justificationMode="inter_word"
+                android:text="Straightens live frames from a camera with a wide lens. Measure the figure once on Import, from a photo taken with the same camera, then enter it here. 0 is off." />
+
+            <TextView android:id="@+id/infoStreamLens"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textSize="12sp" android:paddingTop="1dp" android:paddingBottom="3dp"
+                android:textColor="?attr/colorAccent"
+                android:text="More info" />
+
+            <EditText android:id="@+id/etStreamLensK"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="13sp"
+                android:inputType="numberDecimal|numberSigned"
+                android:hint="0"
+                android:autofillHints="" />
+
+            <TextView style="@style/Sts.SectionHeading" android:text="Detection algorithms" />
+
+            <TextView style="@style/Sts.FieldLabel" android:text="Where the scale comes from" />
+            <Spinner android:id="@+id/spScaleMode"
+                android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+            <TextView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:justificationMode="inter_word"
+                android:text="How the app works out millimetres per pixel. Cross-check is safest — it usually catches a wrong target face." />
+
+            <TextView android:id="@+id/infoScale"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textSize="12sp" android:paddingTop="1dp" android:paddingBottom="3dp"
+                android:textColor="?attr/colorAccent"
+                android:text="More info" />
+
+            <CheckBox style="@style/Sts.CheckBox" android:id="@+id/cbWedge"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Measure ring spacing only along the tilt axis" />
+
+            <TextView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:justificationMode="inter_word"
+                android:text="Experimental. May help on cards photographed at an angle, and may make them worse. Leave off unless you are testing it." />
+
+            <TextView android:id="@+id/infoWedge"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textSize="12sp" android:paddingTop="1dp" android:paddingBottom="3dp"
+                android:textColor="?attr/colorAccent"
+                android:text="More info" />
+
+            <CheckBox style="@style/Sts.CheckBox" android:id="@+id/cbSourceDetect"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Find shots in the photograph itself" />
+
+            <TextView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:justificationMode="inter_word"
+                android:text="Leave on. Finds shots in the photograph itself, including inside the black — with it off, centre hits are often missed." />
+
+            <TextView android:id="@+id/infoSource"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textSize="12sp" android:paddingTop="1dp" android:paddingBottom="3dp"
+                android:textColor="?attr/colorAccent"
+                android:text="More info" />
+
+            <CheckBox style="@style/Sts.CheckBox" android:id="@+id/cbPuncture"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Require a shot to have the profile of a puncture" />
+
+            <TextView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:justificationMode="inter_word"
+                android:text="Fewer false hits: rejects printed marks that happen to look like shots." />
+
+            <TextView android:id="@+id/infoPuncture"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textSize="12sp" android:paddingTop="1dp" android:paddingBottom="3dp"
+                android:textColor="?attr/colorAccent"
+                android:text="More info" />
+
+            <CheckBox style="@style/Sts.CheckBox" android:id="@+id/cbOutside"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Also find shots that missed the rings" />
+
+            <TextView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:justificationMode="inter_word"
+                android:text="Shows shots that missed the rings. They score nothing, and printing near the edge of the card may be marked too." />
+
+            <TextView android:id="@+id/infoOutside"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textSize="12sp" android:paddingTop="1dp" android:paddingBottom="3dp"
+                android:textColor="?attr/colorAccent"
+                android:text="More info" />
+
+            <CheckBox style="@style/Sts.CheckBox" android:id="@+id/cbFamily"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Scale from circles fitted to each printed ring" />
+
+            <TextView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:justificationMode="inter_word"
+                android:text="No visible difference on a flat card. May help on cards photographed at an angle." />
+
+            <TextView android:id="@+id/infoFamily"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textSize="12sp" android:paddingTop="1dp" android:paddingBottom="3dp"
+                android:textColor="?attr/colorAccent"
+                android:text="More info" />
+
+            <!-- ===== Second opinion ===== -->
+            <TextView style="@style/Sts.SectionHeading" android:text="AI assistance" />
+
+            <TextView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:justificationMode="inter_word"
+                android:text="Ask an AI service to check a card. Needs a connection and costs a fraction of a penny each time." />
+
+            <TextView android:id="@+id/infoCloud"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textSize="12sp" android:paddingTop="1dp" android:paddingBottom="3dp"
+                android:textColor="?attr/colorAccent"
+                android:text="More info" />
+
+            <TextView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="12sp" android:layout_marginTop="4dp"
+                android:textColor="?android:attr/textColorPrimary"
+                android:text="On import, score with:" />
+
+            <Spinner android:id="@+id/spEngine"
+                android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+            <TextView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:justificationMode="inter_word"
+                android:text="Embedded uses the app's own detection. Naming a service hands it the whole card — needs a connection, and positions are less precise." />
+
+            <TextView android:id="@+id/infoEngine"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textSize="12sp" android:paddingTop="1dp" android:paddingBottom="3dp"
+                android:textColor="?attr/colorAccent"
+                android:text="More info" />
+
+            <CheckBox style="@style/Sts.CheckBox" android:id="@+id/cbCloud"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Enable the second opinion button" />
+
+            <TextView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="12sp" android:layout_marginTop="4dp"
+                android:textColor="?android:attr/textColorPrimary"
+                android:text="Second opinion asks:" />
+
+            <Spinner android:id="@+id/spOpinion"
+                android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+            <CheckBox style="@style/Sts.CheckBox" android:id="@+id/cbCloudOverride"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Let the AI answer override the app" />
+
+            <TextView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:justificationMode="inter_word"
+                android:text="Applies the AI answer without asking. Useful when the app marks things that are not shots; positions are less precise than the app's." />
+
+            <TextView android:id="@+id/infoOverride"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textSize="12sp" android:paddingTop="1dp" android:paddingBottom="3dp"
+                android:textColor="?attr/colorAccent"
+                android:text="More info" />
+
+            <TextView style="@style/Sts.SectionHeading" android:text="Service keys and models" />
+
+            <TextView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="?android:attr/textColorPrimary"
+                android:text="Service to set up:" />
+
+            <Spinner android:id="@+id/spProvider"
+                android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+            <TextView android:id="@+id/tvModelLabel"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="12sp" android:layout_marginTop="4dp"
+                android:textColor="?android:attr/textColorPrimary"
+                android:text="Model:" />
+
+            <Spinner android:id="@+id/spCloudModel"
+                android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+            <TextView android:id="@+id/tvCloudKeys"
+                style="@style/Sts.Value" android:layout_marginTop="2dp" android:textSize="12sp" />
+
+            <TextView android:id="@+id/tvCloudKey"
+                style="@style/Sts.Value" android:layout_marginTop="2dp" android:textSize="12sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginTop="4dp">
+                <Button android:id="@+id/btnCloudKey"
+                    android:layout_width="0dp" android:layout_weight="1"
+                    android:layout_height="wrap_content" android:text="Set API key…"
+                    style="@style/Sts.ActionButton.Dense" />
+                <Button android:id="@+id/btnCloudClear"
+                    android:layout_width="0dp" android:layout_weight="1"
+                    android:layout_height="wrap_content" android:text="Forget key"
+                    style="@style/Sts.ActionButton.Dense" />
+            </LinearLayout>
+
+
+            <TextView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:justificationMode="inter_word"
+                android:text="Each service needs its own key, from its own console. Not the password you sign in to the chat service with. Kept encrypted on this device." />
+
+            <TextView android:id="@+id/infoKey"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textSize="12sp" android:paddingTop="1dp" android:paddingBottom="3dp"
+                android:textColor="?attr/colorAccent"
+                android:text="More info" />
+
+            <!-- ===== Profile sets ===== -->
+            <TextView style="@style/Sts.SectionHeading" android:text="Profile sets" />
+
+            <Spinner android:id="@+id/spSets"
+                android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+            <LinearLayout
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginTop="6dp">
+                <Button android:id="@+id/btnApplySet"
+                    style="@style/Sts.GridButton"
+                    android:text="Apply" />
+                <Button android:id="@+id/btnSaveSet"
+                    style="@style/Sts.GridButton"
+                    android:text="Save as…" />
+                <Button android:id="@+id/btnDeleteSet"
+                    style="@style/Sts.GridButton"
+                    android:text="Delete" />
+            </LinearLayout>
+
+            <!-- ===== Firearm ===== -->
+            <TextView style="@style/Sts.SectionHeading" android:text="Firearm" />
+            <Button android:id="@+id/btnRifleCatalog"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                style="@style/Sts.ActionButton"
+                android:text="Pick from the catalogue…" />
+
+            <TextView style="@style/Sts.FieldLabel" android:text="Name" />
+            <EditText android:id="@+id/etRifleName" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:inputType="text" android:autofillHints="" />
+
+            <TextView style="@style/Sts.FieldLabel" android:text="Type" />
+            <Spinner android:id="@+id/spFirearmType"
+                android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+            <TextView style="@style/Sts.FieldLabel" android:text="Chambering" />
+            <EditText android:id="@+id/etCaliber" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:inputType="text" android:autofillHints="" />
+
+            <TextView style="@style/Sts.FieldLabel" android:text="Barrel length (in)" />
+            <EditText android:id="@+id/etBarrel" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:inputType="numberDecimal" android:autofillHints="" />
+
+            <TextView style="@style/Sts.FieldLabel" android:text="Twist rate (1 turn in … in)" />
+            <EditText android:id="@+id/etTwist" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:inputType="numberDecimal" android:autofillHints="" />
+
+            <TextView style="@style/Sts.FieldLabel" android:text="Sight height above bore (in)" />
+            <EditText android:id="@+id/etSightHeight" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:inputType="numberDecimal" android:autofillHints="" />
+
+            <TextView style="@style/Sts.FieldLabel" android:text="Zero distance (m)" />
+            <EditText android:id="@+id/etZero" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:inputType="numberDecimal" android:autofillHints="" />
+
+            <!-- ===== Load ===== -->
+            <TextView style="@style/Sts.SectionHeading" android:text="Load" />
+            <Button android:id="@+id/btnAmmoCatalog"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                style="@style/Sts.ActionButton"
+                android:text="Pick from the catalogue…" />
+
+            <TextView style="@style/Sts.FieldLabel" android:text="Name" />
+            <EditText android:id="@+id/etBulletName" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:inputType="text" android:autofillHints="" />
+
+            <TextView style="@style/Sts.FieldLabel" android:text="Projectile diameter (in)" />
+            <EditText android:id="@+id/etDiameter" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:inputType="numberDecimal" android:autofillHints="" />
+
+            <TextView style="@style/Sts.FieldLabel" android:text="Weight (gr)" />
+            <EditText android:id="@+id/etWeight" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:inputType="numberDecimal" android:autofillHints="" />
+
+            <TextView style="@style/Sts.FieldLabel" android:text="Muzzle velocity (fps)" />
+            <EditText android:id="@+id/etMv" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:inputType="numberDecimal" android:autofillHints="" />
+
+            <TextView style="@style/Sts.FieldLabel" android:text="Ballistic coefficient (G1)" />
+            <EditText android:id="@+id/etBc" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:inputType="numberDecimal" android:autofillHints="" />
+
+            <TextView android:id="@+id/tvPowerFactor" style="@style/Sts.Value"
+                android:layout_marginTop="6dp" android:textSize="12sp" />
+
+            <!-- ===== Sight ===== -->
+            <TextView style="@style/Sts.SectionHeading" android:text="Sight" />
+            <Button android:id="@+id/btnScopeCatalog"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                style="@style/Sts.ActionButton"
+                android:text="Pick from the catalogue…" />
+
+            <TextView style="@style/Sts.FieldLabel" android:text="Name" />
+            <EditText android:id="@+id/etScopeName" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:inputType="text" android:autofillHints="" />
+
+            <TextView style="@style/Sts.FieldLabel" android:text="Sight type" />
+            <Spinner android:id="@+id/spSightType"
+                android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+            <TextView style="@style/Sts.FieldLabel" android:text="Click unit" />
+            <Spinner android:id="@+id/spClickUnit"
+                android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+            <TextView android:id="@+id/lblClickMm" style="@style/Sts.FieldLabel"
+                android:text="Click movement (mm) at the reference distance" />
+            <EditText android:id="@+id/etClickMm" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:inputType="numberDecimal" android:autofillHints="" />
+
+            <TextView android:id="@+id/lblClickRef" style="@style/Sts.FieldLabel"
+                android:text="Reference distance (m)" />
+            <EditText android:id="@+id/etClickRef" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:inputType="numberDecimal" android:autofillHints="" />
+
+            <TextView style="@style/Sts.FieldLabel" android:text="Sight radius (mm, iron sights only; 0 = unknown)" />
+            <EditText android:id="@+id/etSightRadius" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:inputType="numberDecimal" android:autofillHints="" />
+
+            <TextView style="@style/Sts.FieldLabel" android:text="Elevation travel (MOA)" />
+            <EditText android:id="@+id/etElevTravel" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:inputType="numberDecimal" android:autofillHints="" />
+
+            <TextView style="@style/Sts.FieldLabel" android:text="Windage travel (MOA)" />
+            <EditText android:id="@+id/etWindTravel" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:inputType="numberDecimal" android:autofillHints="" />
+
+            <CheckBox style="@style/Sts.CheckBox" android:id="@+id/cbInvertElev"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Elevation drum is marked the opposite way round" />
+            <CheckBox style="@style/Sts.CheckBox" android:id="@+id/cbInvertWind"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Windage drum is marked the opposite way round" />
+
+            <TextView android:id="@+id/tvClickSummary" style="@style/Sts.Value"
+                android:layout_marginTop="8dp" android:textSize="12sp" />
+
+            <Button android:id="@+id/btnSave"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Save the active profiles"
+                style="@style/Sts.ActionButton" />
+
+            <!-- ===== Elsewhere ===== -->
+            <TextView style="@style/Sts.SectionHeading" android:text="Elsewhere" />
+            <Button android:id="@+id/btnRules"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                style="@style/Sts.ActionButton"
+                android:text="Competition rules…" />
+            <Button android:id="@+id/btnLog"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                style="@style/Sts.ActionButton"
+                android:text="Diagnostic log…" />
+            <Button android:id="@+id/btnTargets"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                style="@style/Sts.ActionButton"
+                android:text="Target faces…" />
+            <Button android:id="@+id/btnBackup"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                style="@style/Sts.ActionButton"
+                android:text="Export a backup of everything" />
+            <Button android:id="@+id/btnRestore"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                style="@style/Sts.ActionButton"
+                android:text="Restore from a backup" />
+            <Button android:id="@+id/btnReset"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                style="@style/Sts.ActionButton"
+                android:text="Reset the active profiles to defaults" />
+
+        </LinearLayout>
+    </ScrollView>
+
+    <include layout="@layout/include_bottom_nav" />
+
+</LinearLayout>

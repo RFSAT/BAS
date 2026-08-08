@@ -1,0 +1,359 @@
+package com.rfsat.bas
+
+import com.rfsat.bas.detect.LumaFrame
+import com.rfsat.bas.detect.RingFinder
+import com.rfsat.bas.detect.TargetGeometryCheck
+import com.rfsat.bas.detect.TargetRegistration
+import com.rfsat.bas.rules.Gauge
+import com.rfsat.bas.targets.TargetCatalog
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Test
+import kotlin.math.hypot
+
+/**
+ * Ring fitting, which is now what sets the scale.
+ *
+ * The figures asserted here were measured against four real targets — two
+ * synthetic, two scans — before the Kotlin was written: pitch recovered to
+ * within 0.0 to 1.5 per cent, and the correct face identified with 0.3 to
+ * 1.3 per cent agreement against 8 per cent or worse for the runner-up.
+ */
+class RingFinderTest {
+
+    /** A concentric target: black aiming mark, evenly spaced ring lines. */
+    private fun target(
+        size: Int, centreX: Double, centreY: Double,
+        firstRingPx: Double, pitchPx: Double, ringCount: Int, blackRadiusPx: Double
+    ): LumaFrame {
+        val data = ByteArray(size * size)
+        val radii = (0 until ringCount).map { firstRingPx + it * pitchPx }
+        for (j in 0 until size) for (i in 0 until size) {
+            val r = hypot(i - centreX, j - centreY)
+            var v = 210
+            if (r <= blackRadiusPx) v = 25
+            if (radii.any { kotlin.math.abs(r - it) < 1.1 }) v = if (r <= blackRadiusPx) 215 else 30
+            data[j * size + i] = v.toByte()
+        }
+        return LumaFrame(size, size, data)
+    }
+
+    @Test
+    fun `the ring pitch is recovered from a synthetic family`() {
+        // Geometry chosen to match a real face rather than an arbitrary one.
+        // The previous fixture put the black at 45 px with rings starting at
+        // 60 and a pitch of 22 — a black/pitch ratio of 2.05, and no printed
+        // ring inside the aiming mark at all. Every face in the catalogue has
+        // a ratio between 3.0 and 7.03 and several rings inside the black,
+        // which is what the detector is entitled to assume.
+        val frame = target(500, 250.0, 250.0, firstRingPx = 22.0, pitchPx = 22.0,
+            ringCount = 8, blackRadiusPx = 88.0)
+        val fit = RingFinder.find(frame)
+        assertNotNull("no ring family found", fit)
+        assertEquals(22.0, fit!!.pitchPx, 0.7)
+        assertTrue("expected several rings, got ${fit.ringCount}", fit.ringCount >= 5)
+        assertTrue("fit should be confident, was ${fit.confidence}", fit.confidence > 0.5)
+    }
+
+    @Test
+    fun `the centre is found even when the target is off-centre in the frame`() {
+        val frame = target(500, 190.0, 300.0, 55.0, 20.0, 8, 40.0)
+        val fit = RingFinder.find(frame)
+        assertNotNull(fit)
+        assertEquals(190.0, fit!!.centreXPx, 6.0)
+        assertEquals(300.0, fit.centreYPx, 6.0)
+    }
+
+    @Test
+    fun `a half pitch is not preferred over the true one`() {
+        // Each printed line has two edges, so a half-pitch ladder fits every
+        // real ring PLUS every spurious edge and wins on inlier count alone.
+        // An earlier version returned exactly half the true pitch on two of
+        // four real targets because of it.
+        // black 120 px over a 30 px pitch: ratio 4.0, and on a rung, as on
+        // ten of the twelve applicable catalogue faces.
+        val frame = target(600, 300.0, 300.0, 30.0, 30.0, 8, 120.0)
+        val fit = RingFinder.find(frame)!!
+        assertEquals("returned half the true pitch", 30.0, fit.pitchPx, 1.0)
+    }
+
+    @Test
+    fun `the fitted pitch identifies which face was shot`() {
+        // Air pistol proportions: pitch 8 mm, black 59.5 mm. At 4 px/mm the
+        // pitch is 32 px and the black radius 119 px.
+        val pxPerMm = 4.0
+        val frame = target(900, 450.0, 450.0,
+            firstRingPx = 5.75 * pxPerMm + 8.0 * pxPerMm,   // the 9 ring
+            pitchPx = 8.0 * pxPerMm, ringCount = 9,
+            blackRadiusPx = 29.75 * pxPerMm)
+        val fit = RingFinder.find(frame)!!
+        val matches = RingFinder.identify(fit, 29.75 * pxPerMm, TargetCatalog.builtIns)
+        assertTrue("nothing identified", matches.isNotEmpty())
+        assertEquals(TargetCatalog.ISSF_AP10.id, matches[0].face.id)
+        assertTrue("best match too loose: ${matches[0].relativeError}", matches[0].relativeError < 0.05)
+        val runnerUp = matches.getOrNull(1)
+        if (runnerUp != null) {
+            assertTrue(
+                "the runner-up should be clearly worse",
+                runnerUp.relativeError > matches[0].relativeError * 3
+            )
+        }
+    }
+
+    @Test
+    fun `a registration built from the fit puts the rings where they belong`() {
+        val pxPerMm = 4.0
+        val face = TargetCatalog.ISSF_AP10
+        val frame = target(900, 450.0, 450.0,
+            5.75 * pxPerMm + 8.0 * pxPerMm, 8.0 * pxPerMm, 9, 29.75 * pxPerMm)
+        val fit = RingFinder.find(frame)!!
+        val reg = TargetRegistration.fromRingFit(face, fit, Gauge.AIR_4_5)
+        assertNotNull(reg)
+        // The ten-ring boundary must land at its true pixel radius.
+        val tenMm = face.rings.first { it.value == 10 }.radiusMm
+        val (x, y) = reg!!.homography.mmToPx(tenMm, 0.0)
+        val (cx, cy) = reg.homography.mmToPx(0.0, 0.0)
+        assertEquals(tenMm * pxPerMm, hypot(x - cx, y - cy), 3.0)
+    }
+
+    @Test
+    fun `a face with unevenly pitched rings cannot be scaled from a pitch`() {
+        val frame = target(500, 250.0, 250.0, 60.0, 22.0, 8, 45.0)
+        val fit = RingFinder.find(frame)!!
+        // The American high-power faces step 7, 12, 18, 24 inches.
+        assertTrue(TargetCatalog.NRA_SR_200.ringPitchMm == null)
+        assertEquals(null, TargetRegistration.fromRingFit(
+            TargetCatalog.NRA_SR_200, fit, Gauge.CENTREFIRE_7_62))
+    }
+
+    @Test
+    fun `featureless images produce no fit rather than a wrong one`() {
+        val blank = LumaFrame(400, 400, ByteArray(400 * 400) { 200.toByte() })
+        assertEquals(null, RingFinder.find(blank))
+    }
+
+    // ------------------------------------------------------------------
+    //  The colour channel
+    // ------------------------------------------------------------------
+
+    @Test
+    fun `paper colour is the median, so a big black mark cannot drag it`() {
+        // Two thirds yellow card, one third black aiming mark. A mean would
+        // land between them; the median stays on the card.
+        val px = IntArray(3000) { if (it < 2000) 0xFFFEDB83.toInt() else 0xFF1A1A1A.toInt() }
+        val (r, g, b) = LumaFrame.paperColourOf(px)
+        // Doubles, not Ints: JUnit's three-argument assertEquals is
+        // (double, double, double) and Kotlin does not widen Int to Double
+        // for overload resolution, so an Int triple matches nothing.
+        assertEquals(0xFE.toDouble(), r.toDouble(), 6.0)
+        assertEquals(0xDB.toDouble(), g.toDouble(), 6.0)
+        assertEquals(0x83.toDouble(), b.toDouble(), 6.0)
+    }
+
+    // ------------------------------------------------------------------
+    //  The premise behind the aiming-mark cross-check
+    // ------------------------------------------------------------------
+
+    /**
+     * [RingFinder] uses the aiming mark to sanity-check the fitted pitch, on
+     * the strength of two properties of real faces. Both are asserted here
+     * rather than assumed, because the first is NOT universal and a hard
+     * constraint built on it would have made two catalogue faces unscoreable.
+     */
+    @Test
+    fun `the aiming mark is a plausible number of rings across on every face`() {
+        val faces = listOf(
+            TargetCatalog.ISSF_AR10, TargetCatalog.ISSF_AP10, TargetCatalog.ISSF_R50,
+            TargetCatalog.ISSF_P25_PRECISION, TargetCatalog.ISSF_P25_RAPID,
+            TargetCatalog.ISSF_R300, TargetCatalog.NRA_MR1_600, TargetCatalog.FCLASS_600,
+            TargetCatalog.NRA_A17_50FT, TargetCatalog.NRA_A23_50YD,
+            TargetCatalog.DE_100M, TargetCatalog.DE_KK_50M
+        )
+        for (f in faces) {
+            val pitch = f.ringPitchMm ?: continue
+            val black = f.blackDiameterMm / 2.0
+            if (black <= 0.0 || pitch <= 0.0) continue
+            val ratio = black / pitch
+            assertTrue(
+                "${f.name}: black/pitch is $ratio, outside the range the ladder filter allows",
+                ratio in 2.4..8.6
+            )
+        }
+    }
+
+    /**
+     * The weaker property: the black edge usually IS a ring boundary, but on
+     * the ISSF 50 m Rifle face — and the German 50 m Kleinkaliber face that
+     * copies its dimensions — it sits 0.375 of a ring away. If this test ever
+     * starts passing for all faces, the confidence floor in RingFinder can be
+     * removed; while it fails for these two, that floor is load bearing.
+     */
+    @Test
+    fun `two catalogue faces have a black edge that is not on a ring boundary`() {
+        val offRung = listOf(TargetCatalog.ISSF_R50, TargetCatalog.DE_KK_50M)
+        for (f in offRung) {
+            val pitch = f.ringPitchMm!!
+            val k = (f.outerRadiusMm - f.blackDiameterMm / 2.0) / pitch
+            val miss = kotlin.math.abs(k - Math.round(k))
+            assertTrue(
+                "${f.name} is now on a rung (miss $miss); revisit MARK_AGREEMENT_FLOOR",
+                miss > RingFinder.MARK_RUNG_TOLERANCE * 2
+            )
+        }
+    }
+
+    // ------------------------------------------------------------------
+    //  The face guard
+    // ------------------------------------------------------------------
+
+    /**
+     * The single largest cause of "hole detection does not work". The face
+     * sets millimetres per pixel, the scoring radius and the black region; a
+     * wrong one puts every hole outside the detector's size gates and finds
+     * NOTHING, with no error raised anywhere. Measured on a real 50 yd
+     * smallbore card: registered against its own face the detector found all
+     * five shots, and against ISSF 10 m Air Rifle it found none.
+     */
+    @Test
+    fun `a grossly wrong face is reported before it silently scores nothing`() {
+        val all = listOf(
+            TargetCatalog.ISSF_AR10, TargetCatalog.ISSF_AP10, TargetCatalog.NRA_A23_50YD,
+            TargetCatalog.ISSF_P25_PRECISION, TargetCatalog.ISSF_R300
+        )
+        // A card measured at 4.13 ring widths of black, which is what the real
+        // 50 yd smallbore target gives. Air Rifle expects 6.1.
+        val complaint = TargetGeometryCheck.faceMismatch(
+            TargetCatalog.ISSF_AR10, markRadiusPx = 128.0, pitchPx = 31.0, candidates = all
+        )
+        assertNotNull("a 32% ratio error must be reported", complaint)
+        assertTrue(
+            "the complaint should name a face that does fit",
+            complaint!!.contains("50 yd") || complaint.contains("Smallbore")
+        )
+    }
+
+    @Test
+    fun `the right face is not complained about`() {
+        val all = listOf(TargetCatalog.ISSF_AR10, TargetCatalog.NRA_A23_50YD)
+        // 45.34 mm black over an 11.3 mm pitch is 4.01 ring widths.
+        assertNull(
+            TargetGeometryCheck.faceMismatch(
+                TargetCatalog.NRA_A23_50YD, markRadiusPx = 401.0, pitchPx = 100.0, candidates = all
+            )
+        )
+    }
+
+    /**
+     * The ratio is scale-free, which is what lets it judge a face without
+     * first trusting that face for the scale — and is also exactly why it
+     * cannot separate two faces of similar proportions at different sizes.
+     * Pinned so the limitation stays visible rather than being rediscovered
+     * as a bug.
+     */
+    @Test
+    fun `proportionally similar faces are not separated by the ratio alone`() {
+        val all = listOf(TargetCatalog.NRA_A23_50YD, TargetCatalog.ISSF_P25_PRECISION)
+        assertNull(
+            "ISSF 25/50 m Precision Pistol is within tolerance of a 50 yd smallbore card; " +
+                "ranking by fitted pitch is what separates them, not this",
+            TargetGeometryCheck.faceMismatch(
+                TargetCatalog.ISSF_P25_PRECISION, markRadiusPx = 413.0, pitchPx = 100.0,
+                candidates = all
+            )
+        )
+    }
+
+    // ------------------------------------------------------------------
+    //  Face identification
+    // ------------------------------------------------------------------
+
+    private fun fitOfPitch(pitchPx: Double) = com.rfsat.bas.detect.RingFit(
+        centreXPx = 0.0, centreYPx = 0.0, pitchPx = pitchPx,
+        ringsPx = listOf(pitchPx, 2 * pitchPx), residualPx = 0.0, confidence = 1.0
+    )
+
+    /**
+     * Black radius over ring pitch cannot separate the catalogue at ANY
+     * precision, and that is a property of the faces rather than of the
+     * measurement: 4.00 for ISSF 25/50 m Precision Pistol, 4.00 for the
+     * German 100 m face, 4.01 for the NRA A-23/5. Pinned so the limitation
+     * stays visible.
+     */
+    @Test
+    fun `several faces share a black-to-pitch ratio`() {
+        val ratios = listOf(
+            TargetCatalog.ISSF_P25_PRECISION, TargetCatalog.DE_100M, TargetCatalog.NRA_A23_50YD
+        ).map { it.blackDiameterMm / 2.0 / it.ringPitchMm!! }
+        assertTrue(
+            "these three should be within 1% of each other: $ratios",
+            ratios.max() - ratios.min() < 0.05
+        )
+    }
+
+    /** ...and that distance separates all of them. */
+    @Test
+    fun `distance separates the faces the ratio cannot`() {
+        val d = listOf(
+            TargetCatalog.ISSF_P25_PRECISION, TargetCatalog.DE_100M, TargetCatalog.NRA_A23_50YD
+        ).map { it.nominalDistanceM }.sorted()
+        for (i in 1 until d.size) {
+            assertTrue("distances $d should be far apart", d[i] / d[i - 1] > 1.7)
+        }
+    }
+
+    @Test
+    fun `the distance filter rules out a face drawn for another range`() {
+        val all = listOf(TargetCatalog.ISSF_AR10, TargetCatalog.ISSF_R300)
+        // 6.10 against 6.00 — the ratio can barely tell these apart, but one
+        // is a 10 m face and the other a 300 m one.
+        val fit = fitOfPitch(30.0)
+        val markPx = 30.0 * (TargetCatalog.ISSF_AR10.blackDiameterMm / 2.0 /
+            TargetCatalog.ISSF_AR10.ringPitchMm!!)
+        val at10 = RingFinder.identify(fit, markPx, all, sessionDistanceM = 10.0)
+        assertEquals(TargetCatalog.ISSF_AR10.id, at10.first().face.id)
+        val at300 = RingFinder.identify(fit, markPx, all, sessionDistanceM = 300.0)
+        assertEquals(TargetCatalog.ISSF_R300.id, at300.first().face.id)
+    }
+
+    @Test
+    fun `an impossible distance falls back to the whole catalogue`() {
+        val all = listOf(TargetCatalog.ISSF_AR10, TargetCatalog.ISSF_AP10)
+        val fit = fitOfPitch(30.0)
+        val markPx = 30.0 * 6.10
+        // 900 m matches nothing; the shooter should still get an answer
+        val r = RingFinder.identify(fit, markPx, all, sessionDistanceM = 900.0)
+        assertTrue("a face should still be offered", r.isNotEmpty())
+    }
+
+    /**
+     * Hysteresis. The measured ratio rests on the fitted pitch, which drifts
+     * as a card tilts, so a face in use must not be displaced by one that is
+     * merely a shade closer this frame — measured before this was added, the
+     * identified face changed four times across six angles of one card.
+     */
+    @Test
+    fun `a face in use is kept against a marginally better rival`() {
+        val all = listOf(TargetCatalog.ISSF_AR10, TargetCatalog.ISSF_AP10)
+        // a mark radius a little off the Air Rifle ratio, still nearest to it
+        val fit = fitOfPitch(30.0)
+        val markPx = 30.0 * 6.10 * 1.01
+        val fresh = RingFinder.identify(fit, markPx, all, 10.0, stickyFaceId = null)
+        val kept = RingFinder.identify(fit, markPx, all, 10.0,
+            stickyFaceId = fresh.first().face.id)
+        assertEquals(fresh.first().face.id, kept.first().face.id)
+    }
+
+    @Test
+    fun `a clearly better face still displaces the one in use`() {
+        val all = listOf(TargetCatalog.ISSF_AR10, TargetCatalog.ISSF_AP10)
+        val fit = fitOfPitch(30.0)
+        // squarely on the Air PISTOL ratio while Air Rifle is held sticky
+        val markPx = 30.0 * (TargetCatalog.ISSF_AP10.blackDiameterMm / 2.0 /
+            TargetCatalog.ISSF_AP10.ringPitchMm!!)
+        val r = RingFinder.identify(fit, markPx, all, 10.0,
+            stickyFaceId = TargetCatalog.ISSF_AR10.id)
+        assertEquals(TargetCatalog.ISSF_AP10.id, r.first().face.id)
+    }
+}

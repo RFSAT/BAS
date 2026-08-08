@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base: attributes shared by all four modes -->
+    <style name="Theme.BAS.Base" parent="Theme.MaterialComponents.NoActionBar">
+        <item name="android:statusBarColor">@color/dark_bg</item>
+    </style>
+
+    <!-- Dark: the default. Dark pixels draw less power on OLED and suit
+         low light on the firing point. -->
+    <style name="Theme.BAS.Dark" parent="Theme.BAS.Base">
+        <item name="android:windowBackground">@color/dark_bg</item>
+        <item name="colorSurface">@color/dark_surface</item>
+        <item name="colorPrimary">@color/dark_accent</item>
+        <item name="colorSecondary">@color/dark_accent</item>
+        <item name="colorAccent">@color/dark_accent</item>
+        <item name="colorOnPrimary">@color/dark_on_accent</item>
+        <item name="colorOnSecondary">@color/dark_on_accent</item>
+        <item name="android:colorBackground">@color/dark_surface</item>
+        <item name="android:textColorPrimary">@color/dark_text</item>
+        <item name="android:textColorSecondary">@color/dark_text_dim</item>
+        <item name="android:textColorTertiary">#C9D4C6</item>
+        <item name="android:textColorHint">#A6B2A4</item>
+        <item name="colorOnSurface">@color/dark_text</item>
+        <item name="colorOnBackground">@color/dark_text</item>
+    </style>
+
+    <!-- Day: bright, high contrast for direct-sunlight legibility -->
+    <style name="Theme.BAS.Day" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="android:windowBackground">@color/day_bg</item>
+        <item name="colorSurface">@color/day_surface</item>
+        <item name="colorPrimary">@color/day_accent</item>
+        <item name="colorSecondary">@color/day_accent</item>
+        <item name="colorAccent">@color/day_accent</item>
+        <item name="colorOnPrimary">@color/day_on_accent</item>
+        <item name="colorOnSecondary">@color/day_on_accent</item>
+        <item name="android:colorBackground">@color/day_surface</item>
+        <item name="android:textColorPrimary">@color/day_text</item>
+        <item name="android:textColorSecondary">@color/day_text_dim</item>
+        <item name="android:textColorTertiary">#3D4A3D</item>
+    </style>
+
+    <!-- Night Green: monochrome green on black -->
+    <style name="Theme.BAS.NightGreen" parent="Theme.BAS.Base">
+        <item name="android:windowBackground">@color/ngreen_bg</item>
+        <item name="colorSurface">@color/ngreen_surface</item>
+        <item name="colorPrimary">@color/ngreen_accent</item>
+        <item name="colorSecondary">@color/ngreen_accent</item>
+        <item name="colorAccent">@color/ngreen_accent</item>
+        <item name="colorOnPrimary">@color/ngreen_on_accent</item>
+        <item name="colorOnSecondary">@color/ngreen_on_accent</item>
+        <item name="android:colorBackground">@color/ngreen_surface</item>
+        <item name="android:textColorPrimary">@color/ngreen_text</item>
+        <item name="android:textColorSecondary">@color/ngreen_text_dim</item>
+        <item name="android:textColorTertiary">#2BB82B</item>
+        <item name="android:textColorHint">#1FA31F</item>
+        <item name="colorOnSurface">@color/ngreen_text</item>
+        <item name="colorOnBackground">@color/ngreen_text</item>
+    </style>
+
+    <!-- Night Red: monochrome red on black — preserves night vision best -->
+    <style name="Theme.BAS.NightRed" parent="Theme.BAS.Base">
+        <item name="android:windowBackground">@color/nred_bg</item>
+        <item name="colorSurface">@color/nred_surface</item>
+        <item name="colorPrimary">@color/nred_accent</item>
+        <item name="colorSecondary">@color/nred_accent</item>
+        <item name="colorAccent">@color/nred_accent</item>
+        <item name="colorOnPrimary">@color/nred_on_accent</item>
+        <item name="colorOnSecondary">@color/nred_on_accent</item>
+        <item name="android:colorBackground">@color/nred_surface</item>
+        <item name="android:textColorPrimary">@color/nred_text</item>
+        <item name="android:textColorSecondary">@color/nred_text_dim</item>
+        <item name="android:textColorTertiary">#C93A3A</item>
+        <item name="android:textColorHint">#A62A2A</item>
+        <item name="colorOnSurface">@color/nred_text</item>
+        <item name="colorOnBackground">@color/nred_text</item>
+    </style>
+
+    <!-- Manifest default points here; BaseActivity swaps at runtime -->
+    <style name="Theme.BAS" parent="Theme.BAS.Dark" />
+
+    <!-- Shared widget styles so every screen looks the same without
+         repeating six attributes per view. -->
+    <style name="Sts.SectionHeading" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <!-- 19sp: these head the settings screen and were competing with the
+             body text they introduce rather than standing above it. -->
+        <item name="android:textSize">19sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:layout_marginTop">18dp</item>
+        <item name="android:layout_marginBottom">6dp</item>
+        <item name="android:textColor">?attr/colorAccent</item>
+    </style>
+
+    <style name="Sts.FieldLabel" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:layout_marginTop">8dp</item>
+        <item name="android:textColor">?android:attr/textColorSecondary</item>
+    </style>
+
+    <!-- Borderless buttons.
+
+         "?android:attr/borderlessButtonStyle" asks for the PLATFORM style,
+         whose text colour comes from the platform's own attributes rather
+         than from anything this app sets — so under the dark themes every one
+         of the 35 borderless buttons rendered near-black on a dark
+         background: the Home screen's log and resume, everything under
+         Elsewhere in Settings, the undo and reset and clear actions on every
+         other screen. Setting textColor here, on a style applied directly to
+         the view, is the one place the platform cannot override.
+
+         colorAccent rather than textColorPrimary, so a text button reads as
+         an action in all four themes: gold on dark, dark green on white,
+         and the monochrome accent in each night mode. -->
+    <style name="Sts.TextButton" parent="Widget.AppCompat.Button.Borderless">
+        <item name="android:textColor">?attr/colorAccent</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <!-- A real, visibly raised button.
+
+         Sts.TextButton renders as flat coloured text, and the shot-editing
+         controls used it: "Add shot", "Move shots", "Show whole card" and
+         "Reset view" all looked like labels rather than things to press, and
+         went unnoticed. The same mistake had already been reported once for
+         the photo-import entry points. Anything that PERFORMS an action gets
+         this; Sts.TextButton is now only for genuinely secondary links. -->
+    <!-- The same button, shorter, for the footer rows on the catalogue
+         screens. Those screens are a browser: the point of them is the list,
+         and every dp the furniture takes is a dp the list does not get.
+         DELIBERATELY NOT applied to Sts.ActionButton itself — the Results
+         screen's controls were made a uniform 44dp on purpose, and shrinking
+         every button in the app to gain rows on two screens is the wrong
+         trade. -->
+    <style name="Sts.ActionButton.Dense" parent="Sts.ActionButton">
+        <item name="android:minHeight">34dp</item>
+        <item name="android:paddingTop">0dp</item>
+        <item name="android:paddingBottom">0dp</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:layout_marginTop">0dp</item>
+        <item name="android:layout_marginBottom">0dp</item>
+    </style>
+
+    <style name="Sts.ActionButton" parent="Widget.AppCompat.Button">
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="android:paddingLeft">10dp</item>
+        <item name="android:paddingRight">10dp</item>
+        <item name="android:layout_marginStart">2dp</item>
+        <item name="android:layout_marginEnd">2dp</item>
+    </style>
+
+    <!-- A button in a row of equal buttons. Fixed height so a label that
+         wraps cannot make one taller than its neighbours, equal weight so
+         they are all the same width. -->
+    <style name="Sts.GridButton" parent="Widget.AppCompat.Button">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_height">52dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:paddingLeft">4dp</item>
+        <item name="android:paddingRight">4dp</item>
+        <item name="android:layout_marginStart">2dp</item>
+        <item name="android:layout_marginEnd">2dp</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">end</item>
+    </style>
+
+    <!-- The active-setup table on the home screen. The label column is
+         wrap_content so it sizes to the longest label, the colon sits in its
+         own column so every colon lands on the same x, and the value column
+         takes the rest. -->
+    <style name="Sts.SetupLabel" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:paddingTop">2dp</item>
+        <item name="android:paddingBottom">2dp</item>
+        <item name="android:textColor">?android:attr/textColorSecondary</item>
+    </style>
+
+    <style name="Sts.SetupColon" parent="Sts.SetupLabel">
+        <item name="android:text">" : "</item>
+    </style>
+
+    <style name="Sts.SetupValue" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:paddingTop">2dp</item>
+        <item name="android:paddingBottom">2dp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">?android:attr/textColorPrimary</item>
+    </style>
+
+    <!-- A parameter table row: name on the left, value beside it. Both
+         columns are LEFT aligned, which is what makes a column of values
+         scannable — right-aligning them would ragged the left edge that the
+         eye follows down. -->
+    <style name="Sts.ParamName" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:paddingTop">2dp</item>
+        <item name="android:paddingBottom">2dp</item>
+        <item name="android:paddingEnd">14dp</item>
+        <item name="android:gravity">start</item>
+        <item name="android:textColor">?android:attr/textColorSecondary</item>
+    </style>
+
+    <style name="Sts.ParamValue" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:paddingTop">2dp</item>
+        <item name="android:paddingBottom">2dp</item>
+        <item name="android:gravity">start</item>
+        <item name="android:textColor">?android:attr/textColorPrimary</item>
+    </style>
+
+    <!-- Check boxes.
+
+         Same trap as the borderless buttons above, one widget along. The
+         platform's CompoundButton takes its label colour from the PLATFORM
+         theme's text appearance, not from anything this app sets on its own
+         theme — so under the two night modes and dark the labels rendered in
+         the framework's default grey rather than the theme's text colour,
+         while every TextView beside them followed the theme correctly. It is
+         most obvious on the settings screen, where a check box label sits
+         directly above the one-line note explaining it and the two are
+         visibly different colours.
+
+         Stated on a style applied to the view, which is the one place the
+         platform cannot override. buttonTint is set for the same reason:
+         the box itself was drawn in the framework's default accent rather
+         than the theme's, which under Night Red put a blue-grey tick on a
+         monochrome red screen. -->
+    <style name="Sts.CheckBox" parent="Widget.AppCompat.CompoundButton.CheckBox">
+        <item name="android:textColor">?android:attr/textColorPrimary</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:buttonTint">?attr/colorAccent</item>
+    </style>
+
+    <style name="Sts.Value" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+</resources>

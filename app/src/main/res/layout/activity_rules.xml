@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="4dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <Spinner android:id="@+id/spBody"
+                android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="wrap_content" />
+            <Spinner android:id="@+id/spDiscipline"
+                android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <!-- The rule detail, in three parts.
+
+             The parameters used to be lines of a single TextView with their
+             names padded out with spaces, which only lines the values up in a
+             monospaced font — in the app's proportional face the second
+             column wandered by several characters. A table aligns both
+             columns by construction, and the prose above and below it stays
+             ordinary flowing text. -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="5dp"
+            android:background="@drawable/bg_card"
+            android:padding="12dp">
+
+            <TextView android:id="@+id/tvDetailHead"
+                style="@style/Sts.Value"
+                android:textSize="12sp" />
+
+            <TableLayout android:id="@+id/tblParams"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:shrinkColumns="1" />
+
+            <TextView android:id="@+id/tvDetailFoot"
+                style="@style/Sts.Value"
+                android:layout_marginTop="5dp"
+                android:textSize="12sp"
+                android:justificationMode="inter_word" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="4dp">
+            <Button android:id="@+id/btnUse"
+                android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="wrap_content" android:text="Use this"
+                style="@style/Sts.ActionButton.Dense" />
+            <Button android:id="@+id/btnEdit"
+                android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="wrap_content" android:text="Copy &amp; edit"
+                style="@style/Sts.TextButton" />
+            <Button android:id="@+id/btnDelete"
+                android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="wrap_content" android:text="Delete"
+                style="@style/Sts.TextButton" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp" />
+
+    <include layout="@layout/include_bottom_nav" />
+
+</LinearLayout>

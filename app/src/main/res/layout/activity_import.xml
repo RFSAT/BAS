@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="#000000">
+
+        <!-- fitCenter, not centerCrop: the whole card must be visible for its
+             corners to be tapped, and RegistrationOverlayView is told which
+             fit is in use so its tap mapping matches. -->
+        <ImageView
+            android:id="@+id/image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter"
+            android:contentDescription="The photographed target" />
+
+        <com.rfsat.bas.detect.RegistrationOverlayView
+            android:id="@+id/overlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <TextView
+            android:id="@+id/tvStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:background="#AA000000"
+            android:padding="8dp"
+            android:textColor="?attr/colorAccent"
+            android:textSize="12sp"
+            android:maxLines="5" />
+    </FrameLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="14dp">
+
+            <TextView style="@style/Sts.SectionHeading" android:text="1. Choose the photographs" />
+
+            <Button android:id="@+id/btnPickShot"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Photo of the shot target"
+                style="@style/Sts.ActionButton" />
+
+            <Button android:id="@+id/btnPickClean"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                style="@style/Sts.TextButton"
+                android:text="Photo of the clean target (optional, much more accurate)" />
+
+            <TextView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:layout_marginTop="4dp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:text="With both photographs the app scores what CHANGED between them, which ignores the printed rings, the paper texture and the aiming mark entirely. With only the shot target it has to tell holes from printing by shape and size alone, which works but is the weaker mode."
+                android:justificationMode="inter_word" />
+
+            <TextView style="@style/Sts.SectionHeading" android:text="2. Course of fire" />
+
+            <TextView style="@style/Sts.FieldLabel" android:text="Rules" />
+            <Spinner android:id="@+id/spRules"
+                android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+            <TextView style="@style/Sts.FieldLabel" android:text="Target face" />
+            <Spinner android:id="@+id/spTarget"
+                android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+            <TextView android:id="@+id/lblDistance" style="@style/Sts.FieldLabel" android:text="Distance" />
+            <EditText android:id="@+id/etDistance"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:autofillHints="" />
+
+            <TextView style="@style/Sts.SectionHeading" android:text="3. Register the target" />
+
+            <Button android:id="@+id/btnIdentify"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Identify target and register"
+                style="@style/Sts.ActionButton" />
+
+            <TextView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="6dp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:text="Fits the printed rings, works out which target face it is, and takes the scale from the ring spacing. More accurate than the aiming mark alone, and it does not depend on the face selected above being right."
+                android:justificationMode="inter_word" />
+
+            <Button android:id="@+id/btnAutoDetect"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Auto-detect the target"
+                style="@style/Sts.ActionButton" />
+
+            <TextView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:layout_marginTop="6dp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:text="Uses the target face selected above without searching for a better one, finds the black centre, fits the printed rings and draws them. Check the box, then drag a corner handle to resize it or the middle to move it."
+                android:justificationMode="inter_word" />
+
+            <CheckBox style="@style/Sts.CheckBox" android:id="@+id/cbCornerMode"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Photo taken at an angle — register by tapping the four card corners instead" />
+
+            <LinearLayout
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginTop="8dp">
+                <Button android:id="@+id/btnRegister"
+                    android:layout_width="0dp" android:layout_weight="1"
+                    android:layout_height="wrap_content" android:text="Register"
+                style="@style/Sts.ActionButton" />
+                <Button android:id="@+id/btnUndoCorner"
+                    android:layout_width="0dp" android:layout_weight="1"
+                    android:layout_height="wrap_content" android:text="Reset"
+                    style="@style/Sts.TextButton" />
+            </LinearLayout>
+
+
+            <TextView style="@style/Sts.SectionHeading" android:text="Image aspect" />
+
+            <TextView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:text="Stretches the picture itself so the printed rings come out round. Use it when the drawn circles sit over the printing on one axis but not the other. The picture is re-registered afterwards."
+                android:justificationMode="inter_word" />
+
+            <TextView android:id="@+id/infoAspect"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textSize="12sp" android:paddingTop="1dp" android:paddingBottom="3dp"
+                android:textColor="?attr/colorAccent"
+                android:text="More info" />
+
+            <TextView android:id="@+id/tvAspect"
+                style="@style/Sts.Value" android:textSize="12sp" android:layout_marginTop="2dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginTop="4dp"
+                android:gravity="center_vertical">
+                <TextView style="@style/Sts.ParamName" android:text="Width %" />
+                <EditText android:id="@+id/etAspectX"
+                    android:layout_width="0dp" android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:textSize="13sp"
+                    android:inputType="numberDecimal"
+                    android:text="100"
+                    android:autofillHints="" />
+                <TextView style="@style/Sts.ParamName" android:text="  Height %" />
+                <EditText android:id="@+id/etAspectY"
+                    android:layout_width="0dp" android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:textSize="13sp"
+                    android:inputType="numberDecimal"
+                    android:text="100"
+                    android:autofillHints="" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginTop="4dp">
+                <Button android:id="@+id/btnAspectApply"
+                    android:layout_width="0dp" android:layout_weight="1"
+                    android:layout_height="wrap_content" android:text="Apply and re-register"
+                    style="@style/Sts.ActionButton.Dense" />
+                <Button android:id="@+id/btnAspectReset"
+                    android:layout_width="0dp" android:layout_weight="1"
+                    android:layout_height="wrap_content" android:text="Original picture"
+                    style="@style/Sts.ActionButton.Dense" />
+            </LinearLayout>
+
+            <TextView style="@style/Sts.SectionHeading" android:text="Lens distortion" />
+
+            <TextView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:text="Straightens a picture bowed by a wide lens. Measured from the printed rings; matters at close range and hardly at all down a range."
+                android:justificationMode="inter_word" />
+
+            <TextView android:id="@+id/infoLens"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textSize="12sp" android:paddingTop="1dp" android:paddingBottom="3dp"
+                android:textColor="?attr/colorAccent"
+                android:text="More info" />
+
+            <TextView android:id="@+id/tvLens"
+                style="@style/Sts.Value" android:textSize="12sp" android:layout_marginTop="2dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginTop="4dp"
+                android:gravity="center_vertical">
+                <TextView style="@style/Sts.ParamName" android:text="Coefficient" />
+                <EditText android:id="@+id/etLensK"
+                    android:layout_width="0dp" android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:textSize="13sp"
+                    android:inputType="numberDecimal|numberSigned"
+                    android:text="0"
+                    android:autofillHints="" />
+                <Button android:id="@+id/btnLensApply"
+                    android:layout_width="0dp" android:layout_weight="1"
+                    android:layout_height="wrap_content" android:text="Apply"
+                    style="@style/Sts.ActionButton.Dense" />
+            </LinearLayout>
+
+            <TextView style="@style/Sts.SectionHeading" android:text="Tilt and rotation" />
+
+            <TextView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:text="Match the dashed outline to the rings. Rotation turns the target in the picture; the two tilts lean it away from the camera, one about each axis. If the outline gets worse, drag the slider the other way — a symmetric mark cannot say which way a target leans, so the starting guess picks a side."
+                android:justificationMode="inter_word" />
+
+            <TextView android:id="@+id/lblRotation" style="@style/Sts.FieldLabel" android:text="Rotation" />
+            <SeekBar android:id="@+id/sbRotation"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:max="180" android:progress="90" />
+
+            <TextView android:id="@+id/lblTiltX" style="@style/Sts.FieldLabel" android:text="Horizontal tilt" />
+            <SeekBar android:id="@+id/sbTiltX"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:max="160" android:progress="80" />
+
+            <TextView android:id="@+id/lblTiltY" style="@style/Sts.FieldLabel" android:text="Vertical tilt" />
+            <SeekBar android:id="@+id/sbTiltY"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:max="160" android:progress="80" />
+
+            <LinearLayout
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <Button android:id="@+id/btnApplyTilt"
+                    android:layout_width="0dp" android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    style="@style/Sts.TextButton"
+                    android:text="Apply estimated tilt" />
+                <Button android:id="@+id/btnResetTilt"
+                    android:layout_width="0dp" android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    style="@style/Sts.TextButton"
+                    android:text="Reset tilt" />
+            </LinearLayout>
+
+            <TextView style="@style/Sts.SectionHeading" android:text="4. Score" />
+
+            <CheckBox style="@style/Sts.CheckBox" android:id="@+id/cbReplace"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="Replace the shots already in this session" />
+
+            <Button android:id="@+id/btnClearShots"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                style="@style/Sts.TextButton"
+                android:text="Clear all recorded shots" />
+
+            <Button android:id="@+id/btnDetect"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Detect the hits and score them"
+                style="@style/Sts.ActionButton" />
+
+            <TextView android:id="@+id/tvResult"
+                style="@style/Sts.Value"
+                android:layout_marginTop="10dp"
+                android:textSize="13sp" />
+
+            <TextView android:id="@+id/hdrDistribution" style="@style/Sts.SectionHeading"
+                android:visibility="gone"
+                android:text="Shot distribution" />
+            <com.rfsat.bas.ui.ScoreHistogramView
+                android:id="@+id/histogram"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp" />
+
+            <Button android:id="@+id/btnResults"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Open the full results"
+                style="@style/Sts.ActionButton" />
+
+        </LinearLayout>
+    </ScrollView>
+
+    <include layout="@layout/include_bottom_nav" />
+
+</LinearLayout>

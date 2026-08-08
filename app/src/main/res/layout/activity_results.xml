@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="14dp">
+
+            <TextView
+                android:id="@+id/tvHeadline"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="26sp"
+                android:textStyle="bold"
+                android:gravity="center" />
+
+            <TextView
+                android:id="@+id/tvSubhead"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="13sp"
+                android:gravity="center"
+                android:layout_marginBottom="10dp"
+                android:textColor="?android:attr/textColorSecondary" />
+
+            <com.rfsat.bas.ui.TargetPlotView
+                android:id="@+id/plot"
+                android:layout_width="match_parent"
+                android:layout_height="360dp"
+                android:background="@drawable/bg_card" />
+
+            <!-- Two rows of identically sized buttons.
+
+                 Every one of these is the same width and the same height, so
+                 the row reads as a set of equal controls. They were weighted
+                 with wrap_content heights before, which meant a label that
+                 wrapped to two lines made its own button taller than its
+                 neighbours. Labels are kept short for the same reason. -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="6dp">
+                <Button android:id="@+id/btnAddMode"
+                    style="@style/Sts.GridButton"
+                    android:text="Add" />
+                <Button android:id="@+id/btnMoveMode"
+                    style="@style/Sts.GridButton"
+                    android:text="Move" />
+                <Button android:id="@+id/btnDeleteShot"
+                    style="@style/Sts.GridButton"
+                    android:text="Delete" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="4dp">
+                <Button android:id="@+id/btnFullCard"
+                    style="@style/Sts.GridButton"
+                    android:text="Whole card" />
+                <Button android:id="@+id/btnResetZoom"
+                    style="@style/Sts.GridButton"
+                    android:text="Reset view" />
+                <Button android:id="@+id/btnShowPhoto"
+                    style="@style/Sts.GridButton"
+                    android:text="My photo" />
+            </LinearLayout>
+
+            <TextView style="@style/Sts.SectionHeading" android:text="Sight correction" />
+            <TextView android:id="@+id/tvCorrection"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:background="@drawable/bg_card"
+                android:padding="12dp"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="?attr/colorAccent" />
+            <TextView android:id="@+id/tvCorrectionDetail"
+                style="@style/Sts.Value"
+                android:layout_marginTop="6dp"
+                android:textSize="13sp" />
+
+            <!-- The angular figures, monospaced so the columns line up.
+                 They were four numbers inside two sentences padded with
+                 spaces, in a proportional font, which lines nothing up. -->
+            <TextView android:id="@+id/tvCorrectionNumbers"
+                style="@style/Sts.Value"
+                android:layout_marginTop="4dp"
+                android:typeface="monospace"
+                android:textSize="12sp" />
+
+            <TextView style="@style/Sts.SectionHeading" android:text="Group" />
+            <TextView android:id="@+id/tvGroup"
+                style="@style/Sts.Value"
+                android:typeface="monospace"
+                android:textSize="12sp" />
+
+            <TextView style="@style/Sts.SectionHeading" android:text="Shot distribution" />
+            <TextView android:id="@+id/tvDistribution"
+                style="@style/Sts.Value"
+                android:textSize="12sp"
+                android:typeface="monospace" />
+            <com.rfsat.bas.ui.ScoreHistogramView
+                android:id="@+id/histogram"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp" />
+
+            <TextView style="@style/Sts.SectionHeading" android:text="Series" />
+            <TextView android:id="@+id/tvSeries"
+                style="@style/Sts.Value"
+                android:typeface="monospace"
+                android:textSize="12sp" />
+
+            <TextView android:id="@+id/hdrWarnings" style="@style/Sts.SectionHeading" android:text="Worth knowing" />
+            <TextView android:id="@+id/tvWarnings"
+                style="@style/Sts.Value"
+                android:textSize="13sp"
+                android:lineSpacingExtra="3dp"
+                android:justificationMode="inter_word" />
+
+            <TextView style="@style/Sts.SectionHeading" android:text="Stage time (practical disciplines)" />
+            <!-- 13sp to sit with the rest of the body text on this screen,
+                 which runs 12-13sp. These two fields were on the platform's
+                 default EditText size, several points larger than everything
+                 around them, so they read as headings rather than as fields.
+                 13 rather than 12 because they are editable: text being typed
+                 into should not be the smallest thing on the screen. -->
+            <EditText android:id="@+id/etTime"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:textSize="13sp"
+                android:hint="seconds"
+                android:autofillHints="" />
+
+            <TextView style="@style/Sts.SectionHeading" android:text="Notes" />
+            <EditText android:id="@+id/etNotes"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:inputType="textMultiLine"
+                android:minLines="2"
+                android:textSize="13sp"
+                android:hint="conditions, hold-off, anything worth remembering"
+                android:autofillHints="" />
+
+            <TextView style="@style/Sts.SectionHeading" android:text="Shots" />
+            <TextView android:id="@+id/tvShots"
+                style="@style/Sts.Value"
+                android:typeface="monospace"
+                android:textSize="12sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="14dp">
+                <Button android:id="@+id/btnSecondOpinion"
+                    style="@style/Sts.GridButton"
+                    android:text="Second opinion" />
+                <Button android:id="@+id/btnShare"
+                    style="@style/Sts.GridButton"
+                    android:text="Share report" />
+                <Button android:id="@+id/btnCsv"
+                    style="@style/Sts.GridButton"
+                    android:text="Export CSV" />
+            </LinearLayout>
+
+            <Button android:id="@+id/btnClearShots"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="6dp"
+                style="@style/Sts.ActionButton"
+                android:text="Clear all shots from this session" />
+
+            <Button android:id="@+id/btnNewSession"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="6dp"
+                style="@style/Sts.ActionButton"
+                android:text="Finish and start a new session" />
+
+        </LinearLayout>
+    </ScrollView>
+
+    <include layout="@layout/include_bottom_nav" />
+
+</LinearLayout>

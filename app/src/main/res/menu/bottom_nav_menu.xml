@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- BAS integrated shell. Material caps BottomNavigationView at 5 items, so
+     the flow reads left-to-right as the shooter works: put shots on centre
+     (Ballistics), then grade the group (Score), then read outcomes (Results).
+     Targets, Rules, Log and Backup live under Settings. Exit is appended
+     outside the menu in include_bottom_nav. -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/nav_home"       android:icon="@drawable/ic_nav_home"       android:title="@string/nav_home" />
+    <item android:id="@+id/nav_ballistics" android:icon="@drawable/ic_nav_ballistics" android:title="@string/nav_ballistics" />
+    <item android:id="@+id/nav_score"      android:icon="@drawable/ic_nav_session"    android:title="@string/nav_score" />
+    <item android:id="@+id/nav_results"    android:icon="@drawable/ic_nav_results"    android:title="@string/nav_results" />
+    <item android:id="@+id/nav_settings"   android:icon="@drawable/ic_nav_settings"   android:title="@string/nav_settings" />
+</menu>

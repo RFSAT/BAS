@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="4dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <Spinner android:id="@+id/spDiscipline"
+                android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="wrap_content" />
+            <Spinner android:id="@+id/spBody"
+                android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <!-- Height is set in code, not here: see TargetActivity.sizePreview.
+             A face should fill the WIDTH of its box, which means the box wants
+             to be square — but a square box on a short phone leaves no
+             catalogue underneath, and on a silhouette face the list is how you
+             tell an IPSC target from an IDPA one. So it is square where there
+             is room and capped where there is not. This value is only the
+             starting point before the first layout pass. -->
+        <com.rfsat.bas.ui.TargetPlotView
+            android:id="@+id/plot"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_marginTop="5dp"
+            android:background="@drawable/bg_card" />
+
+        <!-- Face detail in three parts: summary, an aligned parameter
+             table, then any caveats. The dimensions used to run inline as
+             prose — "Card 80 x 80 mm", "Aiming black 30.5 mm" — so nothing
+             lined up and the numbers could not be compared down the column.
+             Same treatment as the rules screen, sharing its row layout. -->
+        <TextView android:id="@+id/tvDetailHead"
+            style="@style/Sts.Value"
+            android:layout_marginTop="5dp"
+            android:textSize="12sp" />
+
+        <TableLayout android:id="@+id/tblFace"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:shrinkColumns="1" />
+
+        <TextView android:id="@+id/tvDetailFoot"
+            style="@style/Sts.Value"
+            android:layout_marginTop="4dp"
+            android:textSize="12sp"
+            android:justificationMode="inter_word" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="4dp">
+            <Button android:id="@+id/btnUse"
+                android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="wrap_content" android:text="Use this"
+                style="@style/Sts.ActionButton.Dense" />
+            <Button android:id="@+id/btnEdit"
+                android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="wrap_content" android:text="Copy &amp; edit"
+                style="@style/Sts.ActionButton.Dense" />
+            <Button android:id="@+id/btnDelete"
+                android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="wrap_content" android:text="Delete"
+                style="@style/Sts.ActionButton.Dense" />
+        </LinearLayout>
+
+        <Button android:id="@+id/btnImport"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Add my own target…"
+                style="@style/Sts.ActionButton.Dense" />
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:minHeight="96dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp" />
+
+    <include layout="@layout/include_bottom_nav" />
+
+</LinearLayout>

@@ -1,0 +1,170 @@
+package com.rfsat.bas.ui
+
+import android.content.Intent
+import android.os.Bundle
+import com.rfsat.bas.BuildConfig
+import com.rfsat.bas.R
+import com.rfsat.bas.StsApp
+import com.rfsat.bas.databinding.ActivityMainBinding
+import com.rfsat.bas.detect.SessionActivity
+import com.rfsat.bas.profiles.ProfileRepository
+import com.rfsat.bas.results.ResultsActivity
+import com.rfsat.bas.rules.RuleRepository
+import com.rfsat.bas.scoring.ScoringSession
+import com.rfsat.bas.targets.TargetRepository
+
+class MainActivity : BaseActivity() {
+
+    companion object {
+        const val KEY_SHOW_LOG = "show_log"
+    }
+
+
+    private lateinit var binding: ActivityMainBinding
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        // Report FIRST, then initialise. If this were last, a crash anywhere
+        // in the screen's own startup would record a stack that no subsequent
+        // launch could ever display. Everything after it is guarded, so if
+        // init throws, Home still comes up — degraded — and shows THAT stack.
+        maybeShowCrashReport()
+        runCatching { initHome() }.onFailure {
+            showStack("BAS startup error", "thread main\n" + android.util.Log.getStackTraceString(it))
+        }
+    }
+
+    private fun initHome() {
+        ScoringSession.attach(this)
+
+        binding.tvVersion.text =
+            "Version ${BuildConfig.VERSION_NAME} (build ${BuildConfig.VERSION_CODE}, ${BuildConfig.BUILD_TYPE})"
+
+        binding.tvClaudeCredit.text = androidx.core.text.HtmlCompat.fromHtml(
+            "with support from <a href=\"https://claude.ai\">Claude AI</a>",
+            androidx.core.text.HtmlCompat.FROM_HTML_MODE_LEGACY
+        )
+        binding.tvClaudeCredit.movementMethod = android.text.method.LinkMovementMethod.getInstance()
+
+        // Live scoring and photo import are reached from the Session tab in
+        // the bottom bar, which is where every other screen lives too. Two
+        // large duplicate entry points on the home screen pushed the active
+        // setup — the one thing worth confirming before firing — below the
+        // fold on a small phone.
+        binding.btnLog.setOnClickListener {
+            startActivity(Intent(this, com.rfsat.bas.log.LogActivity::class.java))
+        }
+        binding.btnResume.setOnClickListener {
+            startActivity(Intent(this, ResultsActivity::class.java))
+        }
+
+        refreshSetup()
+        setupBottomNav(R.id.nav_home)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        runCatching { refreshSetup() }
+        setupBottomNav(R.id.nav_home)
+    }
+
+    private fun refreshSetup() {
+        val profiles = ProfileRepository(this)
+        val targets = TargetRepository(this)
+        val rules = RuleRepository(this)
+
+        val face = targets.activeFace()
+        val rule = rules.activeSet()
+        val setName = profiles.getActiveSetName() ?: "custom (edited)"
+
+        binding.tvSetupSet.text = setName
+        // Short names: a full catalogue label carries type, calibre, barrel
+        // and twist, which wraps the value column into a block.
+        binding.tvSetupRifle.text = NameWrap.shortName(profiles.getRifle().label())
+        binding.tvSetupLoad.text = NameWrap.shortName(profiles.getBullet().name)
+        binding.tvSetupSight.text = NameWrap.shortName(profiles.getScope().label())
+        binding.tvSetupTarget.text = face.name
+        binding.tvSetupRules.text = rule.name
+        // THE SESSION'S DISTANCE, not the rule set's nominal one.
+        //
+        // Reported: 200 m typed on the Session tab, 10 m shown here. Both
+        // numbers were real — this line was showing the distance printed in
+        // the ISSF rule set, which is where a match is shot, while the
+        // session was scored at the distance the shooter had entered. A
+        // competition face used for training at another distance is ordinary,
+        // and the correction, the MOA figures and the group statistics all
+        // use the session's number, so showing the rule's here contradicted
+        // every screen that mattered.
+        val sessionM = ScoringSession.state.distanceM
+        val usingSession = sessionM > 0.0 && kotlin.math.abs(sessionM - rule.distanceM) > 0.05
+        binding.tvSetupDistance.text = buildString {
+            append(UnitsManager.formatDistance(if (sessionM > 0.0) sessionM else rule.distanceM))
+            // Said out loud rather than left to be noticed: a distance that
+            // differs from the rule book is usually deliberate and
+            // occasionally a typing mistake, and the two look identical.
+            if (usingSession) append("  (rules say ${UnitsManager.formatDistance(rule.distanceM)})")
+        }
+
+        val unverified = !face.verified || !rule.verified
+        binding.tvSetupNote.visibility =
+            if (unverified) android.view.View.VISIBLE else android.view.View.GONE
+        if (unverified) {
+            binding.tvSetupNote.text =
+                "This combination uses figures that are the commonly published ones rather than " +
+                    "a governing body's own table. Check them before quoting a score."
+        }
+
+        // The log is a diagnostic surface, not part of shooting, so it can be
+        // hidden — but it ships VISIBLE. Someone who needs to send a log is
+        // already having a bad time and should not have to hunt for it first.
+        binding.btnLog.visibility =
+            if (getSharedPreferences(PREFS, MODE_PRIVATE).getBoolean(KEY_SHOW_LOG, true))
+                android.view.View.VISIBLE else android.view.View.GONE
+
+        val resumable = ScoringSession.hasShots
+        binding.btnResume.visibility = if (resumable) android.view.View.VISIBLE else android.view.View.GONE
+        if (resumable) {
+            binding.btnResume.text = "Resume — ${ScoringSession.state.shots.size} shot(s) recorded"
+        }
+    }
+
+    /** If the previous launch died, show the recorded stack in a shareable
+     *  dialog. Dismissing clears the record, which also re-enables the stored
+     *  session restore on the next launch. */
+    private fun maybeShowCrashReport() {
+        val prefs = getSharedPreferences(StsApp.CRASH_PREFS, MODE_PRIVATE)
+        val stack = prefs.getString(StsApp.KEY_STACK, null) ?: return
+        prefs.edit().clear().apply()
+        showStack("BAS crashed on the previous launch", stack)
+    }
+
+    private fun showStack(title: String, stack: String) {
+        runCatching {
+            val tv = android.widget.TextView(this).apply {
+                typeface = android.graphics.Typeface.MONOSPACE
+                textSize = 10f
+                setPadding(32, 16, 32, 0)
+                text = stack
+                setTextIsSelectable(true)
+            }
+            val scroll = android.widget.ScrollView(this).apply { addView(tv) }
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle(title)
+                .setView(scroll)
+                .setPositiveButton("Share") { _, _ ->
+                    val send = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_SUBJECT, "BAS crash report")
+                        putExtra(Intent.EXTRA_TEXT, stack)
+                    }
+                    startActivity(Intent.createChooser(send, "Share crash report"))
+                }
+                .setNegativeButton("Dismiss", null)
+                .setCancelable(false)
+                .show()
+        }
+    }
+}
