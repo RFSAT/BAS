@@ -1,12 +1,193 @@
 # BAS — Ballistics and Scoring
 
-An integrated Android app combining **VTB** (Vapor-Trail Ballistics: put shots on
-centre) and **STS** (Shooting Target Scorer: grade the group) into one product.
+An Android application that carries a shooter through the whole of a session:
+first putting shots on the centre of the target, then measuring how tightly
+they landed. It is the union of two apps built on the same structure and visual
+language — **VTB Vapor-Trail Ballistics**, which computes the correction that
+brings the point of impact to centre, and **STS Shooting Target Scorer**, which
+registers the card and scores the group against the printed rings. BAS keeps
+STS as its base and folds VTB's ballistics stack into it, so the same rifle,
+load and scope you describe once drive both the trajectory solution and the
+scoring gauge.
 
-- Play `applicationId`: `com.BAS`  ·  namespace `com.rfsat.bas`  ·  v1.0.0 (code 1)
-- Tabs: **Home · Ballistics · Score · Results · Settings**
-- Build in CI via `.github/workflows/android-ci.yml` (signed APK + Play `.aab`).
+- `applicationId` — `com.BAS` (permanent once published)
+- Kotlin namespace — `com.rfsat.bas`
+- AGP 8.9.1 / Kotlin 2.1.0 / compileSdk 36 / minSdk 26 / targetSdk 36
+- Gradle 8.11.1 or newer, JDK 17
 
-See **INTEGRATION.md** for how the two apps were merged, the keystore/signing
-guidance, and the verification status. Configure the four `ANDROID_KEYSTORE_*`
-repository secrets (reusable from STS or VTB) to get signed artifacts.
+Open the folder in Android Studio and build. See `INTEGRATION.md` for exactly
+how the two apps were merged and what remains for the first compile pass.
+
+---
+
+## Navigation
+
+Five bottom tabs, capped at Material's limit of five, ordered left to right as
+the work actually flows: get on centre, then grade the placement.
+
+| Tab | Screen | Origin |
+|---|---|---|
+| **Home** | session dashboard and crash-safe startup | STS |
+| **Ballistics** | capture the shot, read wind, compute the scope correction | VTB |
+| **Score** | photograph the card, detect holes, score the rings | STS |
+| **Results** | group centre, dispersion, and the correction it implies | STS |
+| **Settings** | profiles, target faces, rules, log, backup | STS |
+
+Targets, competition rules, the diagnostic log and backup/restore live under
+Settings; Exit sits outside the capped menu. Every tab is reachable by tap or
+by horizontal swipe.
+
+---
+
+## What it does
+
+### Ballistics — put shots on centre
+
+1. **Describe the rig once.** Rifle, load and scope profiles — shared with the
+   scoring side, so nothing is entered twice.
+2. **Bring in conditions.** Temperature, pressure and humidity from a Kestrel
+   weather meter over Bluetooth, or entered by hand; each feeds the trajectory.
+3. **Capture the shot.** Phone camera, an imported video, or a Wi-Fi RTSP feed
+   from a scope or action camera.
+4. **Read the wind.** Crosswind is estimated from the bullet's vapour trail, or
+   from a tracer's lag deflection, and folded into the solution.
+5. **Get the correction.** In clicks for the turret in the active profile — MRAD
+   or MOA — for telescopic sights, diopters and irons alike.
+
+### Scoring — grade the group
+
+1. **Register the target.** The scoring area is found and squared to a
+   millimetre grid; everything downstream works in millimetres.
+2. **Capture a clean reference,** then shoot, and each new hole is found by
+   differencing against it.
+3. **Score against the face,** under the conventions of the selected rule set,
+   with a running total and group statistics.
+4. **Read the correction** the group implies — clicks on the sight, or a
+   rear-sight movement in millimetres for sights with no clicks.
+
+### Ways to record a shot
+
+| Mode | When | Notes |
+|---|---|---|
+| **Live** | camera stays on the target for the string | immune to printed rings, paper texture and the aiming mark |
+| **From a photograph** | the relay is over and the card is in hand | best with a clean "before" photo, since scoring is then a difference |
+| **Single frame** | scoring the target in front of the camera now | as above, from the live feed |
+| **By hand** | anything the detector got wrong | authoritative — tap the plot on Results |
+
+### Equipment, once
+
+The rifle, ammunition and scope are described once and shared by both sides of
+the app. The profile format keeps the same Gson field names as VTB and DBM, so
+a profile set exported from any of them imports unchanged. Save a set per rig
+and switch between them in a tap.
+
+---
+
+## Built for the firing point
+
+Dark and night-red themes to protect dark adaptation; full-screen, glance-able
+layouts; metric or imperial throughout; a diagnostic log and a full
+backup/restore of everything set up. Persistence is Gson in SharedPreferences,
+and startup is crash-safe — a failure in shared chrome can never kill the
+screen it merely decorates.
+
+---
+
+## Continuous integration and signing
+
+`.github/workflows/android-ci.yml` is **release only** — it never assembles a
+debug artefact. It runs the static checks and unit tests against the release
+variant, then builds the release APK and the Android App Bundle for Play, and
+uploads both along with the R8 mapping file.
+
+Configure four repository secrets and the artefacts come out signed and
+uploadable:
+
+| Secret | Value |
+|---|---|
+| `ANDROID_KEYSTORE_BASE64` | `base64 -w0 release.keystore` |
+| `ANDROID_KEYSTORE_PASSWORD` | keystore password |
+| `ANDROID_KEY_ALIAS` | key alias |
+| `ANDROID_KEY_PASSWORD` | key password |
+
+The **same key used for STS or VTB may sign BAS** — a keystore is not bound to a
+package name, and only `applicationId` (`com.BAS`) has to be new. Without the
+secrets the build still succeeds and produces both artefacts unsigned — useful
+on a fork, useless for Play — and the run summary states which of the two you
+got. The keystore is deleted from the runner immediately after the build.
+
+Keep the R8 mapping file: R8 rewrites the release build, so a crash report from
+it is unreadable without `mapping.txt`, and the per-build artefact keeps an old
+release diagnosable after the next has overwritten what Play holds.
+
+---
+
+## Verification
+
+`tools/kotlin_checks.py` is a cheap semantic pre-check run first in CI — it
+gates the merged tree on package/path agreement, view-binding ids, imports,
+cross-file visibility, `when`-over-enum coverage, and language level, naming the
+file and line before the same mistakes reach the compiler as errors reported
+somewhere else. The unit tests then run against the release variant, so they
+test the code the release ships without a debug build to do it.
+
+---
+
+## Versioning and packaging
+
+`<brand>.<major>.<minor>` — the scheme both parent apps use.
+
+| Component | When it changes |
+|---|---|
+| **brand** | never; `1` = BAS |
+| **major** | a feature is added (minor resets to 0) |
+| **minor** | a correction is made |
+
+`versionCode` increments on **every** build that leaves the development machine.
+Play rejects a bundle whose code is not strictly greater than the last uploaded
+one. Each release ships as a **single ZIP** holding the whole project —
+`BAS_v<brand>_<major>_<minor>.zip`.
+
+### Changelog
+
+One entry per release, newest first. The full entry for each release is written
+in the header comment of `app/build.gradle.kts` as the work is done.
+
+**1.0.0** — first release: the integration itself. BAS merges STS and VTB into
+one application. STS is the base; VTB's `ballistics`, `capture`, `wind` and
+`environment` packages are folded in under `com.rfsat.bas`, and its ballistics
+results screen is renamed `BallisticsResultsActivity` to sit beside STS's
+scoring results without collision. The equipment store is unified — STS's
+profile classes were already field-supersets of VTB's, so one rifle/load/scope
+set now drives both the trajectory solution and the scoring gauge — and
+`UnitsManager` is unioned to carry both size/format and speed/offset. A new
+five-tab shell (Home · Ballistics · Score · Results · Settings) replaces the two
+separate navigations; Targets, Rules, Log and Backup move under Settings.
+`applicationId` is `com.BAS`, starting at `versionCode 1`.
+
+### Lineage
+
+BAS inherits two mature codebases. A compressed history of each, newest first,
+for context — the full per-release detail lives in each parent's own history.
+
+**From STS (up to 1.57.0) — scoring and target registration**
+- Wi-Fi camera settings recorded and used: a declared red dot suppresses the
+  false hit it would otherwise plant at the ten ring; the stream size is checked
+  against what was declared.
+- A hand-written RTSP client (TCP interleaved, SDP parsed, RTP to MediaCodec)
+  with every handshake step logged, after three releases proved the fault was
+  the network route, not the decoder.
+- Lens distortion measured from the printed rings themselves; a reticle library;
+  AI second-opinion scoring as an optional arbiter of doubtful holes.
+- The core: projective registration to a millimetre grid, difference-based hole
+  detection, ring/zone scoring, group statistics, and sight corrections.
+
+**From VTB (up to 1.20.45) — ballistics and wind**
+- Crosswind estimated from the bullet's vapour trail, with a tracer-lag path for
+  tracer rounds and a pellet-tracking path for airguns.
+- Kestrel weather-meter link over BLE (bonded connect, advertising-only scan for
+  the DROP D3), feeding live atmosphere into the solver.
+- Scope-recorded and Wi-Fi-streamed capture sources, with per-scope field-of-view
+  geometry for digital optics.
+- The core: a drag-model trajectory engine solving launch pitch for the zero and
+  converting the point-of-impact offset into turret clicks.

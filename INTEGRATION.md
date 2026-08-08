@@ -85,8 +85,13 @@ BAS — the CI is identical either way.
 
 ## Verification status — read this before first build
 
-This merge was assembled and checked **without an Android toolchain**, so it has
-**not been through `gradlew`/kotlinc**. What *was* run and passed:
+A first CI run of `gradle testReleaseUnitTest` validated the resource,
+data-binding and manifest phases (they all passed), and surfaced two symbol
+renames the heuristic checks can't see — both now fixed: `StsApp` call sites in
+`MainActivity` (the class/file had been renamed `BasApp` but not its references),
+and `R.style.Theme_STS_*` in `ThemeManager` (the sed matched the dotted
+`Theme.STS` style names but not the underscore R-field form). No `com.rfsat.sts`/
+`com.rfsat.vtb` identifier remains in code. What also passed:
 
 - The repo's own static checker `tools/kotlin_checks.py` — **125 files, no
   problems** (semantic, view-binding, import, visibility, and language-level gates).

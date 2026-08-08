@@ -23,7 +23,8 @@ android {
         // VERSIONING RULE for this project — follow it on every release:
         //
         //   <brand>.<major>.<minor>
-        //     brand  1 = STS. Does not change.
+        //     brand  1 = BAS. Does not change. (Entries below 1.0.0 are the
+        //            inherited STS lineage, retained for provenance.)
         //     major  incremented when a FEATURE is added; minor resets to 0.
         //     minor  incremented when a CORRECTION is made.
         //
@@ -31,6 +32,72 @@ android {
         //   without exception. Play rejects a bundle whose code is not
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
+        //
+        // 1.0.0 — first release: the integration itself. BAS is one
+        //          application made from two — STS Shooting Target Scorer and
+        //          VTB Vapor-Trail Ballistics — arranged so a shooter first
+        //          puts shots on centre and then scores how they landed.
+        //
+        //   WHY STS IS THE BASE. It is the heavier codebase, and — this is the
+        //   part that made the merge tractable rather than a rewrite — its
+        //   profile classes were already written as supersets of VTB's, with
+        //   identical Gson field names. RifleProfile, BulletProfile and
+        //   ScopeProfile already carried every field VTB's ballistics engine
+        //   reads (heightAboveBarrelIn, maxElevationTravelMoa, the boresight
+        //   offsets, massKg, muzzleVelocityMps, crossSectionalAreaM2, the MV
+        //   temperature coefficients), so the ported VTB code binds to ONE
+        //   equipment store with no field changes. The same rifle/load/scope
+        //   set now drives both the trajectory solution and the scoring gauge.
+        //   ProfileRepository and Logger were supersets too; ThemeManager,
+        //   BaseActivity, MainActivity and AppBackup are STS's.
+        //
+        //   WHAT WAS PORTED. VTB's ballistics, capture, wind and environment
+        //   packages, its WindChartView, and its AdjustmentCalculator and
+        //   AnalysisSession, all renamed com.rfsat.vtb -> com.rfsat.bas. VTB's
+        //   ResultsActivity is the ballistics ADJUSTMENT screen and collided
+        //   with STS's scoring ResultsActivity, so it is renamed
+        //   BallisticsResultsActivity (its layout activity_results.xml ->
+        //   activity_ballistics_results.xml, binding to match). VTB's own
+        //   BaseActivity, MainActivity, ThemeManager, UnitsManager,
+        //   ProfileActivity and AboutActivity were not ported — STS's serve.
+        //
+        //   UNITSMANAGER is the one shared class that was UNIONED rather than
+        //   chosen: STS's size/format methods plus VTB's displaySpeed,
+        //   speedUnitLabel, displayOffset and offsetUnitLabel, because the
+        //   ballistics UI needs speed and offset and the scoring UI does not.
+        //
+        //   NAVIGATION. One five-tab shell replaces the two apps' separate
+        //   navigations, ordered as the work flows: Home, Ballistics (VTB's
+        //   CaptureActivity), Score (STS's SessionActivity), Results (STS's
+        //   scoring ResultsActivity), Settings. Material caps the bar at five,
+        //   so Targets, Rules, Log and Backup move under Settings — a Target
+        //   faces button was added there beside the existing Rules and Log —
+        //   and the ballistics adjustment screen is reached from the Ballistics
+        //   flow. Routing and swipe order live in BaseActivity.
+        //
+        //   MANIFEST. The two ported activities are declared, and the Kestrel
+        //   BLE permissions (BLUETOOTH_CONNECT, BLUETOOTH_SCAN neverForLocation,
+        //   and the pre-Android-12 fallbacks) are added on top of STS's camera,
+        //   network and audio permissions.
+        //
+        //   IDENTITY. applicationId com.BAS — a NEW Play listing, permanent,
+        //   starting at versionCode 1; namespace com.rfsat.bas. The same
+        //   release keystore used for STS or VTB signs BAS unchanged: a key is
+        //   not bound to a package name, and only the applicationId must be new.
+        //
+        //   VERIFIED WITHOUT AN ANDROID TOOLCHAIN, so not yet through gradle.
+        //   tools/kotlin_checks.py passes on all 125 files; every package
+        //   declaration matches its path; no com.rfsat.sts or com.rfsat.vtb
+        //   reference remains; every view binding, custom view and ported
+        //   resource reference resolves. Two correct fixes let the checker pass
+        //   the merged tree: gate 2 now scans back over balanced parentheses so
+        //   it recognises VTB's addListener and registerForActivityResult
+        //   lambdas, and STS's private RtspClient.write was renamed writeReq to
+        //   clear a cross-file name collision the visibility gate flagged
+        //   against VTB's buffer write. The remaining seams — a unified Results
+        //   tab, a Home entry for Ballistics, and a shared session linking
+        //   predicted point of impact to the measured group — are listed in
+        //   INTEGRATION.md as the next steps.
         //
         // 1.57.0 — feature: the app is TOLD how the camera is set, which is
         //          what was asked for and not what 1.56.0 built.

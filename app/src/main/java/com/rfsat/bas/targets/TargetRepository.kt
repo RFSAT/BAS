@@ -95,7 +95,7 @@ class TargetRepository(context: Context) {
 
     /**
      * Nothing to seed: the built-in catalogue is code and is always present.
-     * This exists so StsApp has one uniform "prepare storage" call per
+     * This exists so BasApp has one uniform "prepare storage" call per
      * repository, and so a future migration has an obvious place to live.
      */
     fun seedBuiltInsIfEmpty() {

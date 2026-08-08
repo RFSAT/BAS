@@ -5,10 +5,10 @@ import android.content.Context
 import com.rfsat.bas.R
 
 enum class ThemeMode(val label: String, val styleRes: Int) {
-    DARK("Dark (default)", R.style.Theme_STS_Dark),
-    DAY("Day (high contrast)", R.style.Theme_STS_Day),
-    NIGHT_GREEN("Night — Green", R.style.Theme_STS_NightGreen),
-    NIGHT_RED("Night — Red", R.style.Theme_STS_NightRed)
+    DARK("Dark (default)", R.style.Theme_BAS_Dark),
+    DAY("Day (high contrast)", R.style.Theme_BAS_Day),
+    NIGHT_GREEN("Night — Green", R.style.Theme_BAS_NightGreen),
+    NIGHT_RED("Night — Red", R.style.Theme_BAS_NightRed)
 }
 
 /**

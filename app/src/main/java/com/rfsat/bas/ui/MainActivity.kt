@@ -4,7 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import com.rfsat.bas.BuildConfig
 import com.rfsat.bas.R
-import com.rfsat.bas.StsApp
+import com.rfsat.bas.BasApp
 import com.rfsat.bas.databinding.ActivityMainBinding
 import com.rfsat.bas.detect.SessionActivity
 import com.rfsat.bas.profiles.ProfileRepository
@@ -135,8 +135,8 @@ class MainActivity : BaseActivity() {
      *  dialog. Dismissing clears the record, which also re-enables the stored
      *  session restore on the next launch. */
     private fun maybeShowCrashReport() {
-        val prefs = getSharedPreferences(StsApp.CRASH_PREFS, MODE_PRIVATE)
-        val stack = prefs.getString(StsApp.KEY_STACK, null) ?: return
+        val prefs = getSharedPreferences(BasApp.CRASH_PREFS, MODE_PRIVATE)
+        val stack = prefs.getString(BasApp.KEY_STACK, null) ?: return
         prefs.edit().clear().apply()
         showStack("BAS crashed on the previous launch", stack)
     }
