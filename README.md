@@ -153,6 +153,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.0.1** — correction. Two symbol renames caught by the first CI compile: `StsApp` call sites in `MainActivity` (the class was renamed `BasApp` but not its references) and `R.style.Theme_STS_*` in `ThemeManager` (the rename matched the dotted `Theme.STS` style names but not the underscore R-field form). Both fixed; the resource, data-binding and manifest phases had already passed.
+
 **1.0.0** — first release: the integration itself. BAS merges STS and VTB into
 one application. STS is the base; VTB's `ballistics`, `capture`, `wind` and
 `environment` packages are folded in under `com.rfsat.bas`, and its ballistics

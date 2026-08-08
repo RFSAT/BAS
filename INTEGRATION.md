@@ -6,7 +6,7 @@ product. STS is the base; VTB's ballistics stack was folded into it.
 
 - `applicationId` = `com.BAS` (new Play listing, permanent, starts at `versionCode 1`)
 - Kotlin/resource namespace = `com.rfsat.bas`
-- `versionName` = `1.0.0`, `versionCode` = `1`
+- `versionName` = `1.0.1`, `versionCode` = `2`
 - Build: AGP 8.9.1, Kotlin 2.1.0, Gradle 8.11.1, compileSdk 36, minSdk 26
 
 ## Navigation — the usability spine

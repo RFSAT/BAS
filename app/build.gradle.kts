@@ -33,6 +33,20 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.0.1 — correction: two symbol renames the first CI compile caught,
+        //          both invisible to the static pre-checks because they are
+        //          resolution errors, not shape errors.
+        //
+        //   StsApp had been renamed BasApp at its declaration and file, but
+        //   three references in MainActivity (the import and the two crash-pref
+        //   constants) still named the old class. And ThemeManager referenced
+        //   R.style.Theme_STS_* — the underscore R-field form — which the rename
+        //   missed because it matched only the dotted Theme.STS style names in
+        //   themes.xml (correctly renamed Theme.BAS.*). Both fixed across every
+        //   file; no com.rfsat.sts / com.rfsat.vtb identifier remains in code.
+        //   The resource, data-binding and manifest phases had already passed on
+        //   that run, so the whole resource merge is toolchain-validated.
+        //
         // 1.0.0 — first release: the integration itself. BAS is one
         //          application made from two — STS Shooting Target Scorer and
         //          VTB Vapor-Trail Ballistics — arranged so a shooter first
@@ -2701,8 +2715,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.0.1"
     }
 
     // Resolved once, here, rather than re-read from the environment in two
