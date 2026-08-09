@@ -191,6 +191,7 @@ class CaptureActivity : BaseActivity() {
             startActivity(Intent(this, BallisticsResultsActivity::class.java))
         }
         binding.btnCameraFile.setOnClickListener { promptCameraDownload() }
+        binding.btnScanCamera.setOnClickListener { runCameraScan() }
         binding.btnAnalyze.isEnabled = false
 
         binding.btnArm.setOnClickListener { toggleArm() }
@@ -781,6 +782,59 @@ class CaptureActivity : BaseActivity() {
         }
         networkCallback = null
         scopeWifiNetwork = null
+    }
+
+    // --- v1.4.0: wide-net camera discovery scan ---
+    private fun runCameraScan() {
+        notifyUser("Scanning the camera's Wi-Fi… (progress in the Log tab)")
+        acquireScopeNetwork { net ->
+            Thread {
+                val cm = getSystemService(android.net.ConnectivityManager::class.java)
+                val hosts = CameraScanner.candidateHosts(cm, net)
+                Logger.i(TAG, "Camera scan hosts=$hosts")
+                val report = runCatching { CameraScanner.scan(hosts) { m -> Logger.i(TAG, m) } }
+                    .getOrElse { CameraScanner.Report(listOf("Scan error: ${it.message}"), null, 0) }
+                runOnUiThread { releaseScopeNetwork(); showScanReport(report) }
+            }.start()
+        }
+    }
+
+    private fun showScanReport(report: CameraScanner.Report) {
+        val body = if (report.lines.isEmpty())
+            "Nothing answered. Is the phone joined to the camera's Wi-Fi?"
+        else report.lines.joinToString("\n").let {
+            if (it.length > 1600) it.take(1600) + "\n…(full detail in the Log tab)" else it
+        }
+        val b = androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle(if (report.mediaCount > 0) "Found ${report.mediaCount} file(s)" else "Scan results")
+            .setMessage(body)
+            .setNeutralButton("Open Log") { _, _ ->
+                startActivity(Intent(this, com.rfsat.bas.log.LogActivity::class.java))
+            }
+            .setNegativeButton("Close", null)
+        val listing = report.bestListing
+        if (listing != null) {
+            b.setPositiveButton("Download newest") { _, _ ->
+                notifyUser("Connecting to the camera's Wi-Fi…")
+                acquireScopeNetwork { _ ->
+                    Thread {
+                        val f = runCatching {
+                            CameraFileImporter.downloadFromListing(listing, cacheDir) { m -> Logger.i(TAG, m) }
+                        }.getOrNull()
+                        runOnUiThread {
+                            releaseScopeNetwork()
+                            if (f != null) {
+                                pendingUri = Uri.fromFile(f)
+                                pendingReferenceBitmap = null
+                                binding.btnAnalyze.isEnabled = true
+                                notifyUser("Downloaded ${f.name} — tap Analyze.")
+                            } else notifyUser("Download failed — see the Log tab.")
+                        }
+                    }.start()
+                }
+            }
+        }
+        b.show()
     }
 
     // --- v1.3.0: pull the newest clip straight off the camera's Wi-Fi ---

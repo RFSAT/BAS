@@ -153,6 +153,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.4.0** — feature. A wide-net camera discovery scan, so the route to the files is found in-app without the manufacturer app or a packet capture. "Scan camera (discover)" on Capture binds the camera Wi-Fi, detects the gateway, TCP-sweeps candidate hosts/ports, then deep-probes what answered (Novatek CGI set, GoPro-style paths, DCIM/MOVIE trees, Ambarella 7878 and RTSP 554), logs and summarises every result, and offers a one-tap "Download newest" when a listing yields media. Broad by design until the exact endpoints for TACTACAM and ShotKam are confirmed.
+
 **1.3.0** — feature. Download the newest clip straight off the camera's Wi-Fi, with presets for TACTACAM 5.0 and ShotKam Gen 4. Both serve their SD card over their own Wi-Fi AP but neither documents the protocol, so `CameraFileImporter` probes the endpoints common action-cam chipsets expose (Novatek `cmd=3015`, an HTTP DCIM listing), takes the newest media file, downloads it and hands it to the analyzer — logging every request. A "Download latest from camera" button on Capture offers a preset picker with an editable host; the TACTACAM/ShotKam addresses are best guesses flagged "verify" until a field capture confirms them.
 
 **1.2.0** — feature. Both results are now reachable from the Results tab: each results screen carries a Scoring | Ballistics (wind) switch at the top, and the ballistics results screen highlights the Results tab, so the wind chart and the scoring plot are one tap apart.

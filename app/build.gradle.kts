@@ -33,6 +33,22 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.4.0 — feature: a wide-net camera discovery scan, so the way in
+        //          is found IN the app, without the manufacturer's app or a
+        //          packet capture. "Scan camera (discover)" on Capture binds
+        //          the camera's Wi-Fi, works out the gateway (almost always the
+        //          camera) and sweeps a set of candidate hosts and HTTP ports
+        //          by TCP first, then deep-probes whatever answered: the Novatek
+        //          cmd set, GoPro-style paths, a DCIM/MOVIE directory tree, and
+        //          reachability of the Ambarella control socket (7878) and RTSP
+        //          (554). Every request and its status/content-type/length is
+        //          logged and summarised in a dialog; when a listing yields
+        //          media the dialog offers "Download newest" straight away
+        //          (CameraFileImporter.downloadFromListing). Deliberately broad
+        //          for now — the point is to find ANY route to the files across
+        //          TACTACAM and ShotKam, then compact it once the real endpoint
+        //          is known. No new permissions.
+        //
         // 1.3.0 — feature: pull the newest clip straight off the camera's
         //          Wi-Fi, and presets for TACTACAM 5.0 and ShotKam Gen 4.
         //          Both cameras serve their SD card over their own Wi-Fi AP —
@@ -2776,8 +2792,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 5
-        versionName = "1.3.0"
+        versionCode = 6
+        versionName = "1.4.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

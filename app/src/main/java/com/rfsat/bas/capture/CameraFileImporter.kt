@@ -100,6 +100,19 @@ object CameraFileImporter {
         return found.toList()
     }
 
+    /** Download the newest media file from a listing URL the scanner found. */
+    fun downloadFromListing(listingUrl: String, cacheDir: File, log: (String) -> Unit): File? {
+        val base = Regex("^(https?://[^/]+)").find(listingUrl)?.groupValues?.get(1) ?: return null
+        val body = getText(listingUrl, log) ?: return null
+        val media = MEDIA.findAll(body).map { absolutize(base, it.value) }.distinct().toList()
+        if (media.isEmpty()) { log("Listing had no media: $listingUrl"); return null }
+        val newest = media.maxByOrNull { it.substringAfterLast('/').uppercase() }!!
+        log("Newest of ${media.size}: $newest")
+        val ext = newest.substringAfterLast('.', "mp4").lowercase().take(4)
+        val out = File(cacheDir, "camera_latest.$ext")
+        return if (download(newest, out, log)) out else null
+    }
+
     private fun absolutize(base: String, ref: String): String = when {
         ref.startsWith("http") -> ref
         ref.startsWith("/") -> base + ref
