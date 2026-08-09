@@ -190,6 +190,7 @@ class CaptureActivity : BaseActivity() {
         binding.btnLastAnalysis.setOnClickListener {
             startActivity(Intent(this, BallisticsResultsActivity::class.java))
         }
+        binding.btnCameraFile.setOnClickListener { promptCameraDownload() }
         binding.btnAnalyze.isEnabled = false
 
         binding.btnArm.setOnClickListener { toggleArm() }
@@ -780,6 +781,52 @@ class CaptureActivity : BaseActivity() {
         }
         networkCallback = null
         scopeWifiNetwork = null
+    }
+
+    // --- v1.3.0: pull the newest clip straight off the camera's Wi-Fi ---
+    private fun promptCameraDownload() {
+        val presets = CameraFileImporter.PRESETS
+        val names = presets.map { if (it.needsConfirm) "${it.name} (verify)" else it.name }.toTypedArray()
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Download latest from camera")
+            .setItems(names) { _, which ->
+                val preset = presets[which]
+                val hostField = android.widget.EditText(this).apply {
+                    setText(preset.host); hint = "camera IP"
+                }
+                androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle(preset.name)
+                    .setMessage("Connect this phone to the camera's Wi-Fi first, then confirm the camera's address.")
+                    .setView(hostField)
+                    .setPositiveButton("Download") { _, _ ->
+                        runCameraDownload(preset, hostField.text.toString())
+                    }
+                    .setNegativeButton("Cancel", null)
+                    .show()
+            }
+            .show()
+    }
+
+    private fun runCameraDownload(preset: CameraFileImporter.Preset, host: String) {
+        notifyUser("Connecting to the camera's Wi-Fi…")
+        acquireScopeNetwork { _ ->
+            Thread {
+                val f = runCatching {
+                    CameraFileImporter.downloadLatest(preset, host, cacheDir) { msg -> Logger.i(TAG, msg) }
+                }.getOrNull()
+                runOnUiThread {
+                    releaseScopeNetwork()
+                    if (f != null) {
+                        pendingUri = Uri.fromFile(f)
+                        pendingReferenceBitmap = null
+                        binding.btnAnalyze.isEnabled = true
+                        notifyUser("Downloaded ${f.name} — tap Analyze.")
+                    } else {
+                        notifyUser("Could not fetch a file from ${preset.name}. See the Log tab — it lists the endpoints tried so the exact path can be added.")
+                    }
+                }
+            }.start()
+        }
     }
 
     private fun toggleRecording() {

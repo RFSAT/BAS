@@ -33,6 +33,26 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.3.0 — feature: pull the newest clip straight off the camera's
+        //          Wi-Fi, and presets for TACTACAM 5.0 and ShotKam Gen 4.
+        //          Both cameras serve their SD card over their own Wi-Fi AP —
+        //          that is how their apps fetch footage, and the FILE carries
+        //          full resolution where the live stream is only a preview —
+        //          but NEITHER documents the protocol. So CameraFileImporter is
+        //          a PROBE, like CameraProbe before it: bound to the camera's
+        //          internet-less Wi-Fi (acquireScopeNetwork), it tries the
+        //          endpoints common action-cam chipsets expose (the Novatek
+        //          cmd=3015 file list, an HTTP DCIM directory it can descend
+        //          one level into), extracts the media URLs, takes the newest
+        //          by filename, downloads it to cache and hands it to the
+        //          analyzer as the pending clip — logging every request so one
+        //          run against the real camera turns a guess into a known path.
+        //          Capture gains a "Download latest from camera" button with a
+        //          preset picker and an editable host; TACTACAM and ShotKam
+        //          hosts are best guesses (192.168.1.254 / 192.168.1.1) flagged
+        //          "verify" until a field capture confirms them. No new
+        //          permissions — the Wi-Fi/INTERNET set was already present.
+        //
         // 1.2.0 — feature: both results reachable from the Results tab. The
         //          tab still opens Scoring, but each results screen now carries
         //          a Scoring | Ballistics (wind) switch at the top, and the
@@ -2756,8 +2776,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 4
-        versionName = "1.2.0"
+        versionCode = 5
+        versionName = "1.3.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two
