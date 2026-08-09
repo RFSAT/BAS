@@ -520,6 +520,7 @@ class ProfileActivity : BaseActivity() {
         binding.btnTargets.setOnClickListener { startActivity(Intent(this, TargetActivity::class.java)) }
         binding.btnCameraDefaults.setOnClickListener { cameraDefaultsMenu() }
         binding.btnRangeOptions.setOnClickListener { rangeOptionsDialog() }
+        binding.btnRangefinder.setOnClickListener { rangefinderProbe() }
         binding.btnBackup.setOnClickListener { exportBackup() }
         binding.btnRestore.setOnClickListener { importBackup() }
         binding.btnReset.setOnClickListener {
@@ -731,6 +732,35 @@ class ProfileActivity : BaseActivity() {
      * velocity class, weight and bullet type for a load; brand, click value,
      * magnification class and family for a sight.
      */
+    /** BLE discovery for a laser rangefinder (FIRE4000). The protocol is not
+     *  published, so this enumerates the device and listens: range a target
+     *  while it runs and the distance shows up in the Log as a value tracking
+     *  the display, which identifies the characteristic and encoding. */
+    private fun rangefinderProbe() {
+        val needed = if (android.os.Build.VERSION.SDK_INT >= 31) arrayOf(
+            android.Manifest.permission.BLUETOOTH_SCAN,
+            android.Manifest.permission.BLUETOOTH_CONNECT
+        ) else arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION)
+        val missing = needed.filter {
+            checkSelfPermission(it) != android.content.pm.PackageManager.PERMISSION_GRANTED
+        }
+        if (missing.isNotEmpty()) { requestPermissions(missing.toTypedArray(), 4301); return }
+
+        val probe = com.rfsat.bas.environment.RangefinderProbe
+        fun run(device: android.bluetooth.BluetoothDevice) {
+            notifyUser("Rangefinder: connecting — then range a target while it listens.")
+            probe.probe(this, device) { msg -> runCatching { notifyUser(msg) } }
+        }
+        val bonded = probe.findPaired()
+        if (bonded != null) { run(bonded); return }
+        notifyUser("Scanning for a rangefinder…")
+        probe.scan(this) { device ->
+            if (device == null)
+                notifyUser("No rangefinder found — make sure it is on and discoverable. Advertisers seen were logged (Log tab).")
+            else run(device)
+        }
+    }
+
     private fun rangeOptionsDialog() {
         val labels = arrayOf(
             "Speak corrections and scores",

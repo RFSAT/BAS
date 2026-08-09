@@ -518,6 +518,10 @@
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 style="@style/Sts.ActionButton"
                 android:text="Range options (speech, keep-awake)…" />
+            <Button android:id="@+id/btnRangefinder"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                style="@style/Sts.ActionButton"
+                android:text="Rangefinder (FIRE4000) — discover…" />
             <Button android:id="@+id/btnBackup"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 style="@style/Sts.ActionButton"

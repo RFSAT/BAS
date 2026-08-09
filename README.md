@@ -153,6 +153,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.13.0** — feature. A BLE discovery probe for a laser rangefinder (Tangoinnos FIRE4000), reached from Settings. Its protocol is unpublished, so the probe finds the device (bonded or advertising), enumerates every service/characteristic, reads what is readable, subscribes to everything that notifies, and logs each frame as hex plus candidate integer readings — range a target while it listens and the distance is identifiable in the Log. Reads and subscriptions only; no new permissions.
+
 **1.12.0** — feature + fixes. Home/about text says BAS only; ballistic results now survive a restart (`AnalysisSession.restore` at startup); Range mode leads with the wind correction in the largest font; Settings sections fold under their headings (tap to open); both viewfinder crosshairs are the same size; and target distance gains a "= zero" quick-fill to the rig's calibration distance. FIRE4000 rangefinder integration investigated (Bluetooth, undocumented protocol — needs a BLE discovery probe).
 
 **1.11.0** — feature. Three opt-in hands-free tools (Settings → Range options): auto-collect (armed standby that polls the camera and auto-analyses any new clip — so recording with the camera's own remote flows straight into processing); remote trigger (volume/Bluetooth-shutter keys fire the screen's primary action); and confirmation-free operation (skips the clear-shots and remove-marks prompts). New peek/download helpers on `CameraFileImporter`; `BaseActivity.onRemoteTrigger`.

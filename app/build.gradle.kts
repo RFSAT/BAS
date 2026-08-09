@@ -33,6 +33,25 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.13.0 — feature: BLE discovery probe for a laser rangefinder, built
+        //          for the Tangoinnos FIRE4000. It talks Bluetooth but publishes
+        //          no GATT profile (it pairs with its own ballistic app), so —
+        //          exactly as with the undocumented cameras — this DISCOVERS
+        //          rather than assumes. Settings -> "Rangefinder (FIRE4000) —
+        //          discover…" finds the device bonded or by advertisement
+        //          (logging every named advertiser, so even a miss identifies
+        //          what it calls itself), enumerates every service and
+        //          characteristic with its properties, reads what is readable,
+        //          SUBSCRIBES to everything that notifies or indicates, and logs
+        //          each frame as raw hex alongside every 16-bit little- and
+        //          big-endian reading. Range a target while it listens and the
+        //          distance appears in the log as the value that tracks the
+        //          display — that identifies the characteristic and the
+        //          encoding, after which reading it is trivial. Nothing is ever
+        //          written to the device: reads and subscriptions only. Reuses
+        //          the Kestrel BLE permission pattern; no new permissions (the
+        //          BLUETOOTH_SCAN/CONNECT set is already declared).
+        //
         // 1.12.0 — feature + fixes from field feedback.
         //   - Home/about/disclaimer text now says BAS only, not STS/VTB.
         //   - Ballistic results survive a restart: AnalysisSession.restore is
@@ -2983,8 +3002,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 19
-        versionName = "1.12.0"
+        versionCode = 20
+        versionName = "1.13.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two
