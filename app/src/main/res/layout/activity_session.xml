@@ -204,6 +204,11 @@
                 android:text="Upload a target photo to score"
                 style="@style/Sts.ActionButton" />
 
+            <Button android:id="@+id/btnGoProScore"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Score latest photo from GoPro"
+                style="@style/Sts.ActionButton" />
+
             <TextView
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"

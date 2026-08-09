@@ -1,5 +1,8 @@
 package com.rfsat.bas.detect
 
+/** Extra: absolute path of an image to score directly (e.g. a GoPro still). */
+const val IMPORT_EXTRA_IMAGE_PATH = "image_path"
+
 import android.graphics.Bitmap
 import com.rfsat.bas.cloud.SecondOpinion
 import com.rfsat.bas.cloud.ScoringSource
@@ -124,6 +127,10 @@ class ImportActivity : BaseActivity() {
             notifyUser("This screen failed to start: ${it.message}")
         }
         setupBottomNav(R.id.nav_score)
+        intent?.getStringExtra(IMPORT_EXTRA_IMAGE_PATH)?.let { path ->
+            runCatching { onImagePicked(android.net.Uri.fromFile(java.io.File(path))) }
+                .onFailure { Logger.e("ImportActivity", "GoPro image load failed", it) }
+        }
     }
 
     private fun initScreen() {

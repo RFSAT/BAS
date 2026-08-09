@@ -33,6 +33,18 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.6.0 — feature: GoPro still straight into scoring. The Score
+        //          screen gains "Score latest photo from GoPro": it binds the
+        //          GoPro Wi-Fi (shared CameraWifi helper), pulls the newest
+        //          PHOTO from the Open GoPro media list (GoProClient.latestUrl
+        //          now prefers stills for this path), and hands it to the
+        //          existing ImportActivity registration/scoring flow through a
+        //          package-level IMPORT_EXTRA_IMAGE_PATH extra — the same
+        //          onImagePicked pipeline a gallery photo uses, so nothing about
+        //          the scoring changes. GoPro's resolution and zoom make the
+        //          card read cleanly; set the zoom first from the Ballistics
+        //          tab's GoPro menu if the target is far. No new permissions.
+        //
         // 1.5.0 — feature: GoPro support via the official Open GoPro HTTP
         //          API — the easy case, because GoPro DOCUMENTS its protocol.
         //          A "GoPro" button on Capture offers, over the camera's own
@@ -2807,8 +2819,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 7
-        versionName = "1.5.0"
+        versionCode = 8
+        versionName = "1.6.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

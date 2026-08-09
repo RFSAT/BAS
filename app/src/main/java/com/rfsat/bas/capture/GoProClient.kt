@@ -26,12 +26,16 @@ object GoProClient {
     const val BASE = "http://10.5.5.9:8080"
     private val VIDEO = Regex("""\.(mp4|mov|avi|m4v)$""", RegexOption.IGNORE_CASE)
 
-    /** Newest clip on the card, as a full download URL. Prefers video; falls
-     *  back to the newest media of any type. */
-    fun latestDownloadUrl(log: (String) -> Unit): String? {
+    private val PHOTO = Regex("""\.(jpg|jpeg|gpr)$""", RegexOption.IGNORE_CASE)
+
+    /** Newest media as a full download URL. [preferPhoto] picks the newest
+     *  still (for scoring), otherwise the newest video (for trail analysis);
+     *  either falls back to the newest media of any type. */
+    fun latestUrl(preferPhoto: Boolean, log: (String) -> Unit): String? {
         val body = get("/gopro/media/list", log) ?: return null
         val media = runCatching { JSONObject(body).optJSONArray("media") }.getOrNull() ?: return null
         var vKey = -1L; var vUrl: String? = null
+        var pKey = -1L; var pUrl: String? = null
         var aKey = -1L; var aUrl: String? = null
         for (i in 0 until media.length()) {
             val dir = media.optJSONObject(i) ?: continue
@@ -41,22 +45,28 @@ object GoProClient {
                 val f = fs.optJSONObject(j) ?: continue
                 val n = f.optString("n")
                 if (n.isBlank()) continue
-                val key = f.optString("cre").toLongOrNull()
-                    ?: f.optString("mod").toLongOrNull() ?: 0L
+                val key = f.optString("cre").toLongOrNull() ?: f.optString("mod").toLongOrNull() ?: 0L
                 val url = "$BASE/videos/DCIM/$d/$n"
                 if (key >= aKey) { aKey = key; aUrl = url }
                 if (VIDEO.containsMatchIn(n) && key >= vKey) { vKey = key; vUrl = url }
+                if (PHOTO.containsMatchIn(n) && key >= pKey) { pKey = key; pUrl = url }
             }
         }
-        val chosen = vUrl ?: aUrl
-        log("GoPro newest: ${chosen ?: "none found"}")
+        val chosen = if (preferPhoto) (pUrl ?: aUrl) else (vUrl ?: aUrl)
+        log("GoPro newest ${if (preferPhoto) "photo" else "video"}: ${chosen ?: "none"}")
         return chosen
     }
 
-    fun downloadLatest(cacheDir: File, log: (String) -> Unit): File? {
-        val url = latestDownloadUrl(log) ?: return null
+    fun downloadLatest(cacheDir: File, log: (String) -> Unit): File? =
+        fetch(latestUrl(false, log), "gopro_latest", cacheDir, log)
+
+    fun downloadLatestPhoto(cacheDir: File, log: (String) -> Unit): File? =
+        fetch(latestUrl(true, log), "gopro_photo", cacheDir, log)
+
+    private fun fetch(url: String?, stem: String, cacheDir: File, log: (String) -> Unit): File? {
+        if (url == null) return null
         val ext = url.substringAfterLast('.', "mp4").lowercase().take(4)
-        val out = File(cacheDir, "gopro_latest.$ext")
+        val out = File(cacheDir, "$stem.$ext")
         return if (download(url, out, log)) { log("GoPro download ${out.length()} bytes"); out } else null
     }
 

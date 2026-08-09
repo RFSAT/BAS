@@ -64,7 +64,30 @@ import java.util.concurrent.atomic.AtomicReference
  */
 class SessionActivity : BaseActivity() {
 
-    companion object {
+    private var goProCb: android.net.ConnectivityManager.NetworkCallback? = null
+
+    /** v1.6.0: pull the newest GoPro STILL straight into the scoring flow. */
+    private fun scoreFromGoPro() {
+        notifyUser("GoPro: fetching the latest photo…")
+        goProCb = com.rfsat.bas.capture.CameraWifi.acquire(this) { _ ->
+            Thread {
+                val f = runCatching {
+                    com.rfsat.bas.capture.GoProClient.downloadLatestPhoto(cacheDir) { m ->
+                        com.rfsat.bas.log.Logger.i("SessionGoPro", m)
+                    }
+                }.getOrNull()
+                runOnUiThread {
+                    com.rfsat.bas.capture.CameraWifi.release(this, goProCb); goProCb = null
+                    if (f != null) {
+                        startActivity(Intent(this, ImportActivity::class.java)
+                            .putExtra(IMPORT_EXTRA_IMAGE_PATH, f.absolutePath))
+                    } else notifyUser("No GoPro photo found — see the Log tab.")
+                }
+            }.start()
+        }
+    }
+
+        companion object {
         /** Beyond this the best-matching face is not convincing. On the two
          *  real targets tested the right face agreed to within 1.3% while the
          *  runner-up was 8% out, so 5% separates them comfortably. */
@@ -366,6 +389,7 @@ class SessionActivity : BaseActivity() {
         binding.btnImport.setOnClickListener {
             startActivity(Intent(this, ImportActivity::class.java))
         }
+        binding.btnGoProScore.setOnClickListener { scoreFromGoPro() }
         binding.btnClearShots.setOnClickListener {
             ScoringSession.clearShots()
             refreshAfterClear()
