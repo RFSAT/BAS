@@ -696,14 +696,24 @@ class ProfileActivity : BaseActivity() {
      * magnification class and family for a sight.
      */
     private fun rangeOptionsDialog() {
-        val labels = arrayOf("Speak corrections and scores", "Keep screen on during a session")
-        val checked = booleanArrayOf(com.rfsat.bas.ui.RangeSettings.speak(), com.rfsat.bas.ui.RangeSettings.keepAwake())
+        val labels = arrayOf(
+            "Speak corrections and scores",
+            "Keep screen on during a session",
+            "Auto-reconnect camera Wi-Fi (wait longer)",
+            "Auto-advance to results after each shot")
+        val checked = booleanArrayOf(
+            com.rfsat.bas.ui.RangeSettings.speak(),
+            com.rfsat.bas.ui.RangeSettings.keepAwake(),
+            com.rfsat.bas.ui.RangeSettings.autoReconnect(),
+            com.rfsat.bas.ui.RangeSettings.autoShowResults())
         androidx.appcompat.app.AlertDialog.Builder(this)
             .setTitle("Range options")
             .setMultiChoiceItems(labels, checked) { _, which, isChecked -> checked[which] = isChecked }
             .setPositiveButton("Save") { _, _ ->
                 com.rfsat.bas.ui.RangeSettings.setSpeak(this, checked[0])
                 com.rfsat.bas.ui.RangeSettings.setKeepAwake(this, checked[1])
+                com.rfsat.bas.ui.RangeSettings.setAutoReconnect(this, checked[2])
+                com.rfsat.bas.ui.RangeSettings.setAutoShowResults(this, checked[3])
                 if (checked[0]) com.rfsat.bas.ui.Speaker.init(this)
             }
             .setNegativeButton("Cancel", null)

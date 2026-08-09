@@ -33,7 +33,8 @@ object CameraWifi {
             override fun onAvailable(network: Network) = begin(network)
         }
         runCatching { cm.requestNetwork(req, cb) }.onFailure { begin(null) }
-        main.postDelayed({ begin(null) }, 8000)
+        val timeoutMs = if (RangeSettings.autoReconnect()) 20000L else 8000L
+        main.postDelayed({ begin(null) }, timeoutMs)
         return cb
     }
 

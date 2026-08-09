@@ -33,6 +33,16 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.10.1 — refinement: session-hygiene options and live spoken feedback.
+        //   Settings → Range options now also carries "Auto-reconnect camera
+        //   Wi-Fi" (waits 20 s instead of 8 s for the camera AP) and
+        //   "Auto-advance to results after each shot" (opt-in; the flow
+        //   otherwise stays put). Live scoring now speaks each shot and the
+        //   running correction when speech is on — surfacing the result after
+        //   every shot with no navigation. Keep-awake was already an option;
+        //   the camera selection is already remembered (CameraConfig). Range
+        //   mode remains the glance-after-each-shot view.
+        //
         // 1.10.0 — feature: prone-shooter usability — hands-free and glanceable.
         //   - RANGE MODE. A full-screen, high-contrast glance (RangeActivity,
         //     launched from Home) showing the correction as big arrows+clicks
@@ -2925,8 +2935,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 15
-        versionName = "1.10.0"
+        versionCode = 16
+        versionName = "1.10.1"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

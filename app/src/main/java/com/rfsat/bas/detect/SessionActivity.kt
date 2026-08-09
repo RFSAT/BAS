@@ -1204,6 +1204,15 @@ class SessionActivity : BaseActivity() {
         refreshStatus()
         val last = ScoringSession.state.shots.lastOrNull()
         if (last != null) notifyUser("Shot ${last.index}: ${last.displayValue}  (${last.clockPosition})")
+        runCatching {
+            if (last != null) {
+                val corr = com.rfsat.bas.scoring.ScoringSession.correction(this)
+                if (com.rfsat.bas.ui.RangeSettings.speak())
+                    com.rfsat.bas.ui.Speaker.say(this, "Shot ${last.index}, ${last.displayValue}. " + com.rfsat.bas.ui.Corrections.scoringSpeech(corr))
+                if (com.rfsat.bas.ui.RangeSettings.autoShowResults())
+                    startActivity(Intent(this, ResultsActivity::class.java))
+            }
+        }
     }
 
     private fun startAudio() {
