@@ -187,12 +187,7 @@ class CaptureActivity : BaseActivity() {
         }
         binding.btnImportVideo.setOnClickListener { importVideoLauncher.launch("video/*") }
         binding.btnAnalyze.setOnClickListener { runAnalysis() }
-        binding.btnLastAnalysis.setOnClickListener {
-            startActivity(Intent(this, BallisticsResultsActivity::class.java))
-        }
-        binding.btnCameraFile.setOnClickListener { promptCameraDownload() }
-        binding.btnScanCamera.setOnClickListener { runCameraScan() }
-        binding.btnGoPro.setOnClickListener { promptGoPro() }
+        binding.btnCameraMenu.setOnClickListener { promptCameraMenu() }
         binding.btnAnalyze.isEnabled = false
 
         binding.btnArm.setOnClickListener { toggleArm() }
@@ -784,6 +779,25 @@ class CaptureActivity : BaseActivity() {
         }
         networkCallback = null
         scopeWifiNetwork = null
+    }
+
+    private fun promptCameraMenu() {
+        val items = arrayOf(
+            "Download latest file",
+            "Scan camera (discover)",
+            "GoPro — import / configure / live ▸",
+            "View last analysis")
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Camera")
+            .setItems(items) { _, w ->
+                when (w) {
+                    0 -> promptCameraDownload()
+                    1 -> runCameraScan()
+                    2 -> promptGoPro()
+                    3 -> startActivity(Intent(this, BallisticsResultsActivity::class.java))
+                }
+            }
+            .show()
     }
 
     // --- v1.5.0: GoPro (Open GoPro HTTP API) — import and configure ---

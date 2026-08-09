@@ -142,7 +142,10 @@ open class BaseActivity : AppCompatActivity() {
             R.id.nav_home -> MainActivity::class.java
             R.id.nav_ballistics -> com.rfsat.bas.capture.CaptureActivity::class.java
             R.id.nav_score -> com.rfsat.bas.detect.SessionActivity::class.java
-            R.id.nav_results -> com.rfsat.bas.results.ResultsActivity::class.java
+            R.id.nav_results -> if (this is com.rfsat.bas.capture.CaptureActivity ||
+                this is com.rfsat.bas.results.BallisticsResultsActivity)
+                com.rfsat.bas.results.BallisticsResultsActivity::class.java
+            else com.rfsat.bas.results.ResultsActivity::class.java
             R.id.nav_settings -> com.rfsat.bas.profiles.ProfileActivity::class.java
             else -> return
         }

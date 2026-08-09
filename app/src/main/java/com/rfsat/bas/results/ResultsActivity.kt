@@ -650,7 +650,7 @@ class ResultsActivity : BaseActivity() {
             if (rules.countInnerTens && res.innerTens > 0) append("  ·  ${res.innerTens}×")
         }
         binding.tvSubhead.text = buildString {
-            append("${rules.name} · ${face.name} · ${UnitsManager.formatDistance(distance)}")
+            append("${rules.name.substringBefore("—").trim()} · ${face.name} · ${UnitsManager.formatDistance(distance)}")
             append(" · gauge ${rules.gaugeDiameterMm} mm")
             if (ScoringSession.state.shots.isNotEmpty()) {
                 append("\n(the face and rules a session was scored with are kept; " +

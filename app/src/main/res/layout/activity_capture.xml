@@ -34,6 +34,15 @@
 
     </FrameLayout>
 
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -186,29 +195,13 @@
             android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
     </LinearLayout>
 
-    <Button android:id="@+id/btnGoPro"
-        android:text="GoPro ▾ (import / configure)"
+    <Button android:id="@+id/btnCameraMenu"
+        android:text="Camera ▾"
         android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:textSize="13sp"
-        style="?attr/borderlessButtonStyle" />
+        android:textSize="13sp" />
 
-    <Button android:id="@+id/btnScanCamera"
-        android:text="Scan camera (discover) 🔍"
-        android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:textSize="13sp"
-        style="?attr/borderlessButtonStyle" />
-
-    <Button android:id="@+id/btnCameraFile"
-        android:text="Download latest from camera ▾"
-        android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:textSize="13sp"
-        style="?attr/borderlessButtonStyle" />
-
-    <Button android:id="@+id/btnLastAnalysis"
-        android:text="View last analysis ▸"
-        android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:textSize="13sp"
-        style="?attr/borderlessButtonStyle" />
+    </LinearLayout>
+    </ScrollView>
 
     <include layout="@layout/include_bottom_nav" />
 </LinearLayout>

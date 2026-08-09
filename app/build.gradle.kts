@@ -33,6 +33,24 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.7.1 — correction: Ballistics/Capture screen usability, from field
+        //          feedback.
+        //   - The camera controls (added over 1.3.0-1.7.0) had pushed the
+        //     preview small and there was nothing to scroll: the controls now
+        //     live in a ScrollView (bottom nav pinned below it), so the preview
+        //     keeps its size and everything else scrolls.
+        //   - The four stacked borderless camera links are one real "Camera ▾"
+        //     button (matching the other buttons) that opens a menu: download
+        //     latest file, scan/discover, GoPro (import/configure/live), and
+        //     view last analysis — much less vertical space.
+        //   - The bottom "Results" tab now opens the BALLISTICS results when the
+        //     shooter is on the Ballistics flow (Capture or the ballistics
+        //     results screen), and scoring results elsewhere; the top toggle
+        //     still switches between the two either way.
+        //   - Results subhead compacts the rule name to what fits the width —
+        //     the part before the em dash — so "Training — free practice" reads
+        //     "Training".
+        //
         // 1.7.0 — feature: GoPro LIVE preview on both the Ballistics/Capture
         //          and Score screens. GoPro (HERO9+) serves a low-res MPEG-TS
         //          preview over UDP 8554 after GET /gopro/camera/stream/start —
@@ -2851,8 +2869,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 11
-        versionName = "1.7.0"
+        versionCode = 12
+        versionName = "1.7.1"
     }
 
     // Resolved once, here, rather than re-read from the environment in two
