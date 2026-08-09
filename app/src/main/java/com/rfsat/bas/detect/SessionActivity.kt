@@ -133,6 +133,8 @@ class SessionActivity : BaseActivity() {
         }
     }
 
+    override fun onRemoteTrigger(): Boolean { runCatching { binding.btnScoreNow.performClick() }; return true }
+
     private fun refreshCameraLabelS() {
         binding.btnCameraTypeS.text = "Camera: ${com.rfsat.bas.capture.CameraConfig.type(this).label} ▾"
     }

@@ -33,6 +33,25 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.11.0 — feature: auto-collect, remote triggering, and confirmation-
+        //          free operation (all opt-in, Settings -> Range options).
+        //   - AUTO-COLLECT. Arm it (button on Capture, or auto-arm via the
+        //     setting) and BAS stands by, polling the selected camera's file
+        //     list; when a NEW clip appears — you stopped recording, e.g. with
+        //     the camera's own remote — it downloads and analyses it
+        //     automatically. Camera-agnostic (GoProClient.latestUrl /
+        //     CameraFileImporter.latestUrl+downloadUrl); GoPro is cleanest,
+        //     TACTACAM/ShotKam depend on Wi-Fi being reachable between clips.
+        //   - REMOTE TRIGGER. With the option on, the volume/camera/media/
+        //     headset/enter keys (a Bluetooth shutter, a clicker) fire the
+        //     screen's primary action — analyse on Ballistics, score-now on
+        //     Score — via BaseActivity.onKeyDown -> onRemoteTrigger.
+        //   - CONFIRMATION-FREE. "Skip confirmations" turns the clear-shots and
+        //     remove-marks prompts into immediate actions (with a spoken/toast
+        //     note), so nothing blocks the hands-free loop. Destructive setup
+        //     confirmations (delete profile/target) stay.
+        //   No new permissions.
+        //
         // 1.10.2 — correction: CameraWifi (package capture) referenced the new
         //          RangeSettings (package ui) unqualified, so the compiler could
         //          not resolve it. Fully qualified. A new static check (gate 9)
@@ -2946,8 +2965,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 17
-        versionName = "1.10.2"
+        versionCode = 18
+        versionName = "1.11.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

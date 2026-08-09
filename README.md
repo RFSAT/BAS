@@ -153,6 +153,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.11.0** — feature. Three opt-in hands-free tools (Settings → Range options): auto-collect (armed standby that polls the camera and auto-analyses any new clip — so recording with the camera's own remote flows straight into processing); remote trigger (volume/Bluetooth-shutter keys fire the screen's primary action); and confirmation-free operation (skips the clear-shots and remove-marks prompts). New peek/download helpers on `CameraFileImporter`; `BaseActivity.onRemoteTrigger`.
+
 **1.10.2** — correction. Fixed a build break: `CameraWifi` referenced `RangeSettings` from another package unqualified. Fully qualified it, and added a static check (gate 9) that flags any top-level object/class used unqualified across packages.
 
 **1.10.1** — refinement. Settings → Range options adds "Auto-reconnect camera Wi-Fi" (waits longer for the AP) and "Auto-advance to results after each shot" (opt-in). Live scoring now speaks each shot and the running correction when speech is on. Keep-awake was already an option and the camera selection is already remembered.

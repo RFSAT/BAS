@@ -47,33 +47,30 @@ object CameraFileImporter {
      * Runs on a background thread. Returns the downloaded file, or null (with a
      * logged reason). [hostOverride] wins over the preset host when non-blank.
      */
-    fun downloadLatest(
-        preset: Preset,
-        hostOverride: String?,
-        cacheDir: File,
-        log: (String) -> Unit
-    ): File? {
+    fun downloadLatest(preset: Preset, hostOverride: String?, cacheDir: File, log: (String) -> Unit): File? {
+        val url = latestUrl(preset, hostOverride, log) ?: return null
+        log("Newest: $url")
+        return downloadUrl(url, cacheDir, log)
+    }
+
+    /** Peek the newest media URL without downloading — used by auto-collect to
+     *  detect a NEW clip (recording stopped) before pulling it. */
+    fun latestUrl(preset: Preset, hostOverride: String?, log: (String) -> Unit): String? {
         val host = hostOverride?.trim()?.takeIf { it.isNotBlank() } ?: preset.host
         val base = "http://$host"
-        log("Camera import: ${preset.name} @ $host")
-
         val media = collectMedia(base, preset.listPaths, depth = 0, log)
         if (media.isEmpty()) {
-            log("No media files found — the endpoint or host may differ on this camera; " +
-                "share the Log so the exact path can be added.")
+            log("No media files found — the endpoint or host may differ on this camera.")
             return null
         }
-        // DCIM/action-cam names are sequential or timestamped, so the greatest
-        // filename is the newest. Compare on the name, not the full path.
-        val newest = media.maxByOrNull { it.substringAfterLast('/').uppercase() }!!
-        log("Newest of ${media.size}: $newest")
+        return media.maxByOrNull { it.substringAfterLast('/').uppercase() }
+    }
 
-        val ext = newest.substringAfterLast('.', "mp4").lowercase().take(4)
+    /** Download an exact media URL to cache. */
+    fun downloadUrl(url: String, cacheDir: File, log: (String) -> Unit): File? {
+        val ext = url.substringAfterLast('.', "mp4").lowercase().take(4)
         val out = File(cacheDir, "camera_latest.$ext")
-        return if (download(newest, out, log)) {
-            log("Downloaded ${out.length()} bytes -> ${out.name}")
-            out
-        } else null
+        return if (download(url, out, log)) { log("Downloaded ${out.length()} bytes -> ${out.name}"); out } else null
     }
 
     /** Collect media URLs from the listing paths, descending one level into the

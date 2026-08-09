@@ -700,12 +700,18 @@ class ProfileActivity : BaseActivity() {
             "Speak corrections and scores",
             "Keep screen on during a session",
             "Auto-reconnect camera Wi-Fi (wait longer)",
-            "Auto-advance to results after each shot")
+            "Auto-advance to results after each shot",
+            "Auto-collect new clips from the camera",
+            "Volume / Bluetooth remote triggers capture",
+            "Skip confirmations (clear shots, remove marks)")
         val checked = booleanArrayOf(
             com.rfsat.bas.ui.RangeSettings.speak(),
             com.rfsat.bas.ui.RangeSettings.keepAwake(),
             com.rfsat.bas.ui.RangeSettings.autoReconnect(),
-            com.rfsat.bas.ui.RangeSettings.autoShowResults())
+            com.rfsat.bas.ui.RangeSettings.autoShowResults(),
+            com.rfsat.bas.ui.RangeSettings.autoCollect(),
+            com.rfsat.bas.ui.RangeSettings.remoteTrigger(),
+            com.rfsat.bas.ui.RangeSettings.skipConfirm())
         androidx.appcompat.app.AlertDialog.Builder(this)
             .setTitle("Range options")
             .setMultiChoiceItems(labels, checked) { _, which, isChecked -> checked[which] = isChecked }
@@ -714,6 +720,9 @@ class ProfileActivity : BaseActivity() {
                 com.rfsat.bas.ui.RangeSettings.setKeepAwake(this, checked[1])
                 com.rfsat.bas.ui.RangeSettings.setAutoReconnect(this, checked[2])
                 com.rfsat.bas.ui.RangeSettings.setAutoShowResults(this, checked[3])
+                com.rfsat.bas.ui.RangeSettings.setAutoCollect(this, checked[4])
+                com.rfsat.bas.ui.RangeSettings.setRemoteTrigger(this, checked[5])
+                com.rfsat.bas.ui.RangeSettings.setSkipConfirm(this, checked[6])
                 if (checked[0]) com.rfsat.bas.ui.Speaker.init(this)
             }
             .setNegativeButton("Cancel", null)

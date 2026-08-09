@@ -315,6 +315,11 @@ class ResultsActivity : BaseActivity() {
             if (outside > 0) append("\n\n$outside lie outside the scoring rings.")
             append("\n\nA shot it missed looks the same as one the app invented — check the plot first.")
         }
+        if (com.rfsat.bas.ui.RangeSettings.skipConfirm()) {
+            ScoringSession.removeShots(victims); refresh()
+            notifyUser("Removed ${victims.size}. Undo by adding them back from the plot.")
+            return
+        }
         androidx.appcompat.app.AlertDialog.Builder(this)
             .setTitle("Remove unsupported marks")
             .setMessage(msg)
@@ -366,6 +371,10 @@ class ResultsActivity : BaseActivity() {
     private fun confirmClearShots() {
         if (ScoringSession.state.shots.isEmpty()) {
             notifyUser("There are no shots to clear.")
+            return
+        }
+        if (com.rfsat.bas.ui.RangeSettings.skipConfirm()) {
+            ScoringSession.clearShots(); refresh(); notifyUser("Cleared.")
             return
         }
         androidx.appcompat.app.AlertDialog.Builder(this)

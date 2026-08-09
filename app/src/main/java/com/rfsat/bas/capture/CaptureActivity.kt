@@ -191,6 +191,7 @@ class CaptureActivity : BaseActivity() {
             CameraUi.chooseType(this, CameraConfig.type(this)) { t -> CameraConfig.setType(this, t); refreshCameraLabel() }
         }
         binding.btnCameraConfigure.setOnClickListener { configureCamera() }
+        binding.btnAutoCollect.setOnClickListener { toggleAutoCollect() }
         binding.btnAnalyze.isEnabled = false
 
         binding.btnArm.setOnClickListener { toggleArm() }
@@ -220,6 +221,7 @@ class CaptureActivity : BaseActivity() {
     }
 
     override fun onPause() {
+        runCatching { stopAutoCollect() }
         stopIdlePreview() // release the surface + network when leaving the tab
         saveCaptureFields()
         super.onPause()
@@ -583,6 +585,7 @@ class CaptureActivity : BaseActivity() {
         super.onResume()
         setupCaptureSource() // scope may have changed in Settings
         runCatching { refreshCameraLabel() }
+        if (com.rfsat.bas.ui.RangeSettings.autoCollect()) runCatching { startAutoCollect(false) }
         runCatching {
             val adj = com.rfsat.bas.results.AnalysisSession.adjustment
             val txt = if (adj != null && adj.valid) "Wind: " + com.rfsat.bas.ui.Corrections.ballisticGlance(adj) else ""
@@ -801,6 +804,64 @@ class CaptureActivity : BaseActivity() {
 
     fun refreshCameraLabel() {
         binding.btnCameraType.text = "Camera: ${CameraConfig.type(this).label} ▾"
+    }
+
+    override fun onRemoteTrigger(): Boolean { runCatching { runAnalysis() }; return true }
+
+    private var autoCollectArmed = false
+    private var autoCollectThread: Thread? = null
+    private var lastCollectedId: String? = null
+
+    private fun toggleAutoCollect() { if (autoCollectArmed) stopAutoCollect() else startAutoCollect(true) }
+
+    private fun startAutoCollect(manual: Boolean) {
+        val type = CameraConfig.type(this)
+        if (type == CameraType.PHONE || type == CameraType.RTSP) {
+            if (manual) notifyUser("Auto-collect needs a file camera (GoPro / TACTACAM / ShotKam).")
+            return
+        }
+        if (autoCollectArmed) return
+        autoCollectArmed = true
+        lastCollectedId = null
+        binding.btnAutoCollect.text = "Auto-collect: armed"
+        notifyUser("Auto-collect armed — record with the camera; new clips are collected and analysed.")
+        acquireScopeNetwork { _ ->
+            autoCollectThread = Thread {
+                while (autoCollectArmed) {
+                    val id = runCatching { latestClipId(type) }.getOrNull()
+                    if (id != null && id != lastCollectedId) {
+                        val first = lastCollectedId == null
+                        lastCollectedId = id
+                        if (!first) {
+                            val f = runCatching { CameraFileImporter.downloadUrl(id, cacheDir) { m -> Logger.i(TAG, m) } }.getOrNull()
+                            if (f != null) runOnUiThread {
+                                pendingUri = Uri.fromFile(f); pendingReferenceBitmap = null
+                                binding.btnAnalyze.isEnabled = true
+                                notifyUser("Collected ${f.name} — analysing…")
+                                runAnalysis()
+                            }
+                        }
+                    }
+                    try { Thread.sleep(3000) } catch (e: InterruptedException) { break }
+                }
+            }.also { it.start() }
+        }
+    }
+
+    private fun stopAutoCollect() {
+        if (!autoCollectArmed) return
+        autoCollectArmed = false
+        autoCollectThread?.interrupt(); autoCollectThread = null
+        lastCollectedId = null
+        runCatching { releaseScopeNetwork() }
+        binding.btnAutoCollect.text = "Auto-collect: off"
+    }
+
+    private fun latestClipId(type: CameraType): String? = when (type) {
+        CameraType.GOPRO -> GoProClient.latestUrl(false) { m -> Logger.i(TAG, m) }
+        CameraType.TACTACAM, CameraType.SHOTKAM ->
+            CameraFileImporter.latestUrl(CameraConfig.importerPreset(type), CameraConfig.host(this, type)) { m -> Logger.i(TAG, m) }
+        else -> null
     }
 
     private fun configureCamera() {

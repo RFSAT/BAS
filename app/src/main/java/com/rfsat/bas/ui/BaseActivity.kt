@@ -220,6 +220,26 @@ open class BaseActivity : AppCompatActivity() {
         if (next in tabOrder.indices) openTab(tabOrder[next])
     }
 
+    /** A hardware key (volume, camera, media, headset, enter) fired while the
+     *  "remote triggers capture" option is on. Screens override to act; return
+     *  true to consume the key — a Bluetooth shutter/clicker or the volume
+     *  buttons can then advance the flow hands-free. */
+    protected open fun onRemoteTrigger(): Boolean = false
+
+    override fun onKeyDown(keyCode: Int, event: android.view.KeyEvent?): Boolean {
+        if (RangeSettings.remoteTrigger()) {
+            when (keyCode) {
+                android.view.KeyEvent.KEYCODE_VOLUME_UP,
+                android.view.KeyEvent.KEYCODE_VOLUME_DOWN,
+                android.view.KeyEvent.KEYCODE_CAMERA,
+                android.view.KeyEvent.KEYCODE_HEADSETHOOK,
+                android.view.KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
+                android.view.KeyEvent.KEYCODE_ENTER -> if (onRemoteTrigger()) return true
+            }
+        }
+        return super.onKeyDown(keyCode, event)
+    }
+
     companion object {
         const val PREFS = "bas_prefs"
     }
