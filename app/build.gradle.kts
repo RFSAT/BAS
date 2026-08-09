@@ -33,6 +33,17 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.10.2 — correction: CameraWifi (package capture) referenced the new
+        //          RangeSettings (package ui) unqualified, so the compiler could
+        //          not resolve it. Fully qualified. A new static check (gate 9)
+        //          now flags any top-level object/class used unqualified from
+        //          another package — resolving the symbol only when it is
+        //          same-package, imported, or fully qualified — so this class of
+        //          error is named at its use site before the compiler. The gate
+        //          tracks every declaring package, so a name that legitimately
+        //          exists in the current package too (AudioShotDetector, in both
+        //          capture and detect) is not a false positive.
+        //
         // 1.10.1 — refinement: session-hygiene options and live spoken feedback.
         //   Settings → Range options now also carries "Auto-reconnect camera
         //   Wi-Fi" (waits 20 s instead of 8 s for the camera AP) and
@@ -2935,8 +2946,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 16
-        versionName = "1.10.1"
+        versionCode = 17
+        versionName = "1.10.2"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

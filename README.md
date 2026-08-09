@@ -153,6 +153,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.10.2** — correction. Fixed a build break: `CameraWifi` referenced `RangeSettings` from another package unqualified. Fully qualified it, and added a static check (gate 9) that flags any top-level object/class used unqualified across packages.
+
 **1.10.1** — refinement. Settings → Range options adds "Auto-reconnect camera Wi-Fi" (waits longer for the AP) and "Auto-advance to results after each shot" (opt-in). Live scoring now speaks each shot and the running correction when speech is on. Keep-awake was already an option and the camera selection is already remembered.
 
 **1.10.0** — feature. Prone-shooter usability: a full-screen Range mode glance screen (big arrows+clicks correction and large score, launched from Home); optional spoken corrections and scores via text-to-speech (default OFF, toggled in Settings → Range options); keep-screen-on during a session (default ON); and a last-correction overlay on both live viewfinders (wind on Ballistics, dial-to-centre on Score). New `RangeActivity`/`Speaker`/`RangeSettings`/`Corrections`.

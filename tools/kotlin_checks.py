@@ -334,5 +334,40 @@ for f in files:
                 problems.append(f"{os.path.basename(f)}:{j+1}  import after a top-level declaration — imports must follow the package line")
                 break
 
+
+# ---- 9. top-level object/class used unqualified across packages ----
+# A reference like RangeSettings.foo() resolves only if RangeSettings is in the
+# same package, imported, or fully qualified. The heuristic gates don't resolve
+# symbols, so this cross-package slip reaches the compiler as an error reported
+# at the use site with no hint of the missing import. This gate catches it.
+import re as _re9
+_decl_pkgs = {}
+_file_pkg = {}
+_declre = _re9.compile(r'^(?:public |internal |private |open |sealed |abstract |data |enum |value |)*(?:object|class|interface) (\w+)')
+for f in files:
+    _lines = open(f).read().splitlines()
+    _pkg = next((l[len("package "):].strip() for l in _lines if l.startswith("package ")), "")
+    _file_pkg[f] = _pkg
+    for l in _lines:
+        m = _declre.match(l)
+        if m:
+            _decl_pkgs.setdefault(m.group(1), set()).add(_pkg)
+for f in files:
+    _src = open(f).read()
+    _pkg = _file_pkg[f]
+    _imported = {imp.rsplit(".", 1)[-1] for imp in _re9.findall(r'^import ([\w.]+)', _src, _re9.M)}
+    for i, l in enumerate(_src.splitlines()):
+        ls = l.lstrip()
+        if ls.startswith("//") or ls.startswith("*") or ls.startswith("package ") or ls.startswith("import "):
+            continue
+        for m in _re9.finditer(r'(?<![.\w])([A-Z]\w+)\.', l):
+            name = m.group(1)
+            if name in _decl_pkgs and _pkg not in _decl_pkgs[name] and name not in _imported:
+                problems.append(f"{os.path.basename(f)}:{i+1}  '{name}' used unqualified but is declared in {sorted(_decl_pkgs[name])} (add an import or fully qualify)")
+                break
+        else:
+            continue
+        break
+
 print(("PROBLEMS:\n  "+"\n  ".join(problems)) if problems else "No problems found.")
 sys.exit(1 if problems else 0)
