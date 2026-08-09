@@ -33,6 +33,21 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.5.0 — feature: GoPro support via the official Open GoPro HTTP
+        //          API — the easy case, because GoPro DOCUMENTS its protocol.
+        //          A "GoPro" button on Capture offers, over the camera's own
+        //          Wi-Fi (10.5.5.9:8080): download the latest clip (parsed from
+        //          the /gopro/media/list JSON, newest video preferred, fetched
+        //          from /videos/DCIM and handed to the analyzer), start/stop
+        //          recording, set digital zoom %, load a preset, read camera
+        //          state, and keep the Wi-Fi awake — so the GoPro can be
+        //          CONFIGURED from inside BAS, not just read. New GoProClient;
+        //          the discovery scan also learned GoPro's host (10.5.5.9) and
+        //          endpoints. GoPro's high resolution and zoom make it usable
+        //          for scoring too: a downloaded still can be imported on the
+        //          Score screen (a direct GoPro-photo-to-Score path is the next
+        //          step). No new permissions.
+        //
         // 1.4.0 — feature: a wide-net camera discovery scan, so the way in
         //          is found IN the app, without the manufacturer's app or a
         //          packet capture. "Scan camera (discover)" on Capture binds
@@ -2792,8 +2807,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 6
-        versionName = "1.4.0"
+        versionCode = 7
+        versionName = "1.5.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

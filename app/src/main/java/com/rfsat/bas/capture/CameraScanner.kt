@@ -25,14 +25,15 @@ object CameraScanner {
 
     private val DEFAULT_HOSTS = listOf(
         "192.168.1.254", "192.168.1.1", "192.168.42.1", "192.168.0.1",
-        "10.0.0.1", "192.168.42.129", "172.16.0.1", "192.168.100.1"
+        "10.0.0.1", "192.168.42.129", "172.16.0.1", "192.168.100.1", "10.5.5.9"
     )
     private val HTTP_PORTS = listOf(80, 8080, 8192, 88, 8081, 8888)
     private val PATHS = listOf(
         "/", "/DCIM/", "/DCIM/100MEDIA/", "/DCIM/PHOTO/", "/MOVIE/", "/PHOTO/",
         "/NOVATEK/", "/NOVATEK/MOVIE/", "/tmp/SD0/", "/mnt/sd/", "/sd/", "/SD/",
         "/videos/", "/video/", "/media/", "/files/", "/storage/",
-        "/gp/gpMediaList", "/gp/gpControl/status", "/cgi-bin/hi3510/param.cgi"
+        "/gp/gpMediaList", "/gp/gpControl/status", "/cgi-bin/hi3510/param.cgi",
+        "/gopro/media/list", "/videos/DCIM/", "/gopro/camera/state"
     )
     private val NOVATEK_CMDS = listOf(3001, 3015, 3016, 3025, 3026, 2001, 1001, 8001, 3012)
     private val MEDIA = Regex("""[\w/.\-]+\.(?:mp4|mov|avi|mkv|m4v|jpg|jpeg)""", RegexOption.IGNORE_CASE)

@@ -192,6 +192,7 @@ class CaptureActivity : BaseActivity() {
         }
         binding.btnCameraFile.setOnClickListener { promptCameraDownload() }
         binding.btnScanCamera.setOnClickListener { runCameraScan() }
+        binding.btnGoPro.setOnClickListener { promptGoPro() }
         binding.btnAnalyze.isEnabled = false
 
         binding.btnArm.setOnClickListener { toggleArm() }
@@ -782,6 +783,87 @@ class CaptureActivity : BaseActivity() {
         }
         networkCallback = null
         scopeWifiNetwork = null
+    }
+
+    // --- v1.5.0: GoPro (Open GoPro HTTP API) — import and configure ---
+    private fun promptGoPro() {
+        val actions = arrayOf(
+            "Download latest clip", "Start recording", "Stop recording",
+            "Digital zoom…", "Load preset…", "Camera state", "Keep awake")
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("GoPro (10.5.5.9)")
+            .setItems(actions) { _, w ->
+                when (w) {
+                    0 -> goProDownload()
+                    1 -> goProRun("Start recording") { GoProClient.shutter(true, it) }
+                    2 -> goProRun("Stop recording") { GoProClient.shutter(false, it) }
+                    3 -> promptNumber("Digital zoom %", "0-100") { v ->
+                        goProRun("Zoom $v%") { GoProClient.digitalZoom(v, it) } }
+                    4 -> promptNumber("Load preset id", "e.g. 0") { v ->
+                        goProRun("Preset $v") { GoProClient.loadPreset(v, it) } }
+                    5 -> goProState()
+                    6 -> goProRun("Keep awake") { GoProClient.keepAlive(it) }
+                }
+            }
+            .show()
+    }
+
+    private fun goProRun(label: String, work: ((String) -> Unit) -> Boolean) {
+        notifyUser("GoPro: $label…")
+        acquireScopeNetwork { _ ->
+            Thread {
+                val okr = runCatching { work { m -> Logger.i(TAG, m) } }.getOrDefault(false)
+                runOnUiThread {
+                    releaseScopeNetwork()
+                    notifyUser(if (okr) "GoPro: $label ✓" else "GoPro: $label failed — see the Log tab")
+                }
+            }.start()
+        }
+    }
+
+    private fun goProDownload() {
+        notifyUser("GoPro: fetching the latest clip…")
+        acquireScopeNetwork { _ ->
+            Thread {
+                val f = runCatching { GoProClient.downloadLatest(cacheDir) { m -> Logger.i(TAG, m) } }.getOrNull()
+                runOnUiThread {
+                    releaseScopeNetwork()
+                    if (f != null) {
+                        pendingUri = Uri.fromFile(f)
+                        pendingReferenceBitmap = null
+                        binding.btnAnalyze.isEnabled = true
+                        notifyUser("Downloaded ${f.name} — tap Analyze.")
+                    } else notifyUser("GoPro download failed — see the Log tab.")
+                }
+            }.start()
+        }
+    }
+
+    private fun goProState() {
+        notifyUser("GoPro: reading state…")
+        acquireScopeNetwork { _ ->
+            Thread {
+                val st = runCatching { GoProClient.state { m -> Logger.i(TAG, m) } }.getOrNull()
+                runOnUiThread {
+                    releaseScopeNetwork()
+                    androidx.appcompat.app.AlertDialog.Builder(this)
+                        .setTitle("GoPro state")
+                        .setMessage(st?.take(1500) ?: "No response — see the Log tab.")
+                        .setPositiveButton("OK", null).show()
+                }
+            }.start()
+        }
+    }
+
+    private fun promptNumber(title: String, hint: String, onOk: (Int) -> Unit) {
+        val et = android.widget.EditText(this).apply {
+            this.hint = hint
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER
+        }
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle(title).setView(et)
+            .setPositiveButton("OK") { _, _ -> et.text.toString().toIntOrNull()?.let(onOk) }
+            .setNegativeButton("Cancel", null).show()
     }
 
     // --- v1.4.0: wide-net camera discovery scan ---
