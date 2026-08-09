@@ -514,6 +514,10 @@
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 style="@style/Sts.ActionButton"
                 android:text="Camera defaults…" />
+            <Button android:id="@+id/btnRangeOptions"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                style="@style/Sts.ActionButton"
+                android:text="Range options (speech, keep-awake)…" />
             <Button android:id="@+id/btnBackup"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 style="@style/Sts.ActionButton"

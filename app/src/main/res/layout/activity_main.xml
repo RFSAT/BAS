@@ -120,6 +120,13 @@
                     android:text="Diagnostic log" />
 
                 <Button
+                    android:id="@+id/btnRange"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    style="@style/Sts.ActionButton"
+                    android:text="Range mode — big glance display" />
+
+                <Button
                     android:id="@+id/btnResume"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

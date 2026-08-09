@@ -33,6 +33,24 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.10.0 — feature: prone-shooter usability — hands-free and glanceable.
+        //   - RANGE MODE. A full-screen, high-contrast glance (RangeActivity,
+        //     launched from Home) showing the correction as big arrows+clicks
+        //     and the score in large auto-sizing type, polled live and readable
+        //     from arm's length. One big Close button, no bottom nav.
+        //   - SPEECH (default OFF). Speaker (TextToSpeech) announces the terse
+        //     correction and score — "Come up 3, left 1." — after scoring and
+        //     ballistics, and in Range mode, so the shooter needn't look. Off
+        //     until enabled in Settings → Range options.
+        //   - KEEP-AWAKE (default ON). BaseActivity holds FLAG_KEEP_SCREEN_ON
+        //     while foreground, so a prone phone does not sleep mid-string.
+        //   - CORRECTION OVERLAY. The last correction is drawn over the live
+        //     viewfinder on both tabs (wind on Ballistics, dial-to-centre on
+        //     Score), so it can be read while still behind the scope.
+        //   Shared Corrections helper formats arrows/clicks and speech from the
+        //   existing SightCorrection / ScopeAdjustment; RangeSettings stores the
+        //   two toggles. TTS engine declared in <queries>. No new permissions.
+        //
         // 1.9.0 — feature: one consistent camera selector on BOTH tabs, plus
         //          per-camera defaults in Settings. A "Camera: <type>" button
         //          and a "Configure" button now sit on Ballistics/Capture and
@@ -2907,8 +2925,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 14
-        versionName = "1.9.0"
+        versionCode = 15
+        versionName = "1.10.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

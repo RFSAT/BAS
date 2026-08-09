@@ -24,6 +24,12 @@ open class BaseActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         runCatching { applyImeInsets() }
+        runCatching {
+            if (RangeSettings.keepAwake())
+                window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            else
+                window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
     }
 
     private var imeInsetsAttached = false

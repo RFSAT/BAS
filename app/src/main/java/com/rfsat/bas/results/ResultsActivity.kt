@@ -36,6 +36,7 @@ import com.rfsat.bas.ui.UnitsManager
  * putting the least actionable content first.
  */
 class ResultsActivity : BaseActivity() {
+    private var lastSpokenShots = -1
 
     private lateinit var binding: ActivityResultsBinding
     private var addMode = false
@@ -676,6 +677,13 @@ class ResultsActivity : BaseActivity() {
         // has concluded there is nothing to do, the line says what the
         // residual is and why it is being left alone.
         binding.tvCorrection.text = corr.instruction
+        runCatching {
+            val n = ScoringSession.state.shots.size
+            if (n != lastSpokenShots) {
+                lastSpokenShots = n
+                com.rfsat.bas.ui.Speaker.say(this, "${res.displayTotal}. " + com.rfsat.bas.ui.Corrections.scoringSpeech(corr))
+            }
+        }
         binding.tvCorrectionDetail.text = when {
             !corr.valid -> ""
             corr.needsAdjustment ->

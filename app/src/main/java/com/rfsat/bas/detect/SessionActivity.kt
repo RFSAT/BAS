@@ -122,7 +122,18 @@ class SessionActivity : BaseActivity() {
         }
     }
 
-        private fun refreshCameraLabelS() {
+        override fun onResume() {
+        super.onResume()
+        runCatching {
+            val corr = com.rfsat.bas.scoring.ScoringSession.correction(this)
+            val g = com.rfsat.bas.ui.Corrections.scoringGlance(corr)
+            val txt = if (g == "—") "" else "Dial: $g"
+            binding.tvCorrectionOverlayS.text = txt
+            binding.tvCorrectionOverlayS.visibility = if (txt.isEmpty()) View.GONE else View.VISIBLE
+        }
+    }
+
+    private fun refreshCameraLabelS() {
         binding.btnCameraTypeS.text = "Camera: ${com.rfsat.bas.capture.CameraConfig.type(this).label} ▾"
     }
 

@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- TTS engine visibility for spoken corrections (Android 11+ package visibility). -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+    </queries>
+
     <!-- Live target observation and still capture of the shot target. -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera.any" android:required="false" />
@@ -65,6 +72,7 @@
         <!-- Ballistics flow (integrated from VTB) -->
         <activity android:name="com.rfsat.bas.capture.CaptureActivity" android:exported="false" />
         <activity android:name="com.rfsat.bas.results.BallisticsResultsActivity" android:exported="false" />
+        <activity android:name="com.rfsat.bas.ui.RangeActivity" android:exported="false" />
         <activity android:name="com.rfsat.bas.rules.RulesActivity" android:exported="false" />
         <activity android:name="com.rfsat.bas.log.LogActivity" android:exported="false" />
 

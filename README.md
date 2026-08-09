@@ -153,6 +153,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.10.0** — feature. Prone-shooter usability: a full-screen Range mode glance screen (big arrows+clicks correction and large score, launched from Home); optional spoken corrections and scores via text-to-speech (default OFF, toggled in Settings → Range options); keep-screen-on during a session (default ON); and a last-correction overlay on both live viewfinders (wind on Ballistics, dial-to-centre on Score). New `RangeActivity`/`Speaker`/`RangeSettings`/`Corrections`.
+
 **1.9.0** — feature. One consistent camera selector on both the Ballistics and Score tabs: a "Camera: <type>" button (Phone, GoPro HERO9+, TACTACAM, ShotKam, RTSP/MJPEG) and a "Configure" button that shows only the options the selected camera supports. Settings gains "Camera defaults…" for the default type and each camera's host. New `CameraType`/`CameraConfig`/`CameraUi`; the standalone GoPro buttons on Score folded into this.
 
 **1.8.0** — feature + corrections. The Ballistics viewfinder now draws the reticle chosen in Settings (shared `ReticleDrawer`), and two new reticles were added — MOA and MRAD wind trees with numbered holdover bars. The phone preview uses CameraX COMPATIBLE mode to avoid intermittent blank frames. The Results Scoring | Ballistics switch shows as real buttons; "Training — free practice" is now "Training practice"; and the "Score" tab is titled "Scoring". Next: a shared camera-type selector with a Configure button (only supported options) and per-camera defaults in Settings.

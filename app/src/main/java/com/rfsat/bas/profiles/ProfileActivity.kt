@@ -483,6 +483,7 @@ class ProfileActivity : BaseActivity() {
         binding.btnLog.setOnClickListener { startActivity(Intent(this, LogActivity::class.java)) }
         binding.btnTargets.setOnClickListener { startActivity(Intent(this, TargetActivity::class.java)) }
         binding.btnCameraDefaults.setOnClickListener { cameraDefaultsMenu() }
+        binding.btnRangeOptions.setOnClickListener { rangeOptionsDialog() }
         binding.btnBackup.setOnClickListener { exportBackup() }
         binding.btnRestore.setOnClickListener { importBackup() }
         binding.btnReset.setOnClickListener {
@@ -694,6 +695,21 @@ class ProfileActivity : BaseActivity() {
      * velocity class, weight and bullet type for a load; brand, click value,
      * magnification class and family for a sight.
      */
+    private fun rangeOptionsDialog() {
+        val labels = arrayOf("Speak corrections and scores", "Keep screen on during a session")
+        val checked = booleanArrayOf(com.rfsat.bas.ui.RangeSettings.speak(), com.rfsat.bas.ui.RangeSettings.keepAwake())
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Range options")
+            .setMultiChoiceItems(labels, checked) { _, which, isChecked -> checked[which] = isChecked }
+            .setPositiveButton("Save") { _, _ ->
+                com.rfsat.bas.ui.RangeSettings.setSpeak(this, checked[0])
+                com.rfsat.bas.ui.RangeSettings.setKeepAwake(this, checked[1])
+                if (checked[0]) com.rfsat.bas.ui.Speaker.init(this)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
     private fun cameraDefaultsMenu() {
         val items = arrayOf("Default camera type", "TACTACAM address", "ShotKam address", "RTSP / MJPEG address")
         androidx.appcompat.app.AlertDialog.Builder(this)

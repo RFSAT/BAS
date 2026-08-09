@@ -60,6 +60,9 @@ class MainActivity : BaseActivity() {
         binding.btnResume.setOnClickListener {
             startActivity(Intent(this, ResultsActivity::class.java))
         }
+        binding.btnRange.setOnClickListener {
+            startActivity(Intent(this, RangeActivity::class.java))
+        }
 
         refreshSetup()
         // Fix (v1.1.0): surface target-face selection from Home — the Score

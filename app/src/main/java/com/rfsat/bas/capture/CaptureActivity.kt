@@ -584,6 +584,12 @@ class CaptureActivity : BaseActivity() {
         setupCaptureSource() // scope may have changed in Settings
         runCatching { refreshCameraLabel() }
         runCatching {
+            val adj = com.rfsat.bas.results.AnalysisSession.adjustment
+            val txt = if (adj != null && adj.valid) "Wind: " + com.rfsat.bas.ui.Corrections.ballisticGlance(adj) else ""
+            binding.tvCorrectionOverlay.text = txt
+            binding.tvCorrectionOverlay.visibility = if (txt.isEmpty()) android.view.View.GONE else android.view.View.VISIBLE
+        }
+        runCatching {
             binding.crosshair.reticle = com.rfsat.bas.detect.ScaleSettings.reticle()
             binding.crosshair.customReticle =
                 if (com.rfsat.bas.detect.ScaleSettings.reticle() == com.rfsat.bas.ui.Reticle.CUSTOM &&

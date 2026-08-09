@@ -9,6 +9,7 @@ import com.rfsat.bas.ui.UnitsManager
 import kotlin.math.abs
 
 class BallisticsResultsActivity : BaseActivity() {
+    private var spokenOnce = false
 
     companion object {
         /** v20.1: shots within this window count toward the session average. */
@@ -116,6 +117,11 @@ class BallisticsResultsActivity : BaseActivity() {
         // integral, never saturates). Legacy payloads (vapor pre-18.0)
         // carry one constant effective distance there, so those fall back
         // to the v17.5 nominal-MV linear mapping.
+        runCatching {
+            if (!spokenOnce) { spokenOnce = true
+                com.rfsat.bas.ui.Speaker.say(this, com.rfsat.bas.ui.Corrections.ballisticSpeech(adjustment))
+            }
+        }
         val samples = AnalysisSession.windSamples.sortedBy { it.timeS }
         // v1.20.36: distance now stops at the target (the bullet is caught
         // there). The trail keeps drifting and measuring wind AFTER impact,
