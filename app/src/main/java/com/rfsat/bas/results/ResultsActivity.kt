@@ -150,6 +150,9 @@ class ResultsActivity : BaseActivity() {
         binding.etNotes.setText(ScoringSession.state.notes)
 
         setupBottomNav(R.id.nav_results)
+        binding.btnTabBallistics.setOnClickListener {
+            startActivity(Intent(this, BallisticsResultsActivity::class.java)); finish()
+        }
         runCatching { refresh() }.onFailure { notifyUser("Could not render the results: ${it.message}") }
     }
 

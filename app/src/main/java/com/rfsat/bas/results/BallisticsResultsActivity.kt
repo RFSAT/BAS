@@ -1,5 +1,6 @@
 package com.rfsat.bas.results
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import com.rfsat.bas.databinding.ActivityBallisticsResultsBinding
@@ -20,7 +21,10 @@ class BallisticsResultsActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityBallisticsResultsBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        setupBottomNav(com.rfsat.bas.R.id.nav_ballistics)
+        setupBottomNav(com.rfsat.bas.R.id.nav_results)
+        binding.btnTabScoring.setOnClickListener {
+            startActivity(Intent(this, ResultsActivity::class.java)); finish()
+        }
 
         maybeRecomputeForProfiles() // v1.20.27: follow rifle/bullet changes
 

@@ -33,6 +33,14 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.2.0 — feature: both results reachable from the Results tab. The
+        //          tab still opens Scoring, but each results screen now carries
+        //          a Scoring | Ballistics (wind) switch at the top, and the
+        //          ballistics results screen highlights the Results tab too, so
+        //          the vapour-trail wind chart and the scoring plot are one tap
+        //          apart from the tab switcher instead of living on separate
+        //          flows. Capture keeps its "View last analysis" shortcut.
+        //
         // 1.1.0 — feature: make the integrated app behave like STS and VTB
         //          out of the box. Diagnosis first, because it matters: the
         //          detection, registration, scoring and vapour-trail code is
@@ -2748,8 +2756,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 3
-        versionName = "1.1.0"
+        versionCode = 4
+        versionName = "1.2.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two
