@@ -1,8 +1,5 @@
 package com.rfsat.bas.detect
 
-/** Extra: absolute path of an image to score directly (e.g. a GoPro still). */
-const val IMPORT_EXTRA_IMAGE_PATH = "image_path"
-
 import android.graphics.Bitmap
 import com.rfsat.bas.cloud.SecondOpinion
 import com.rfsat.bas.cloud.ScoringSource
@@ -29,6 +26,9 @@ import com.rfsat.bas.targets.TargetFace
 import com.rfsat.bas.targets.TargetRepository
 import com.rfsat.bas.ui.BaseActivity
 import com.rfsat.bas.ui.UnitsManager
+
+/** Extra: absolute path of an image to score directly (e.g. a GoPro still). */
+const val IMPORT_EXTRA_IMAGE_PATH = "image_path"
 
 /**
  * ============================================================================

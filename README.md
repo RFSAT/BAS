@@ -153,6 +153,10 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.6.2** — correction. Fixed a build break: the GoPro-photo-to-Score extra was declared above ImportActivity's imports, which Kotlin rejects. Moved below the imports, and added a static check (gate 8) that flags any import placed after a top-level declaration.
+
+**1.6.1** — correction. GoPro support targets HERO9 Black and later (all Open GoPro), so no legacy path is needed; digital zoom now tries both the `percent=` and `range_pcnt=` parameter names, which differ across HERO9/10 firmware.
+
 **1.6.0** — feature. GoPro still straight into scoring. The Score screen gains "Score latest photo from GoPro", which binds the GoPro Wi-Fi, pulls the newest still from the Open GoPro media list, and feeds it to the existing target registration/scoring flow (the same `onImagePicked` pipeline a gallery photo uses). Set the GoPro zoom first from the Ballistics tab's GoPro menu for distant targets.
 
 **1.5.0** — feature. GoPro support via the official Open GoPro HTTP API — the easy case, since GoPro documents its protocol. A "GoPro" button on Capture works over the camera Wi-Fi (10.5.5.9:8080): download the latest clip (from the `/gopro/media/list` JSON, newest video preferred), start/stop recording, set digital zoom, load a preset, read camera state, and keep-awake — so the GoPro can be configured from inside BAS, not just read. Its high resolution and zoom also suit scoring; a downloaded still can be imported on the Score screen (a direct GoPro-photo-to-Score path is next).

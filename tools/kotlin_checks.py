@@ -314,5 +314,25 @@ for f in files:
                 f"{m.group(1)} lambda needs Kotlin 2.2; this project builds on 2.1")
 
 print(f"{len(files)} Kotlin files checked by the semantic, view-binding, import, visibility and language-level gates")
+
+# ---- 8. imports must follow the package line (before any top-level decl) ----
+# Kotlin requires every import immediately after `package`; a top-level const,
+# val, fun, class or object placed above the imports makes the compiler reject
+# every import below it, with a message that names the import, not the stray
+# declaration that caused it.
+_DECL = re.compile(r'^(?:@[\w.]+(?:\([^)]*\))?\s*)*'
+                   r'(?:public |private |internal |protected |expect |actual |external |'
+                   r'abstract |final |open |sealed |data |enum |annotation |inline |value |'
+                   r'lateinit |const )*'
+                   r'(?:val|var|fun|class|object|interface|typealias)\b')
+for f in files:
+    src = open(f).read().splitlines()
+    first_decl = next((i for i, l in enumerate(src) if _DECL.match(l)), -1)
+    if first_decl >= 0:
+        for j in range(first_decl + 1, len(src)):
+            if src[j].startswith('import '):
+                problems.append(f"{os.path.basename(f)}:{j+1}  import after a top-level declaration — imports must follow the package line")
+                break
+
 print(("PROBLEMS:\n  "+"\n  ".join(problems)) if problems else "No problems found.")
 sys.exit(1 if problems else 0)

@@ -6,8 +6,8 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 /**
- * GoPro support via the official Open GoPro HTTP API (HERO8/9/10/11/12 and
- * later; the AP answers at 10.5.5.9:8080). Unlike TACTACAM/ShotKam this is
+ * GoPro support via the official Open GoPro HTTP API (HERO9 Black and later —
+ * HERO9 was the first Open GoPro camera; the AP answers at 10.5.5.9:8080). Unlike TACTACAM/ShotKam this is
  * DOCUMENTED, so both media transfer and camera control are first-class:
  *
  *   media list   GET /gopro/media/list                      (JSON)
@@ -73,8 +73,14 @@ object GoProClient {
     fun shutter(start: Boolean, log: (String) -> Unit): Boolean =
         ok(if (start) "/gopro/camera/shutter/start" else "/gopro/camera/shutter/stop", log)
 
-    fun digitalZoom(percent: Int, log: (String) -> Unit): Boolean =
-        ok("/gopro/camera/digital_zoom?percent=${percent.coerceIn(0, 100)}", log)
+    /** Digital zoom. HERO9+ (Open GoPro); the parameter name differs across
+     *  models/firmware — the spec uses percent=, some HERO9/10 builds use
+     *  range_pcnt= — so try both and report success if either takes. */
+    fun digitalZoom(percent: Int, log: (String) -> Unit): Boolean {
+        val p = percent.coerceIn(0, 100)
+        return ok("/gopro/camera/digital_zoom?percent=$p", log) ||
+            ok("/gopro/camera/digital_zoom?range_pcnt=$p", log)
+    }
 
     fun loadPreset(id: Int, log: (String) -> Unit): Boolean =
         ok("/gopro/camera/presets/load?id=$id", log)

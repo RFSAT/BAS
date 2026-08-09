@@ -33,6 +33,23 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.6.2 — correction: the GoPro-photo-to-Score extra
+        //          (IMPORT_EXTRA_IMAGE_PATH, added in 1.6.0) was declared ABOVE
+        //          ImportActivity's imports, and Kotlin requires every import to
+        //          follow the package line — so the compiler rejected the
+        //          imports below it. Moved below the import block. A new static
+        //          check (tools/kotlin_checks.py gate 8) now flags any import
+        //          placed after a top-level declaration, so this class of error
+        //          is caught before the compiler, where it is reported against
+        //          the wrong line.
+        //
+        // 1.6.1 — correction: GoPro digital zoom across HERO9+ models. The
+        //          target range is HERO9 Black and later (all Open GoPro), so
+        //          the legacy /gp/gpControl path is not needed — but the zoom
+        //          parameter name is not consistent across that range: the spec
+        //          uses percent=, some HERO9/10 firmware uses range_pcnt=. The
+        //          command now tries both and succeeds if either takes.
+        //
         // 1.6.0 — feature: GoPro still straight into scoring. The Score
         //          screen gains "Score latest photo from GoPro": it binds the
         //          GoPro Wi-Fi (shared CameraWifi helper), pulls the newest
@@ -2819,8 +2836,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 8
-        versionName = "1.6.0"
+        versionCode = 10
+        versionName = "1.6.2"
     }
 
     // Resolved once, here, rather than re-read from the environment in two
