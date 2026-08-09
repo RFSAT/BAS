@@ -532,7 +532,7 @@ object RuleCatalog {
 
     val TRAINING_FREE = RuleSet(
         id = "training_free",
-        name = "Training — free practice",
+        name = "Training practice",
         governingBody = "Custom",
         discipline = "Any",
         targetFaceId = TargetCatalog.ISSF_AR10.id,

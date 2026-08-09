@@ -33,6 +33,29 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.8.0 — feature + corrections from field feedback.
+        //   - RETICLE ON BALLISTICS. The Ballistics/Capture viewfinder drew a
+        //     fixed crosshair and ignored the Settings reticle. The reticle
+        //     drawing is now a shared ReticleDrawer, so Capture's overlay draws
+        //     the SAME reticle the shooter picked (still with its boresight
+        //     offset; NONE keeps a minimal boresight marker).
+        //   - MORE RETICLES. Added MOA wind tree and MRAD wind tree — holdover
+        //     trees with numbered windage bars scaled in MOA / MRAD (a lining-up
+        //     guide, not a calibrated sight).
+        //   - PHONE PREVIEW BLANK. The CameraX PreviewView now uses COMPATIBLE
+        //     (TextureView) mode, which avoids the blank frame the SurfaceView
+        //     path could hit alongside the stream SurfaceView and the
+        //     visibility toggles. (Field-verify on device.)
+        //   - RESULTS. The Scoring | Ballistics switch shows as real buttons,
+        //     not borderless text.
+        //   - "Training — free practice" renamed "Training practice".
+        //   - The "Score" tab is now titled "Scoring".
+        //
+        //   STILL TO DO (next): one camera-TYPE selector shared by the
+        //   Ballistics and Score tabs, with a Configure button that shows only
+        //   the options the selected camera supports, and per-camera defaults
+        //   in Settings.
+        //
         // 1.7.1 — correction: Ballistics/Capture screen usability, from field
         //          feedback.
         //   - The camera controls (added over 1.3.0-1.7.0) had pushed the
@@ -2869,8 +2892,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 12
-        versionName = "1.7.1"
+        versionCode = 13
+        versionName = "1.8.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

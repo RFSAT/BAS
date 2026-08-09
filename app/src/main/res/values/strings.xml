@@ -36,7 +36,7 @@
 
     <!-- BAS: navigation (integrated 5-tab shell) -->
     <string name="nav_ballistics">Ballistics</string>
-    <string name="nav_score">Score</string>
+    <string name="nav_score">Scoring</string>
     <!-- BAS: ballistics/capture flow (ported from VTB) -->
     <string name="record">Record</string>
     <string name="stop">Stop</string>

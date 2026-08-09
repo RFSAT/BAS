@@ -26,5 +26,7 @@ enum class Reticle(val label: String) {
     MOA_GRID("MOA grid"),
     GERMAN_4("German #4"),
     CIRCLE_DOT("Circle and dot"),
+    MOA_TREE("MOA wind tree"),
+    MRAD_TREE("MRAD wind tree"),
     CUSTOM("My own image…")
 }

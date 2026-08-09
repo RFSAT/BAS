@@ -579,6 +579,14 @@ class CaptureActivity : BaseActivity() {
     override fun onResume() {
         super.onResume()
         setupCaptureSource() // scope may have changed in Settings
+        runCatching {
+            binding.crosshair.reticle = com.rfsat.bas.detect.ScaleSettings.reticle()
+            binding.crosshair.customReticle =
+                if (com.rfsat.bas.detect.ScaleSettings.reticle() == com.rfsat.bas.ui.Reticle.CUSTOM &&
+                    com.rfsat.bas.detect.ScaleSettings.reticleFile().isNotEmpty())
+                    android.graphics.BitmapFactory.decodeFile(com.rfsat.bas.detect.ScaleSettings.reticleFile())
+                else null
+        }
     }
 
     // ------------- v20.23: scope Wi-Fi stream capture (EXPERIMENTAL) -------------

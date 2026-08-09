@@ -24,6 +24,12 @@ class CrosshairOverlayView @JvmOverloads constructor(
     var offsetYNorm: Double = 0.0
         set(value) { field = value; invalidate() }
 
+    /** Reticle chosen in Settings; applied by the host screen. */
+    var reticle: com.rfsat.bas.ui.Reticle = com.rfsat.bas.ui.Reticle.CROSS
+        set(value) { field = value; invalidate() }
+    var customReticle: android.graphics.Bitmap? = null
+        set(value) { field = value; invalidate() }
+
     // Follow the active display style: same colour as the theme's primary
     // text (gold in Dark, dark green in Day, pure green/red in night modes).
     private val themeTextColor: Int = run {
@@ -52,13 +58,20 @@ class CrosshairOverlayView @JvmOverloads constructor(
         super.onDraw(canvas)
         val cx = centerPixelX()
         val cy = centerPixelY()
-        val armLen = width.coerceAtMost(height) * 0.12f
-        val gap = armLen * 0.35f
-
-        canvas.drawLine(cx - armLen, cy, cx - gap, cy, linePaint)
-        canvas.drawLine(cx + gap, cy, cx + armLen, cy, linePaint)
-        canvas.drawLine(cx, cy - armLen, cx, cy - gap, linePaint)
-        canvas.drawLine(cx, cy + gap, cx, cy + armLen, linePaint)
-        canvas.drawCircle(cx, cy, gap, circlePaint)
+        if (reticle == com.rfsat.bas.ui.Reticle.NONE) {
+            // Keep a minimal boresight marker so the aim point stays visible.
+            val armLen = width.coerceAtMost(height) * 0.12f
+            val gap = armLen * 0.35f
+            canvas.drawLine(cx - armLen, cy, cx - gap, cy, linePaint)
+            canvas.drawLine(cx + gap, cy, cx + armLen, cy, linePaint)
+            canvas.drawLine(cx, cy - armLen, cx, cy - gap, linePaint)
+            canvas.drawLine(cx, cy + gap, cx, cy + armLen, linePaint)
+            canvas.drawCircle(cx, cy, gap, circlePaint)
+            return
+        }
+        val r = width.coerceAtMost(height) * 0.16f
+        com.rfsat.bas.ui.ReticleDrawer.draw(
+            canvas, cx, cy, r, width.coerceAtMost(height).toFloat(),
+            reticle, themeTextColor, customReticle)
     }
 }

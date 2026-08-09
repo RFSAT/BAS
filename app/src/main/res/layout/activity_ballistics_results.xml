@@ -14,10 +14,10 @@
         android:padding="6dp">
         <Button android:id="@+id/btnTabScoring" android:text="Scoring"
             android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
-            android:textSize="13sp" style="?attr/borderlessButtonStyle" />
+            android:textSize="13sp" />
         <Button android:id="@+id/btnTabBallistics" android:text="Ballistics (wind)"
             android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
-            android:textSize="13sp" style="?attr/borderlessButtonStyle" />
+            android:textSize="13sp" />
     </LinearLayout>
 
     <LinearLayout
