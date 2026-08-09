@@ -122,6 +122,58 @@ class SessionActivity : BaseActivity() {
         }
     }
 
+        private fun refreshCameraLabelS() {
+        binding.btnCameraTypeS.text = "Camera: ${com.rfsat.bas.capture.CameraConfig.type(this).label} ▾"
+    }
+
+    private fun configureCameraS() {
+        when (com.rfsat.bas.capture.CameraConfig.type(this)) {
+            com.rfsat.bas.capture.CameraType.PHONE -> notifyUser("Phone camera — no configuration.")
+            com.rfsat.bas.capture.CameraType.GOPRO -> {
+                val items = arrayOf("Score latest photo", "GoPro live view (start / stop)")
+                androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle("GoPro")
+                    .setItems(items) { _, w -> if (w == 0) scoreFromGoPro() else toggleGoProLive() }
+                    .show()
+            }
+            com.rfsat.bas.capture.CameraType.TACTACAM, com.rfsat.bas.capture.CameraType.SHOTKAM -> {
+                val type = com.rfsat.bas.capture.CameraConfig.type(this)
+                val items = arrayOf("Score latest file", "Set camera address")
+                androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle(type.label)
+                    .setItems(items) { _, w ->
+                        if (w == 0) downloadToScore(type)
+                        else com.rfsat.bas.capture.CameraUi.promptHost(this, type, com.rfsat.bas.capture.CameraConfig.host(this, type)) {
+                            com.rfsat.bas.capture.CameraConfig.setHost(this, type, it)
+                        }
+                    }
+                    .show()
+            }
+            com.rfsat.bas.capture.CameraType.RTSP ->
+                notifyUser("Choose \"RTSP/MJPEG stream\" as the source below and enter its address.")
+        }
+    }
+
+    private fun downloadToScore(type: com.rfsat.bas.capture.CameraType) {
+        val preset = com.rfsat.bas.capture.CameraConfig.importerPreset(type)
+        val host = com.rfsat.bas.capture.CameraConfig.host(this, type)
+        notifyUser("Connecting to ${type.label} Wi-Fi…")
+        goProCb = com.rfsat.bas.capture.CameraWifi.acquire(this) { _ ->
+            Thread {
+                val f = runCatching {
+                    com.rfsat.bas.capture.CameraFileImporter.downloadLatest(preset, host, cacheDir) { m ->
+                        com.rfsat.bas.log.Logger.i("SessionCam", m)
+                    }
+                }.getOrNull()
+                runOnUiThread {
+                    com.rfsat.bas.capture.CameraWifi.release(this, goProCb); goProCb = null
+                    if (f != null) startActivity(Intent(this, ImportActivity::class.java).putExtra(IMPORT_EXTRA_IMAGE_PATH, f.absolutePath))
+                    else notifyUser("No file found from ${type.label} — see the Log tab.")
+                }
+            }.start()
+        }
+    }
+
         companion object {
         /** Beyond this the best-matching face is not convincing. On the two
          *  real targets tested the right face agreed to within 1.3% while the
@@ -424,8 +476,13 @@ class SessionActivity : BaseActivity() {
         binding.btnImport.setOnClickListener {
             startActivity(Intent(this, ImportActivity::class.java))
         }
-        binding.btnGoProScore.setOnClickListener { scoreFromGoPro() }
-        binding.btnGoProLive.setOnClickListener { toggleGoProLive() }
+        binding.btnCameraTypeS.setOnClickListener {
+            com.rfsat.bas.capture.CameraUi.chooseType(this, com.rfsat.bas.capture.CameraConfig.type(this)) { t ->
+                com.rfsat.bas.capture.CameraConfig.setType(this, t); refreshCameraLabelS()
+            }
+        }
+        binding.btnCameraConfigureS.setOnClickListener { configureCameraS() }
+        refreshCameraLabelS()
         binding.btnClearShots.setOnClickListener {
             ScoringSession.clearShots()
             refreshAfterClear()

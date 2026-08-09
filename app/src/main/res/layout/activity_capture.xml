@@ -197,10 +197,18 @@
             android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
     </LinearLayout>
 
-    <Button android:id="@+id/btnCameraMenu"
-        android:text="Camera ▾"
+    <LinearLayout
         android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:textSize="13sp" />
+        android:orientation="horizontal">
+        <Button android:id="@+id/btnCameraType"
+            android:text="Camera: Phone ▾"
+            android:layout_width="0dp" android:layout_weight="2" android:layout_height="wrap_content"
+            android:textSize="13sp" />
+        <Button android:id="@+id/btnCameraConfigure"
+            android:text="Configure ▾"
+            android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+            android:textSize="13sp" />
+    </LinearLayout>
 
     </LinearLayout>
     </ScrollView>

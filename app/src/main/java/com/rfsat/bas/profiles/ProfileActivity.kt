@@ -482,6 +482,7 @@ class ProfileActivity : BaseActivity() {
         binding.btnRules.setOnClickListener { startActivity(Intent(this, RulesActivity::class.java)) }
         binding.btnLog.setOnClickListener { startActivity(Intent(this, LogActivity::class.java)) }
         binding.btnTargets.setOnClickListener { startActivity(Intent(this, TargetActivity::class.java)) }
+        binding.btnCameraDefaults.setOnClickListener { cameraDefaultsMenu() }
         binding.btnBackup.setOnClickListener { exportBackup() }
         binding.btnRestore.setOnClickListener { importBackup() }
         binding.btnReset.setOnClickListener {
@@ -693,6 +694,29 @@ class ProfileActivity : BaseActivity() {
      * velocity class, weight and bullet type for a load; brand, click value,
      * magnification class and family for a sight.
      */
+    private fun cameraDefaultsMenu() {
+        val items = arrayOf("Default camera type", "TACTACAM address", "ShotKam address", "RTSP / MJPEG address")
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Camera defaults")
+            .setItems(items) { _, w ->
+                when (w) {
+                    0 -> com.rfsat.bas.capture.CameraUi.chooseType(this, com.rfsat.bas.capture.CameraConfig.type(this)) {
+                        com.rfsat.bas.capture.CameraConfig.setType(this, it); notifyUser("Default camera: ${it.label}")
+                    }
+                    1 -> hostDefault(com.rfsat.bas.capture.CameraType.TACTACAM)
+                    2 -> hostDefault(com.rfsat.bas.capture.CameraType.SHOTKAM)
+                    3 -> hostDefault(com.rfsat.bas.capture.CameraType.RTSP)
+                }
+            }
+            .show()
+    }
+
+    private fun hostDefault(type: com.rfsat.bas.capture.CameraType) {
+        com.rfsat.bas.capture.CameraUi.promptHost(this, type, com.rfsat.bas.capture.CameraConfig.host(this, type)) {
+            com.rfsat.bas.capture.CameraConfig.setHost(this, type, it)
+        }
+    }
+
     private fun showRifleCatalog() {
         val view = layoutInflater.inflate(R.layout.dialog_rifle_catalog, null)
         val spBrand = view.findViewById<android.widget.Spinner>(R.id.spRifBrand)

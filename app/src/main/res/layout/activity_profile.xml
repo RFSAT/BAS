@@ -510,6 +510,10 @@
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 style="@style/Sts.ActionButton"
                 android:text="Target faces…" />
+            <Button android:id="@+id/btnCameraDefaults"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                style="@style/Sts.ActionButton"
+                android:text="Camera defaults…" />
             <Button android:id="@+id/btnBackup"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 style="@style/Sts.ActionButton"

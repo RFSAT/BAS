@@ -33,6 +33,21 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.9.0 — feature: one consistent camera selector on BOTH tabs, plus
+        //          per-camera defaults in Settings. A "Camera: <type>" button
+        //          and a "Configure" button now sit on Ballistics/Capture and
+        //          on Score; the type is Phone, GoPro (HERO9+), TACTACAM 5.0,
+        //          ShotKam Gen 4, or RTSP/MJPEG (new CameraType/CameraConfig/
+        //          CameraUi). Configure shows ONLY what the selected camera
+        //          supports — GoPro gets the full import/configure/live menu,
+        //          the action cams get download/scan/host, RTSP gets its
+        //          address, Phone gets nothing to configure. Settings gains
+        //          "Camera defaults…" for the default type and each camera's
+        //          host. The old standalone GoPro buttons on Score folded into
+        //          this. Defaults: GoPro 10.5.5.9, TACTACAM 192.168.1.254,
+        //          ShotKam 192.168.1.1 — the action-cam hosts still need field
+        //          confirmation. No new permissions.
+        //
         // 1.8.0 — feature + corrections from field feedback.
         //   - RETICLE ON BALLISTICS. The Ballistics/Capture viewfinder drew a
         //     fixed crosshair and ignored the Settings reticle. The reticle
@@ -2892,8 +2907,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 13
-        versionName = "1.8.0"
+        versionCode = 14
+        versionName = "1.9.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

@@ -204,15 +204,15 @@
                 android:text="Upload a target photo to score"
                 style="@style/Sts.ActionButton" />
 
-            <Button android:id="@+id/btnGoProScore"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:text="Score latest photo from GoPro"
-                style="@style/Sts.ActionButton" />
-
-            <Button android:id="@+id/btnGoProLive"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:text="GoPro live view (start / stop)"
-                style="@style/Sts.ActionButton" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <Button android:id="@+id/btnCameraTypeS"
+                    android:layout_width="0dp" android:layout_weight="2" android:layout_height="wrap_content"
+                    android:text="Camera: Phone ▾" style="@style/Sts.ActionButton" />
+                <Button android:id="@+id/btnCameraConfigureS"
+                    android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                    android:text="Configure ▾" style="@style/Sts.ActionButton" />
+            </LinearLayout>
 
             <TextView
                 android:layout_width="match_parent" android:layout_height="wrap_content"

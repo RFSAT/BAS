@@ -187,7 +187,10 @@ class CaptureActivity : BaseActivity() {
         }
         binding.btnImportVideo.setOnClickListener { importVideoLauncher.launch("video/*") }
         binding.btnAnalyze.setOnClickListener { runAnalysis() }
-        binding.btnCameraMenu.setOnClickListener { promptCameraMenu() }
+        binding.btnCameraType.setOnClickListener {
+            CameraUi.chooseType(this, CameraConfig.type(this)) { t -> CameraConfig.setType(this, t); refreshCameraLabel() }
+        }
+        binding.btnCameraConfigure.setOnClickListener { configureCamera() }
         binding.btnAnalyze.isEnabled = false
 
         binding.btnArm.setOnClickListener { toggleArm() }
@@ -579,6 +582,7 @@ class CaptureActivity : BaseActivity() {
     override fun onResume() {
         super.onResume()
         setupCaptureSource() // scope may have changed in Settings
+        runCatching { refreshCameraLabel() }
         runCatching {
             binding.crosshair.reticle = com.rfsat.bas.detect.ScaleSettings.reticle()
             binding.crosshair.customReticle =
@@ -789,20 +793,61 @@ class CaptureActivity : BaseActivity() {
         scopeWifiNetwork = null
     }
 
-    private fun promptCameraMenu() {
-        val items = arrayOf(
-            "Download latest file",
-            "Scan camera (discover)",
-            "GoPro — import / configure / live ▸",
-            "View last analysis")
+    fun refreshCameraLabel() {
+        binding.btnCameraType.text = "Camera: ${CameraConfig.type(this).label} ▾"
+    }
+
+    private fun configureCamera() {
+        when (CameraConfig.type(this)) {
+            CameraType.PHONE -> notifyUser("Phone camera — no network configuration.")
+            CameraType.GOPRO -> promptGoPro()
+            CameraType.TACTACAM, CameraType.SHOTKAM -> configureActionCam(CameraConfig.type(this))
+            CameraType.RTSP -> configureRtsp()
+        }
+    }
+
+    private fun configureActionCam(type: CameraType) {
+        val items = arrayOf("Download latest file", "Scan camera (discover)", "Set camera address", "View last analysis")
         androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("Camera")
+            .setTitle(type.label)
             .setItems(items) { _, w ->
                 when (w) {
-                    0 -> promptCameraDownload()
+                    0 -> downloadForType(type)
                     1 -> runCameraScan()
-                    2 -> promptGoPro()
+                    2 -> CameraUi.promptHost(this, type, CameraConfig.host(this, type)) { CameraConfig.setHost(this, type, it) }
                     3 -> startActivity(Intent(this, BallisticsResultsActivity::class.java))
+                }
+            }
+            .show()
+    }
+
+    private fun downloadForType(type: CameraType) {
+        val preset = CameraConfig.importerPreset(type)
+        val host = CameraConfig.host(this, type)
+        notifyUser("Connecting to ${type.label} Wi-Fi…")
+        acquireScopeNetwork { _ ->
+            Thread {
+                val f = runCatching { CameraFileImporter.downloadLatest(preset, host, cacheDir) { m -> Logger.i(TAG, m) } }.getOrNull()
+                runOnUiThread {
+                    releaseScopeNetwork()
+                    if (f != null) {
+                        pendingUri = Uri.fromFile(f); pendingReferenceBitmap = null
+                        binding.btnAnalyze.isEnabled = true
+                        notifyUser("Downloaded ${f.name} — tap Analyze.")
+                    } else notifyUser("No file found from ${type.label} — see the Log tab.")
+                }
+            }.start()
+        }
+    }
+
+    private fun configureRtsp() {
+        val items = arrayOf("Set stream address", "View last analysis")
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("RTSP / MJPEG")
+            .setItems(items) { _, w ->
+                when (w) {
+                    0 -> CameraUi.promptHost(this, CameraType.RTSP, CameraConfig.host(this, CameraType.RTSP)) { CameraConfig.setHost(this, CameraType.RTSP, it) }
+                    1 -> startActivity(Intent(this, BallisticsResultsActivity::class.java))
                 }
             }
             .show()
