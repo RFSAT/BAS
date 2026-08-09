@@ -670,6 +670,7 @@ class CaptureActivity : BaseActivity() {
     }
 
     private fun stopIdlePreview() {
+        runCatching { goProLive?.stop() }; goProLive = null
         previewRecorder?.let { it.stop(); Logger.i(TAG, "Idle stream preview stopped") }
         previewRecorder = null
     }
@@ -789,7 +790,8 @@ class CaptureActivity : BaseActivity() {
     private fun promptGoPro() {
         val actions = arrayOf(
             "Download latest clip", "Start recording", "Stop recording",
-            "Digital zoom…", "Load preset…", "Camera state", "Keep awake")
+            "Digital zoom…", "Load preset…", "Camera state", "Keep awake",
+            "Live preview — start", "Live preview — stop")
         androidx.appcompat.app.AlertDialog.Builder(this)
             .setTitle("GoPro (10.5.5.9)")
             .setItems(actions) { _, w ->
@@ -803,6 +805,8 @@ class CaptureActivity : BaseActivity() {
                         goProRun("Preset $v") { GoProClient.loadPreset(v, it) } }
                     5 -> goProState()
                     6 -> goProRun("Keep awake") { GoProClient.keepAlive(it) }
+                    7 -> goProLiveStart()
+                    8 -> goProLiveStop()
                 }
             }
             .show()
@@ -853,6 +857,40 @@ class CaptureActivity : BaseActivity() {
                 }
             }.start()
         }
+    }
+
+    private var goProLive: GoProPreviewStream? = null
+
+    private fun goProLiveStart() {
+        if (goProLive != null) { notifyUser("GoPro live is already running"); return }
+        binding.previewView.visibility = android.view.View.INVISIBLE
+        binding.streamPreview.visibility = android.view.View.VISIBLE
+        val holder = binding.streamPreview.holder
+        val begin = {
+            val surface = holder.surface?.takeIf { it.isValid }
+            if (surface != null) {
+                notifyUser("GoPro: starting live preview…")
+                acquireScopeNetwork { _ ->
+                    goProLive = GoProPreviewStream(surface) { m -> Logger.i(TAG, m) }.also { it.start() }
+                }
+            } else notifyUser("Preview surface not ready — tap again in a moment.")
+        }
+        if (holder.surface?.isValid == true) begin()
+        else holder.addCallback(object : android.view.SurfaceHolder.Callback {
+            override fun surfaceCreated(h: android.view.SurfaceHolder) { holder.removeCallback(this); begin() }
+            override fun surfaceChanged(h: android.view.SurfaceHolder, format: Int, width: Int, height: Int) {}
+            override fun surfaceDestroyed(h: android.view.SurfaceHolder) {}
+        })
+    }
+
+    private fun goProLiveStop() {
+        val live = goProLive ?: run { notifyUser("GoPro live is not running"); return }
+        runCatching { live.stop() }
+        goProLive = null
+        releaseScopeNetwork()
+        binding.streamPreview.visibility = android.view.View.GONE
+        binding.previewView.visibility = android.view.View.VISIBLE
+        notifyUser("GoPro live stopped")
     }
 
     private fun promptNumber(title: String, hint: String, onOk: (Int) -> Unit) {

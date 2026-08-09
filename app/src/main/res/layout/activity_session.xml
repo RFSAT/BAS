@@ -209,6 +209,11 @@
                 android:text="Score latest photo from GoPro"
                 style="@style/Sts.ActionButton" />
 
+            <Button android:id="@+id/btnGoProLive"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="GoPro live view (start / stop)"
+                style="@style/Sts.ActionButton" />
+
             <TextView
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"

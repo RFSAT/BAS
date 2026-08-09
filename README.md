@@ -153,6 +153,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.7.0** — feature. GoPro live preview on both the Ballistics/Capture and Score screens. GoPro (HERO9+) serves a low-res MPEG-TS preview over UDP 8554 (not RTSP); the new `GoProPreviewStream` binds the camera Wi-Fi, demuxes the transport stream to H.264 and decodes it to a Surface with MediaCodec, plus keep-alive. Capture renders to its SurfaceView (aiming), the Score screen to its TextureView (observation). Preview is 480p (HERO9) / 720p (HERO11), so scoring still uses a downloaded full-res still.
+
 **1.6.2** — correction. Fixed a build break: the GoPro-photo-to-Score extra was declared above ImportActivity's imports, which Kotlin rejects. Moved below the imports, and added a static check (gate 8) that flags any import placed after a top-level declaration.
 
 **1.6.1** — correction. GoPro support targets HERO9 Black and later (all Open GoPro), so no legacy path is needed; digital zoom now tries both the `percent=` and `range_pcnt=` parameter names, which differ across HERO9/10 firmware.

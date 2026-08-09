@@ -33,6 +33,21 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.7.0 — feature: GoPro LIVE preview on both the Ballistics/Capture
+        //          and Score screens. GoPro (HERO9+) serves a low-res MPEG-TS
+        //          preview over UDP 8554 after GET /gopro/camera/stream/start —
+        //          not RTSP, so the existing stream path could not carry it.
+        //          New GoProPreviewStream binds the GoPro Wi-Fi, opens the UDP
+        //          socket, demuxes the transport stream (PAT/PMT to find the
+        //          H.264 PID, reassembles the PES to access units, lifts SPS/PPS
+        //          via the existing SpsDimensions parser) and renders to a
+        //          Surface with MediaCodec, with a keep-alive so the link does
+        //          not sleep. Capture decodes to its SurfaceView (aiming); the
+        //          Score screen decodes to its TextureView (observation). It is
+        //          PREVIEW resolution (480p HERO9 / 720p HERO11), so scoring
+        //          still wants a downloaded full-res still — the live view is
+        //          for lining up, not for reading holes. No new permissions.
+        //
         // 1.6.2 — correction: the GoPro-photo-to-Score extra
         //          (IMPORT_EXTRA_IMAGE_PATH, added in 1.6.0) was declared ABOVE
         //          ImportActivity's imports, and Kotlin requires every import to
@@ -2836,8 +2851,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 10
-        versionName = "1.6.2"
+        versionCode = 11
+        versionName = "1.7.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

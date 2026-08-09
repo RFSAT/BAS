@@ -87,6 +87,9 @@ object GoProClient {
 
     fun keepAlive(log: (String) -> Unit): Boolean = ok("/gopro/camera/keep_alive", log)
 
+    fun streamStart(log: (String) -> Unit): Boolean = ok("/gopro/camera/stream/start", log)
+    fun streamStop(log: (String) -> Unit): Boolean = ok("/gopro/camera/stream/stop", log)
+
     fun state(log: (String) -> Unit): String? = get("/gopro/camera/state", log)
     fun info(log: (String) -> Unit): String? = get("/gopro/camera/info", log)
 

@@ -87,6 +87,41 @@ class SessionActivity : BaseActivity() {
         }
     }
 
+        private var goProLiveS: com.rfsat.bas.capture.GoProPreviewStream? = null
+
+    /** v1.7.0: GoPro live preview on the Score screen — observation; scoring
+     *  itself should use a downloaded full-res still (Score from GoPro). */
+    private fun toggleGoProLive() {
+        val live = goProLiveS
+        if (live != null) {
+            runCatching { live.stop() }; goProLiveS = null
+            com.rfsat.bas.capture.CameraWifi.release(this, goProCb); goProCb = null
+            notifyUser("GoPro live stopped")
+            return
+        }
+        runCatching { externalSource?.stop() }
+        binding.streamView.visibility = View.VISIBLE
+        val tv = binding.streamView
+        val begin = {
+            val st = tv.surfaceTexture
+            if (st != null) {
+                notifyUser("GoPro: starting live view…")
+                goProCb = com.rfsat.bas.capture.CameraWifi.acquire(this) { _ ->
+                    goProLiveS = com.rfsat.bas.capture.GoProPreviewStream(android.view.Surface(st)) { m ->
+                        com.rfsat.bas.log.Logger.i("SessionGoProLive", m)
+                    }.also { it.start() }
+                }
+            } else notifyUser("Preview surface not ready — tap again.")
+        }
+        if (tv.isAvailable) begin()
+        else tv.surfaceTextureListener = object : android.view.TextureView.SurfaceTextureListener {
+            override fun onSurfaceTextureAvailable(s: android.graphics.SurfaceTexture, width: Int, height: Int) { begin() }
+            override fun onSurfaceTextureSizeChanged(s: android.graphics.SurfaceTexture, width: Int, height: Int) {}
+            override fun onSurfaceTextureDestroyed(s: android.graphics.SurfaceTexture): Boolean = true
+            override fun onSurfaceTextureUpdated(s: android.graphics.SurfaceTexture) {}
+        }
+    }
+
         companion object {
         /** Beyond this the best-matching face is not convincing. On the two
          *  real targets tested the right face agreed to within 1.3% while the
@@ -390,6 +425,7 @@ class SessionActivity : BaseActivity() {
             startActivity(Intent(this, ImportActivity::class.java))
         }
         binding.btnGoProScore.setOnClickListener { scoreFromGoPro() }
+        binding.btnGoProLive.setOnClickListener { toggleGoProLive() }
         binding.btnClearShots.setOnClickListener {
             ScoringSession.clearShots()
             refreshAfterClear()
