@@ -41,7 +41,7 @@ class RangeActivity : BaseActivity() {
             binding.tvRangeScore.text =
                 if (res.maxScore > 0) "${res.displayTotal} / ${"%.0f".format(res.maxScore)}" else res.displayTotal
             val adj = AnalysisSession.adjustment
-            binding.tvRangeWind.text = if (adj != null) "Wind: " + Corrections.ballisticGlance(adj) else ""
+            binding.tvRangeWind.text = if (adj != null) Corrections.ballisticGlance(adj) else "—"
             val n = ScoringSession.state.shots.size
             binding.tvRangeStatus.text = "$n shots"
             if (n != lastSpokenShots) {

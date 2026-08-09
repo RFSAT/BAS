@@ -57,6 +57,7 @@ class BasApp : Application() {
             }
         } else {
             runCatching { com.rfsat.bas.scoring.ScoringSession.restore(this) }
+            runCatching { com.rfsat.bas.results.AnalysisSession.restore(this) }
         }
 
         runCatching {

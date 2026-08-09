@@ -16,7 +16,7 @@
             android:padding="14dp">
 
             <!-- ===== Display ===== -->
-            <TextView style="@style/Sts.SectionHeading" android:text="Display and units" />
+            <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Display and units" />
 
             <TextView style="@style/Sts.FieldLabel" android:text="Theme" />
             <Spinner android:id="@+id/spTheme"
@@ -39,7 +39,7 @@
                  app is being developed, so each can be measured on its own
                  and in combination. What stays selectable is a decision for
                  the point at which the accuracy is good enough to ship. -->
-            <TextView style="@style/Sts.SectionHeading" android:text="Viewfinder reticle" />
+            <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Viewfinder reticle" />
 
             <TextView
                 android:layout_width="match_parent" android:layout_height="wrap_content"
@@ -60,7 +60,7 @@
             <TextView android:id="@+id/tvReticle"
                 style="@style/Sts.Value" android:textSize="12sp" android:layout_marginTop="2dp" />
 
-            <TextView style="@style/Sts.SectionHeading" android:text="Wi-Fi camera setup" />
+            <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Wi-Fi camera setup" />
 
             <TextView
                 android:layout_width="match_parent" android:layout_height="wrap_content"
@@ -107,7 +107,7 @@
                 style="@style/Sts.Value" android:textSize="12sp" android:layout_marginTop="4dp"
                 android:justificationMode="inter_word" />
 
-            <TextView style="@style/Sts.SectionHeading" android:text="Stream lens correction" />
+            <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Stream lens correction" />
 
             <TextView
                 android:layout_width="match_parent" android:layout_height="wrap_content"
@@ -129,7 +129,7 @@
                 android:hint="0"
                 android:autofillHints="" />
 
-            <TextView style="@style/Sts.SectionHeading" android:text="Detection algorithms" />
+            <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Detection algorithms" />
 
             <TextView style="@style/Sts.FieldLabel" android:text="Where the scale comes from" />
             <Spinner android:id="@+id/spScaleMode"
@@ -234,7 +234,7 @@
                 android:text="More info" />
 
             <!-- ===== Second opinion ===== -->
-            <TextView style="@style/Sts.SectionHeading" android:text="AI assistance" />
+            <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="AI assistance" />
 
             <TextView
                 android:layout_width="match_parent" android:layout_height="wrap_content"
@@ -301,7 +301,7 @@
                 android:textColor="?attr/colorAccent"
                 android:text="More info" />
 
-            <TextView style="@style/Sts.SectionHeading" android:text="Service keys and models" />
+            <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Service keys and models" />
 
             <TextView
                 android:layout_width="match_parent" android:layout_height="wrap_content"
@@ -355,7 +355,7 @@
                 android:text="More info" />
 
             <!-- ===== Profile sets ===== -->
-            <TextView style="@style/Sts.SectionHeading" android:text="Profile sets" />
+            <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Profile sets" />
 
             <Spinner android:id="@+id/spSets"
                 android:layout_width="match_parent" android:layout_height="wrap_content" />
@@ -375,7 +375,7 @@
             </LinearLayout>
 
             <!-- ===== Firearm ===== -->
-            <TextView style="@style/Sts.SectionHeading" android:text="Firearm" />
+            <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Firearm" />
             <Button android:id="@+id/btnRifleCatalog"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 style="@style/Sts.ActionButton"
@@ -410,7 +410,7 @@
                 android:layout_height="wrap_content" android:inputType="numberDecimal" android:autofillHints="" />
 
             <!-- ===== Load ===== -->
-            <TextView style="@style/Sts.SectionHeading" android:text="Load" />
+            <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Load" />
             <Button android:id="@+id/btnAmmoCatalog"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 style="@style/Sts.ActionButton"
@@ -440,7 +440,7 @@
                 android:layout_marginTop="6dp" android:textSize="12sp" />
 
             <!-- ===== Sight ===== -->
-            <TextView style="@style/Sts.SectionHeading" android:text="Sight" />
+            <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Sight" />
             <Button android:id="@+id/btnScopeCatalog"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 style="@style/Sts.ActionButton"
@@ -497,7 +497,7 @@
                 style="@style/Sts.ActionButton" />
 
             <!-- ===== Elsewhere ===== -->
-            <TextView style="@style/Sts.SectionHeading" android:text="Elsewhere" />
+            <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Elsewhere" />
             <Button android:id="@+id/btnRules"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 style="@style/Sts.ActionButton"

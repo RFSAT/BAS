@@ -33,6 +33,24 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.12.0 — feature + fixes from field feedback.
+        //   - Home/about/disclaimer text now says BAS only, not STS/VTB.
+        //   - Ballistic results survive a restart: AnalysisSession.restore is
+        //     now called at startup alongside the scoring session.
+        //   - Range mode leads with the WIND correction in the largest font
+        //     (auto-sizing), with GROUP and SCORE below.
+        //   - Settings sections fold under their headings (tap to open),
+        //     grouped in code from the tagged headings so the long screen is
+        //     easy to scan; sections start collapsed.
+        //   - The two viewfinder crosshairs are the same size now: the
+        //     ballistics overlay uses the scoring reticle's 0.40x extent.
+        //   - Target distance gains a "= zero" quick-fill that sets it to the
+        //     rig's zero (calibration) distance — the sensible default when the
+        //     range is not measured, and the input a rangefinder would replace.
+        //   FIRE4000 rangefinder: investigated (Bluetooth, but an undocumented
+        //   GATT protocol), so a BLE discovery probe is the next step — see the
+        //   response notes.
+        //
         // 1.11.0 — feature: auto-collect, remote triggering, and confirmation-
         //          free operation (all opt-in, Settings -> Range options).
         //   - AUTO-COLLECT. Arm it (button on Capture, or auto-arm via the
@@ -2965,8 +2983,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 18
-        versionName = "1.11.0"
+        versionCode = 19
+        versionName = "1.12.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

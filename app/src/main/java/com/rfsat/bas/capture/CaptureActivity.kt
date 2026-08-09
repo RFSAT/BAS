@@ -192,6 +192,11 @@ class CaptureActivity : BaseActivity() {
         }
         binding.btnCameraConfigure.setOnClickListener { configureCamera() }
         binding.btnAutoCollect.setOnClickListener { toggleAutoCollect() }
+        binding.btnUseZeroDist.setOnClickListener {
+            val zeroM = com.rfsat.bas.profiles.ProfileRepository(this).getRifle().zeroDistanceM
+            binding.etTargetDistance.setText(String.format("%.0f", zeroM))
+            notifyUser("Target distance set to the rig's zero (calibration) distance: ${String.format("%.0f", zeroM)} m.")
+        }
         binding.btnAnalyze.isEnabled = false
 
         binding.btnArm.setOnClickListener { toggleArm() }

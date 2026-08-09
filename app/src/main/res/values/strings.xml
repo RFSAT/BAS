@@ -11,8 +11,8 @@
     <string name="nav_log">Log</string>
     <string name="nav_exit">Exit</string>
 
-    <string name="about_app_description">STS scores shooting on paper and steel from the phone camera or an external
-        video feed. Register the target face once, and every new hole is found, measured against the ring geometry of
+    <string name="about_app_description">BAS scores shooting on paper and steel from the phone camera or an external
+        video feed, and computes ballistic corrections from the shot's vapour trail. Register the target face once, and every new hole is found, measured against the ring geometry of
         the selected competition target and scored under the rules of the selected match. The app reports the running
         total, the group centre and dispersion, and the sight correction — in clicks for the scope or red dot in your
         active profile set — needed to move the group onto the point of aim.</string>
@@ -21,11 +21,10 @@
         and centrefire rifle in .223, .308 and similar chamberings out to 1000 yards.</string>
 
     <string name="about_developer_heading">About the developer</string>
-    <string name="about_developer_description">STS is developed by Dr Artur Krukowski, alongside VTB Vapor-Trail
-        Ballistics. Both apps share a design principle: the physics and the rules are written down explicitly in the
+    <string name="about_developer_description">BAS is developed by Dr Artur Krukowski. It integrates target scoring and vapour-trail ballistics into one application, sharing a design principle: the physics and the rules are written down explicitly in the
         source, with their assumptions stated, so a shooter can see exactly why the app produced the number it did.</string>
 
-    <string name="disclaimer_scoring">STS is a training and practice aid. Official match results are determined by the
+    <string name="disclaimer_scoring">BAS is a training and practice aid. Official match results are determined by the
         appointed jury under the current rulebook of the governing body. Ring dimensions and rule parameters shipped
         with the app are nominal published figures and are editable — verify them against the rulebook in force for
         your competition.</string>

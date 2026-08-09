@@ -96,6 +96,42 @@ class ProfileActivity : BaseActivity() {
             notifyUser("Settings failed to load: ${it.message}")
         }
         setupBottomNav(R.id.nav_settings)
+        runCatching { makeSectionsCollapsible() }
+    }
+
+    /**
+     * Make each Settings section fold under its heading so the long screen is
+     * easy to scan — tap a heading to open it. Done in code by grouping the
+     * views that follow each tagged heading, so the layout needs no wrapping.
+     * Sections start collapsed; the shooter opens the one they want.
+     */
+    private fun makeSectionsCollapsible() {
+        val headers = ArrayList<android.view.View>()
+        fun collect(v: android.view.View) {
+            if (v.tag == "section") headers.add(v)
+            if (v is android.view.ViewGroup) for (i in 0 until v.childCount) collect(v.getChildAt(i))
+        }
+        collect(binding.root)
+        for (header in headers) {
+            val parent = header.parent as? android.view.ViewGroup ?: continue
+            val start = parent.indexOfChild(header)
+            val body = ArrayList<android.view.View>()
+            var i = start + 1
+            while (i < parent.childCount) {
+                val child = parent.getChildAt(i)
+                if (child.tag == "section") break
+                body.add(child); i++
+            }
+            val tv = header as? android.widget.TextView
+            val title = tv?.text?.toString().orEmpty()
+            fun render(open: Boolean) {
+                for (b in body) b.visibility = if (open) android.view.View.VISIBLE else android.view.View.GONE
+                tv?.text = (if (open) "▾  " else "▸  ") + title
+            }
+            header.isClickable = true
+            header.setOnClickListener { render(body.firstOrNull()?.visibility != android.view.View.VISIBLE) }
+            render(false)
+        }
     }
 
     private fun initScreen() {

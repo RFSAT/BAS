@@ -69,7 +69,7 @@ class CrosshairOverlayView @JvmOverloads constructor(
             canvas.drawCircle(cx, cy, gap, circlePaint)
             return
         }
-        val r = width.coerceAtMost(height) * 0.16f
+        val r = width.coerceAtMost(height) * 0.40f
         com.rfsat.bas.ui.ReticleDrawer.draw(
             canvas, cx, cy, r, width.coerceAtMost(height).toFloat(),
             reticle, themeTextColor, customReticle)
