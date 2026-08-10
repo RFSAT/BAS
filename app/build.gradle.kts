@@ -33,6 +33,16 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.15.1 — correction: a .gitattributes, so line endings stop being a
+        //          per-machine decision. GitHub Desktop\'s warning is cosmetic
+        //          for Kotlin and XML — the compiler does not care, which is why
+        //          the build passed — but it is NOT cosmetic for the two shell
+        //          scripts under tools/offline: a .sh checked out with CRLF
+        //          fails on Linux with "bad interpreter". Everything is now
+        //          normalised to LF in the repository, .sh/.py/gradlew are
+        //          pinned to LF on checkout as well, and binaries are marked so
+        //          Git never rewrites them.
+        //
         // 1.15.0 — feature: Settings structure, a default rig, and ONE icon.
         //   - Opening "Profile sets" now also opens Firearm, Load and Sight: a
         //     set IS those three, so hiding them under a set picker made the
@@ -3060,8 +3070,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 23
-        versionName = "1.15.0"
+        versionCode = 24
+        versionName = "1.15.1"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

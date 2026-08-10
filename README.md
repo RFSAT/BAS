@@ -153,6 +153,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.15.1** — correction. Added `.gitattributes`: text normalised to LF in the repository, with `.sh`, `.py` and `gradlew` pinned to LF on checkout (a shell script with CRLF fails on Linux) and binaries marked so Git never rewrites them.
+
 **1.15.0** — feature. Opening "Profile sets" also opens Firearm, Load and Sight; a new seeded set (Ruger Precision Rimfire .22LR + Federal Champion 40gr + Vector Optics Continental 5-30x56) is the default on a fresh install, so the first-run picker is gone; "Elsewhere" became "Other options", with Backup and reset, Target faces and Competition rules as their own sections; and the launcher icon is regenerated from the BAS mark so the home screen and the Play listing match.
 
 **1.14.0** — feature + corrections. A Distance menu on both tabs (type it, use the zero/calibration distance — now editable and saved to the rig — or run the FIRE4000 BLE probe); Settings sections start open, so the rangefinder entry is visible; Kestrel readings survive a restart; the phone preview no longer comes up black on Ballistics (camera rebinds every resume); Range mode fonts rebalanced and the scoring headline enlarged; Range options labels fit one line; the version moved from Home to the foot of Settings; and the Home text now promotes long-range shooting.
