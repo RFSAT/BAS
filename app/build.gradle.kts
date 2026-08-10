@@ -33,6 +33,18 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.13.1 — correction: the 1.12.0 rewording of the app description
+        //          introduced a bare apostrophe ("the shot's vapour trail"), and
+        //          aapt2 reads \\ \' and " as escapes inside a <string> — so the
+        //          resource failed to compile with "Invalid unicode escape
+        //          sequence", reported against the resource rather than the edit.
+        //          Escaped. A new static check (gate 10) now parses every
+        //          res/values/*.xml for well-formedness and flags any unescaped
+        //          apostrophe or double quote in a <string> body (skipping
+        //          fully-quoted strings, where a bare apostrophe is legal), so a
+        //          resource fault is caught with the rest of the pre-checks
+        //          rather than at merge time.
+        //
         // 1.13.0 — feature: BLE discovery probe for a laser rangefinder, built
         //          for the Tangoinnos FIRE4000. It talks Bluetooth but publishes
         //          no GATT profile (it pairs with its own ballistic app), so —
@@ -3002,8 +3014,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 20
-        versionName = "1.13.0"
+        versionCode = 21
+        versionName = "1.13.1"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

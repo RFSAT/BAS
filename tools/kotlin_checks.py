@@ -369,5 +369,33 @@ for f in files:
             continue
         break
 
+
+# ---- 10. Android string resources: escaping and well-formedness ----
+# aapt2 treats \ ' and " specially inside a <string>. A bare apostrophe fails
+# the build with "Invalid unicode escape sequence in string", reported against
+# the resource rather than the edit that caused it — and no Kotlin gate can see
+# it, because the fault is in res/values, not in code.
+import glob as _g10, re as _re10, xml.etree.ElementTree as _ET10
+_VALUES = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                       "app/src/main/res/values")
+for _vf in sorted(_g10.glob(os.path.join(_VALUES, "*.xml"))):
+    _raw = open(_vf, encoding="utf-8").read()
+    try:
+        _ET10.fromstring(_raw)
+    except Exception as _e:
+        problems.append(f"{os.path.basename(_vf)}  not well-formed XML: {_e}")
+        continue
+    for _m in _re10.finditer(r'<string name="([^"]+)"[^>]*>(.*?)</string>', _raw, _re10.S):
+        _name, _body = _m.group(1), _m.group(2)
+        if _body.startswith('"') and _body.endswith('"'):
+            continue            # fully quoted strings may hold bare apostrophes
+        for _ch, _what in (("'", "apostrophe"), ('"', "double quote")):
+            if _re10.search(r"(?<!\\)" + _re10.escape(_ch), _body):
+                _line = _raw.count("\n", 0, _m.start()) + 1
+                problems.append(
+                    f"{os.path.basename(_vf)}:{_line}  string/{_name} has an unescaped {_what} "
+                    f"— write \\{_ch} (aapt2 rejects it)")
+                break
+
 print(("PROBLEMS:\n  "+"\n  ".join(problems)) if problems else "No problems found.")
 sys.exit(1 if problems else 0)

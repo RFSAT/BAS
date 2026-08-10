@@ -12,7 +12,7 @@
     <string name="nav_exit">Exit</string>
 
     <string name="about_app_description">BAS scores shooting on paper and steel from the phone camera or an external
-        video feed, and computes ballistic corrections from the shot's vapour trail. Register the target face once, and every new hole is found, measured against the ring geometry of
+        video feed, and computes ballistic corrections from the shot\'s vapour trail. Register the target face once, and every new hole is found, measured against the ring geometry of
         the selected competition target and scored under the rules of the selected match. The app reports the running
         total, the group centre and dispersion, and the sight correction — in clicks for the scope or red dot in your
         active profile set — needed to move the group onto the point of aim.</string>
