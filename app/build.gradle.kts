@@ -33,6 +33,37 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.16.0 — feature: rangefinder support, three ways, with its own
+        //          Settings section.
+        //
+        //   THE BRIDGE FIRST, because it is the cheapest coverage there is:
+        //   Leica, Vortex and SIG BDX-X units all push their range INTO a
+        //   Kestrel 5700 Elite, and BAS already speaks Kestrel — so
+        //   KESTREL_BRIDGE covers three brands without decoding one vendor
+        //   protocol. DIRECT links cover SIG KILO, Leica Geovid/CRF, Vortex
+        //   Fury/Razor, Vectronix Terrapin-X, Tangoinnos FIRE4000 and a
+        //   generic catch-all. MANUAL entry is always present and is the
+        //   documented fallback, not an afterthought.
+        //
+        //   NONE of these publish a GATT profile, so the transport is generic:
+        //   subscribe to everything that notifies and try the encodings these
+        //   devices actually use — 16/32-bit, little/big-endian, in metres,
+        //   decimetres, yards or tenths of a yard — accepting only a plausible
+        //   range (5-4000 m).
+        //
+        //   AND THEN IT ASKS, because that heuristic is not sufficient on its
+        //   own: a bench test decoded a 21.5 degC temperature frame as "215 m",
+        //   which is exactly the failure mode a shooter could not spot. So the
+        //   FIRST reading from a device is offered for confirmation against the
+        //   display; on "yes" the characteristic and unit scale are locked and
+        //   every later reading comes from that pairing with no guessing.
+        //   "Forget the learned range signal" clears it.
+        //
+        //   Settings gains a "Rangefinder and distance" section (model, test
+        //   the link, diagnostics probe, forget); both tabs' distance menus
+        //   offer type-it / zero distance / last reading / read now / choose
+        //   model. Readings are spoken when speech is on. No new permissions.
+        //
         // 1.15.1 — correction: a .gitattributes, so line endings stop being a
         //          per-machine decision. GitHub Desktop\'s warning is cosmetic
         //          for Kotlin and XML — the compiler does not care, which is why
@@ -3070,8 +3101,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 24
-        versionName = "1.15.1"
+        versionCode = 25
+        versionName = "1.16.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

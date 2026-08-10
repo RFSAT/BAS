@@ -506,14 +506,32 @@
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 style="@style/Sts.ActionButton"
                 android:text="Range options (speech, keep-awake)…" />
-            <Button android:id="@+id/btnRangefinder"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                style="@style/Sts.ActionButton"
-                android:text="Rangefinder (FIRE4000) — discover…" />
             <Button android:id="@+id/btnLog"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 style="@style/Sts.ActionButton"
                 android:text="Diagnostic log…" />
+
+            <!-- ===== Rangefinder and distance ===== -->
+            <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Rangefinder and distance" />
+            <TextView style="@style/Sts.FieldLabel"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="How the range to the target is obtained. Leica, Vortex and SIG BDX-X units can be bridged through a Kestrel 5700 Elite; others connect directly. Entering it by hand always works." />
+            <Button android:id="@+id/btnRangefinderModel"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                style="@style/Sts.ActionButton"
+                android:text="Rangefinder: Enter by hand" />
+            <Button android:id="@+id/btnRangefinderTest"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                style="@style/Sts.ActionButton"
+                android:text="Test the link — read a range…" />
+            <Button android:id="@+id/btnRangefinder"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                style="@style/Sts.ActionButton"
+                android:text="Diagnostics: probe a device…" />
+            <Button android:id="@+id/btnRangefinderForget"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                style="@style/Sts.ActionButton"
+                android:text="Forget the learned range signal" />
 
             <!-- ===== Target faces ===== -->
             <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Target faces" />

@@ -816,20 +816,47 @@ class CaptureActivity : BaseActivity() {
      *  (calibration) range, or — once its protocol is identified — read from a
      *  Bluetooth rangefinder. */
     private fun distanceSourceMenu() {
-        val items = arrayOf(
+        val model = com.rfsat.bas.environment.DistanceConfig.model(this)
+        val last = com.rfsat.bas.environment.DistanceConfig.lastMetres(this)
+        val items = arrayListOf(
             "Type it in (keyboard)",
             "Use zero / calibration distance…",
-            "Rangefinder (FIRE4000) — discover / read")
+            "Read from ${model.label}",
+            "Choose rangefinder…",
+            "Diagnostics: probe the device…")
+        if (last > 0.0) items.add(2, "Use last reading (${String.format("%.0f", last)} m)")
         androidx.appcompat.app.AlertDialog.Builder(this)
             .setTitle("Target distance")
-            .setItems(items) { _, w ->
-                when (w) {
-                    0 -> { binding.etTargetDistance.requestFocus(); notifyUser("Type the distance in metres.") }
-                    1 -> zeroDistanceDialog()
-                    2 -> rangefinderRead()
+            .setItems(items.toTypedArray()) { _, w ->
+                when (items[w]) {
+                    items[0] -> { binding.etTargetDistance.requestFocus(); notifyUser("Type the distance in metres.") }
+                    items[1] -> zeroDistanceDialog()
+                    "Choose rangefinder…" -> com.rfsat.bas.environment.RangefinderUi.chooseModel(this, model) {
+                        com.rfsat.bas.environment.DistanceConfig.setModel(this, it); notifyUser("Rangefinder: ${it.label}")
+                    }
+                    "Diagnostics: probe the device…" -> rangefinderRead()
+                    else -> {
+                        val m = Regex("([0-9.]+) m").find(items[w])?.groupValues?.get(1)?.toDoubleOrNull()
+                        if (m != null) applyDistanceMetres(m) else readFromRangefinder(model)
+                    }
                 }
             }
             .show()
+    }
+
+    private fun applyDistanceMetres(m: Double) {
+        binding.etTargetDistance.setText(String.format("%.0f", m))
+        notifyUser("Target distance ${String.format("%.0f", m)} m")
+        if (com.rfsat.bas.ui.RangeSettings.speak())
+            com.rfsat.bas.ui.Speaker.say(this, "Range ${String.format("%.0f", m)} metres.")
+    }
+
+    private fun readFromRangefinder(model: com.rfsat.bas.environment.RangefinderModel) {
+        val missing = com.rfsat.bas.environment.RangefinderUi.missingPermissions(this)
+        if (missing.isNotEmpty()) { requestPermissions(missing, 4304); return }
+        com.rfsat.bas.environment.RangefinderUi.readDistance(this, model,
+            status = { msg -> runCatching { notifyUser(msg) } },
+            onMetres = { m -> runCatching { applyDistanceMetres(m) } })
     }
 
     /** Runs the BLE discovery probe. The FIRE4000 publishes no GATT profile, so

@@ -153,6 +153,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.16.0** — feature. Rangefinder support three ways: bridged through a Kestrel 5700 Elite (covering Leica, Vortex and SIG BDX-X without decoding any vendor protocol), direct BLE links for SIG KILO, Leica, Vortex, Vectronix Terrapin-X, FIRE4000 and a generic catch-all, or entered by hand. Since no vendor publishes a GATT profile the decoder is generic — and because a heuristic can read a temperature as a range, the first reading is confirmed against the display and the characteristic and unit scale are then locked. New "Rangefinder and distance" section in Settings.
+
 **1.15.1** — correction. Added `.gitattributes`: text normalised to LF in the repository, with `.sh`, `.py` and `gradlew` pinned to LF on checkout (a shell script with CRLF fails on Linux) and binaries marked so Git never rewrites them.
 
 **1.15.0** — feature. Opening "Profile sets" also opens Firearm, Load and Sight; a new seeded set (Ruger Precision Rimfire .22LR + Federal Champion 40gr + Vector Optics Continental 5-30x56) is the default on a fresh install, so the first-run picker is gone; "Elsewhere" became "Other options", with Backup and reset, Target faces and Competition rules as their own sections; and the launcher icon is regenerated from the BAS mark so the home screen and the Play listing match.

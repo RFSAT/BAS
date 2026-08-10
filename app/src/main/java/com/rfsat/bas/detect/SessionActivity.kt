@@ -138,24 +138,46 @@ class SessionActivity : BaseActivity() {
     /** Distance source for scoring: typed, the rig's zero/calibration range,
      *  or a Bluetooth rangefinder (discovery probe until its protocol is known). */
     private fun distanceSourceMenuS() {
-        val items = arrayOf(
+        val model = com.rfsat.bas.environment.DistanceConfig.model(this)
+        val last = com.rfsat.bas.environment.DistanceConfig.lastMetres(this)
+        val items = arrayListOf(
             "Type it in (keyboard)",
             "Use zero / calibration distance",
-            "Rangefinder (FIRE4000) — discover / read")
+            "Read from ${model.label}",
+            "Choose rangefinder…",
+            "Diagnostics: probe the device…")
+        if (last > 0.0) items.add(2, "Use last reading (${String.format("%.0f", last)} m)")
         androidx.appcompat.app.AlertDialog.Builder(this)
-            .setItems(items) { _, w ->
-                when (w) {
-                    0 -> { binding.etDistance.requestFocus(); notifyUser("Type the distance.") }
-                    1 -> {
+            .setTitle("Target distance")
+            .setItems(items.toTypedArray()) { _, w ->
+                when (items[w]) {
+                    items[0] -> { binding.etDistance.requestFocus(); notifyUser("Type the distance.") }
+                    items[1] -> {
                         val zeroM = com.rfsat.bas.profiles.ProfileRepository(this).getRifle().zeroDistanceM
-                        binding.etDistance.setText(String.format("%.0f", com.rfsat.bas.ui.UnitsManager.displayDistance(zeroM)))
-                        notifyUser("Distance set to the rig's zero: ${String.format("%.0f", zeroM)} m (change it on Ballistics).")
+                        applyDistanceMetresS(zeroM)
                     }
-                    2 -> rangefinderReadS()
+                    "Choose rangefinder…" -> com.rfsat.bas.environment.RangefinderUi.chooseModel(this, model) {
+                        com.rfsat.bas.environment.DistanceConfig.setModel(this, it); notifyUser("Rangefinder: ${it.label}")
+                    }
+                    "Diagnostics: probe the device…" -> rangefinderReadS()
+                    else -> {
+                        val m = Regex("([0-9.]+) m").find(items[w])?.groupValues?.get(1)?.toDoubleOrNull()
+                        if (m != null) applyDistanceMetresS(m) else {
+                            val missing = com.rfsat.bas.environment.RangefinderUi.missingPermissions(this)
+                            if (missing.isNotEmpty()) { requestPermissions(missing, 4305) }
+                            else com.rfsat.bas.environment.RangefinderUi.readDistance(this, model,
+                                status = { msg -> runCatching { notifyUser(msg) } },
+                                onMetres = { mm -> runCatching { applyDistanceMetresS(mm) } })
+                        }
+                    }
                 }
             }
-            .setTitle("Target distance")
             .show()
+    }
+
+    private fun applyDistanceMetresS(m: Double) {
+        binding.etDistance.setText(String.format("%.0f", com.rfsat.bas.ui.UnitsManager.displayDistance(m)))
+        notifyUser("Distance ${String.format("%.0f", m)} m")
     }
 
     private fun rangefinderReadS() {

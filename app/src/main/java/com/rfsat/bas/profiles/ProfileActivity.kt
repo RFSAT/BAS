@@ -537,6 +537,19 @@ class ProfileActivity : BaseActivity() {
         binding.btnCameraDefaults.setOnClickListener { cameraDefaultsMenu() }
         binding.btnRangeOptions.setOnClickListener { rangeOptionsDialog() }
         binding.btnRangefinder.setOnClickListener { rangefinderProbe() }
+        binding.btnRangefinderModel.setOnClickListener {
+            com.rfsat.bas.environment.RangefinderUi.chooseModel(
+                this, com.rfsat.bas.environment.DistanceConfig.model(this)) { m ->
+                com.rfsat.bas.environment.DistanceConfig.setModel(this, m)
+                refreshRangefinderLabel()
+            }
+        }
+        binding.btnRangefinderTest.setOnClickListener { testRangefinder() }
+        binding.btnRangefinderForget.setOnClickListener {
+            com.rfsat.bas.environment.DistanceConfig.clearLock(this)
+            notifyUser("Forgotten — the next reading will ask for confirmation again.")
+        }
+        refreshRangefinderLabel()
         binding.btnBackup.setOnClickListener { exportBackup() }
         binding.btnRestore.setOnClickListener { importBackup() }
         binding.btnReset.setOnClickListener {
@@ -752,6 +765,30 @@ class ProfileActivity : BaseActivity() {
      *  published, so this enumerates the device and listens: range a target
      *  while it runs and the distance shows up in the Log as a value tracking
      *  the display, which identifies the characteristic and encoding. */
+    private fun refreshRangefinderLabel() {
+        binding.btnRangefinderModel.text =
+            "Rangefinder: ${com.rfsat.bas.environment.DistanceConfig.model(this).label}"
+    }
+
+    /** Connect to the configured rangefinder and show the first range it
+     *  reports — the quickest way to tell whether the link works at all. */
+    private fun testRangefinder() {
+        val model = com.rfsat.bas.environment.DistanceConfig.model(this)
+        if (model == com.rfsat.bas.environment.RangefinderModel.MANUAL) {
+            notifyUser("Set to enter distance by hand — choose a rangefinder first."); return
+        }
+        val missing = com.rfsat.bas.environment.RangefinderUi.missingPermissions(this)
+        if (missing.isNotEmpty()) { requestPermissions(missing, 4306); return }
+        com.rfsat.bas.environment.RangefinderUi.readDistance(this, model,
+            status = { msg -> runCatching { notifyUser(msg) } },
+            onMetres = { m ->
+                runCatching {
+                    notifyUser("Range: ${String.format("%.0f", m)} m — link works.")
+                    com.rfsat.bas.ui.Speaker.say(this, "Range ${String.format("%.0f", m)} metres.")
+                }
+            })
+    }
+
     private fun rangefinderProbe() {
         val needed = if (android.os.Build.VERSION.SDK_INT >= 31) arrayOf(
             android.Manifest.permission.BLUETOOTH_SCAN,
