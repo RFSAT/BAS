@@ -33,6 +33,23 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.17.1 — documentation: BAS has a User Guide and a Programmer\'s
+        //          Reference again, in docs/, each as an editable .docx plus the
+        //          PDF to publish. Both are INTEGRATIONS rather than new
+        //          writing, done the same way the app was: the User Guide takes
+        //          STS\'s structure and safety-first opening as its base and
+        //          folds VTB\'s ballistics chapters in (wind measurement, the
+        //          chart, drop and wind calibration, Kestrel), then adds what
+        //          exists only in BAS — the camera abstraction, rangefinders,
+        //          Range mode and hands-free operation. The Programmer\'s
+        //          Reference is the VTB one extended with the scoring half
+        //          inherited from STS and everything since the merge, including
+        //          the static-check gates and the pitfalls each was written for.
+        //          docs/guide/README.md carries STS\'s rule forward: the
+        //          document is the source, the first edition was generated
+        //          because there was nothing to preserve, and no script writes
+        //          paragraphs into it again.
+        //
         // 1.17.0 — feature + corrections: readable on the phone that is
         //          actually lying in front of a prone shooter.
         //   - CAMERA CUTOUT. The app draws into the cutout strip so no black
@@ -3124,8 +3141,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 26
-        versionName = "1.17.0"
+        versionCode = 27
+        versionName = "1.17.1"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

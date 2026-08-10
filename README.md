@@ -15,7 +15,7 @@ scoring gauge.
 - AGP 8.9.1 / Kotlin 2.1.0 / compileSdk 36 / minSdk 26 / targetSdk 36
 - Gradle 8.11.1 or newer, JDK 17
 
-Open the folder in Android Studio and build. See `INTEGRATION.md` for exactly
+Open the folder in Android Studio and build. The **User Guide** and **Programmer's Reference** are in `docs/`. See `INTEGRATION.md` for exactly
 how the two apps were merged and what remains for the first compile pass.
 
 ---
@@ -152,6 +152,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
+
+**1.17.1** — documentation. `docs/` now holds the BAS User Guide and Programmer's Reference (editable .docx plus published PDF). Both integrate their predecessors the way the app does: the guide takes STS's structure and folds in VTB's ballistics chapters, then adds the camera, rangefinder and Range-mode material; the reference extends VTB's with the STS scoring half and everything since. See `docs/guide/README.md` for how they are maintained.
 
 **1.17.0** — feature + corrections. Content is padded clear of a top-centre camera cutout; Range mode now shows the correction in MRAD/MOA as well as clicks; the reticle colour comes from one high-contrast theme attribute shared by both viewfinders (with a dark halo so it reads over paper and aiming mark alike); and Settings sections start collapsed.
 
