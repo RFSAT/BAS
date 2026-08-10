@@ -23,6 +23,11 @@ class BallisticsResultsActivity : BaseActivity() {
         binding = ActivityBallisticsResultsBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setupBottomNav(com.rfsat.bas.R.id.nav_results)
+        if (com.rfsat.bas.ui.SetupConfig.mode(this) == com.rfsat.bas.ui.AppMode.BOTH) {
+            // "Both, in sequence": the shot is on centre, so the next thing the
+            // shooter wants is the card scored. Offered, not forced.
+            binding.btnTabScoring.text = "Score the target ▸"
+        }
         binding.btnTabScoring.setOnClickListener {
             startActivity(Intent(this, ResultsActivity::class.java)); finish()
         }

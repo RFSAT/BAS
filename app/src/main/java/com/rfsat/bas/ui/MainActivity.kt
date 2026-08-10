@@ -31,6 +31,11 @@ class MainActivity : BaseActivity() {
         // in the screen's own startup would record a stack that no subsequent
         // launch could ever display. Everything after it is guarded, so if
         // init throws, Home still comes up — degraded — and shows THAT stack.
+        if (!SetupConfig.welcomeDone(this)) {
+            startActivity(Intent(this, WelcomeActivity::class.java))
+            finish()
+            return
+        }
         maybeShowCrashReport()
         runCatching { initHome() }.onFailure {
             showStack("BAS startup error", "thread main\n" + android.util.Log.getStackTraceString(it))

@@ -33,6 +33,29 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.18.0 — feature: a Welcome screen on first run (and after a full
+        //          reset), which asks how BAS will be used and configures it
+        //          from the answers instead of leaving a new shooter to find
+        //          the same settings scattered across Settings.
+        //          Six steps: what BAS is and which mode — ballistics only,
+        //          scoring only, or both in sequence; what records the shot
+        //          (phone, GoPro, TACTACAM, ShotKam, RTSP); how distance is
+        //          measured (none/manual, Kestrel bridge, or a direct
+        //          rangefinder); whether there is a weather meter; and whether
+        //          AI assistance is wanted. Every question carries a sensible
+        //          default and Skip takes them all, so the wizard can never
+        //          stand between someone and the app. The answers write
+        //          SetupConfig, CameraConfig, DistanceConfig and CloudSettings.
+        //          In "both" mode the ballistics results screen offers "Score
+        //          the target" as the next step. Re-runnable from Settings, and
+        //          a full profile reset clears the flag so it returns.
+        //
+        //          Documentation: both documents are now built on the STS
+        //          template exactly — its styles.xml, the RFSAT logo on the
+        //          title page beside the wordmark, a running header and a page
+        //          number — with the template kept in docs/guide/template so a
+        //          reissue cannot drift from the house style.
+        //
         // 1.17.1 — documentation: BAS has a User Guide and a Programmer\'s
         //          Reference again, in docs/, each as an editable .docx plus the
         //          PDF to publish. Both are INTEGRATIONS rather than new
@@ -3141,8 +3164,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 27
-        versionName = "1.17.1"
+        versionCode = 28
+        versionName = "1.18.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

@@ -14,6 +14,14 @@ title page, where a reader can see it.
   VTB Programmer's Reference, extended with the scoring half inherited from
   STS and everything added since the merge.
 
+## Styling
+
+Both documents use the STS template exactly: its `styles.xml` (Heading 1-6,
+Title, List Paragraph, Hyperlink — navy headings on Calibri body text), the
+RFSAT logo on the title page beside the wordmark, a running header naming the
+document, and a page number in the footer. Both are kept in
+`docs/guide/template/` so a reissue cannot drift from the house style.
+
 ## The document is the source
 
 There is no generator, and there must not be one. STS had one and it cost the

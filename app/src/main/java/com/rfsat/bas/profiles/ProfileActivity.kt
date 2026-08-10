@@ -537,6 +537,11 @@ class ProfileActivity : BaseActivity() {
         binding.btnLog.setOnClickListener { startActivity(Intent(this, LogActivity::class.java)) }
         binding.btnTargets.setOnClickListener { startActivity(Intent(this, TargetActivity::class.java)) }
         binding.btnCameraDefaults.setOnClickListener { cameraDefaultsMenu() }
+        binding.btnRunSetup.setOnClickListener {
+            com.rfsat.bas.ui.SetupConfig.setWelcomeDone(this, false)
+            startActivity(Intent(this, com.rfsat.bas.ui.WelcomeActivity::class.java))
+            finish()
+        }
         binding.btnRangeOptions.setOnClickListener { rangeOptionsDialog() }
         binding.btnRangefinder.setOnClickListener { rangefinderProbe() }
         binding.btnRangefinderModel.setOnClickListener {
@@ -560,7 +565,9 @@ class ProfileActivity : BaseActivity() {
                 .setMessage("Your saved profile sets, custom targets and custom rules are NOT touched — " +
                     "only the firearm, load and sight currently in use.")
                 .setPositiveButton("Reset") { _, _ ->
-                    repo.resetToDefaults(); loadProfilesIntoFields(); notifyUser("Reset.")
+                    repo.resetToDefaults(); loadProfilesIntoFields()
+                    com.rfsat.bas.ui.SetupConfig.reset(this)
+                    notifyUser("Reset. The welcome screen will appear on the next start.")
                 }
                 .setNegativeButton("Cancel", null)
                 .show()

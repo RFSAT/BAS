@@ -502,6 +502,10 @@
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 style="@style/Sts.ActionButton"
                 android:text="Camera defaults…" />
+            <Button android:id="@+id/btnRunSetup"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                style="@style/Sts.ActionButton"
+                android:text="Run first-time setup again…" />
             <Button android:id="@+id/btnRangeOptions"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 style="@style/Sts.ActionButton"

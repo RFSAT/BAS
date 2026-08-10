@@ -153,6 +153,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.18.0** — feature. A Welcome screen on first run and after a full reset: six steps covering the working mode (ballistics, scoring, or both in sequence), the camera, the distance source, a weather meter and AI assistance, writing the matching configuration. Skip takes the defaults; it can be re-run from Settings. In "both" mode the ballistics results offer "Score the target" as the next step. The guide and reference are now built on the STS template (styles, RFSAT logo, header and page numbers).
+
 **1.17.1** — documentation. `docs/` now holds the BAS User Guide and Programmer's Reference (editable .docx plus published PDF). Both integrate their predecessors the way the app does: the guide takes STS's structure and folds in VTB's ballistics chapters, then adds the camera, rangefinder and Range-mode material; the reference extends VTB's with the STS scoring half and everything since. See `docs/guide/README.md` for how they are maintained.
 
 **1.17.0** — feature + corrections. Content is padded clear of a top-centre camera cutout; Range mode now shows the correction in MRAD/MOA as well as clicks; the reticle colour comes from one high-contrast theme attribute shared by both viewfinders (with a dark halo so it reads over paper and aiming mark alike); and Settings sections start collapsed.

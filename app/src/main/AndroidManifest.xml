@@ -73,6 +73,7 @@
         <activity android:name="com.rfsat.bas.capture.CaptureActivity" android:exported="false" />
         <activity android:name="com.rfsat.bas.results.BallisticsResultsActivity" android:exported="false" />
         <activity android:name="com.rfsat.bas.ui.RangeActivity" android:exported="false" />
+        <activity android:name="com.rfsat.bas.ui.WelcomeActivity" android:exported="false" />
         <activity android:name="com.rfsat.bas.rules.RulesActivity" android:exported="false" />
         <activity android:name="com.rfsat.bas.log.LogActivity" android:exported="false" />
 
