@@ -17,8 +17,10 @@
         total, the group centre and dispersion, and the sight correction — in clicks for the scope or red dot in your
         active profile set — needed to move the group onto the point of aim.</string>
 
-    <string name="about_disciplines">Air rifle and air pistol at 10 m, rimfire rifle and pistol at 25 m and 50 m,
-        and centrefire rifle in .223, .308 and similar chamberings out to 1000 yards.</string>
+    <string name="about_disciplines">Built for long range: the shot\'s vapour trail is read for
+        crosswind and turned into a scope correction, then the group is scored to confirm it. Centrefire rifle in
+        .308, 6.5 Creedmoor, .223 and similar chamberings out to 1000 yards, with rimfire and air disciplines
+        supported at shorter ranges.</string>
 
     <string name="about_developer_heading">About the developer</string>
     <string name="about_developer_description">BAS is developed by Dr Artur Krukowski. It integrates target scoring and vapour-trail ballistics into one application, sharing a design principle: the physics and the rules are written down explicitly in the

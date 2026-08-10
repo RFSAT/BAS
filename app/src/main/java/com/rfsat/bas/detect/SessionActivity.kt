@@ -135,6 +135,52 @@ class SessionActivity : BaseActivity() {
 
     override fun onRemoteTrigger(): Boolean { runCatching { binding.btnScoreNow.performClick() }; return true }
 
+    /** Distance source for scoring: typed, the rig's zero/calibration range,
+     *  or a Bluetooth rangefinder (discovery probe until its protocol is known). */
+    private fun distanceSourceMenuS() {
+        val items = arrayOf(
+            "Type it in (keyboard)",
+            "Use zero / calibration distance",
+            "Rangefinder (FIRE4000) — discover / read")
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setItems(items) { _, w ->
+                when (w) {
+                    0 -> { binding.etDistance.requestFocus(); notifyUser("Type the distance.") }
+                    1 -> {
+                        val zeroM = com.rfsat.bas.profiles.ProfileRepository(this).getRifle().zeroDistanceM
+                        binding.etDistance.setText(String.format("%.0f", com.rfsat.bas.ui.UnitsManager.displayDistance(zeroM)))
+                        notifyUser("Distance set to the rig's zero: ${String.format("%.0f", zeroM)} m (change it on Ballistics).")
+                    }
+                    2 -> rangefinderReadS()
+                }
+            }
+            .setTitle("Target distance")
+            .show()
+    }
+
+    private fun rangefinderReadS() {
+        val needed = if (android.os.Build.VERSION.SDK_INT >= 31) arrayOf(
+            android.Manifest.permission.BLUETOOTH_SCAN,
+            android.Manifest.permission.BLUETOOTH_CONNECT
+        ) else arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION)
+        val missing = needed.filter {
+            checkSelfPermission(it) != android.content.pm.PackageManager.PERMISSION_GRANTED
+        }
+        if (missing.isNotEmpty()) { requestPermissions(missing.toTypedArray(), 4303); return }
+        val probe = com.rfsat.bas.environment.RangefinderProbe
+        fun run(d: android.bluetooth.BluetoothDevice) {
+            notifyUser("Rangefinder: connecting — range a target; readings go to the Log.")
+            probe.probe(this, d) { m -> runCatching { notifyUser(m) } }
+        }
+        val bonded = probe.findPaired()
+        if (bonded != null) { run(bonded); return }
+        notifyUser("Scanning for a rangefinder…")
+        probe.scan(this) { d ->
+            if (d == null) notifyUser("No rangefinder found — see the Log tab.")
+            else run(d)
+        }
+    }
+
     private fun refreshCameraLabelS() {
         binding.btnCameraTypeS.text = "Camera: ${com.rfsat.bas.capture.CameraConfig.type(this).label} ▾"
     }
@@ -495,6 +541,7 @@ class SessionActivity : BaseActivity() {
             }
         }
         binding.btnCameraConfigureS.setOnClickListener { configureCameraS() }
+        binding.btnDistanceSourceS.setOnClickListener { distanceSourceMenuS() }
         refreshCameraLabelS()
         binding.btnClearShots.setOnClickListener {
             ScoringSession.clearShots()

@@ -153,6 +153,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.14.0** — feature + corrections. A Distance menu on both tabs (type it, use the zero/calibration distance — now editable and saved to the rig — or run the FIRE4000 BLE probe); Settings sections start open, so the rangefinder entry is visible; Kestrel readings survive a restart; the phone preview no longer comes up black on Ballistics (camera rebinds every resume); Range mode fonts rebalanced and the scoring headline enlarged; Range options labels fit one line; the version moved from Home to the foot of Settings; and the Home text now promotes long-range shooting.
+
 **1.13.1** — correction. Fixed a resource build break: the reworded app description contained a bare apostrophe, which aapt2 rejects inside a `<string>`. Escaped it, and added a static check (gate 10) that validates every `res/values/*.xml` and flags unescaped apostrophes or quotes.
 
 **1.13.0** — feature. A BLE discovery probe for a laser rangefinder (Tangoinnos FIRE4000), reached from Settings. Its protocol is unpublished, so the probe finds the device (bonded or advertising), enumerates every service/characteristic, reads what is readable, subscribes to everything that notifies, and logs each frame as hex plus candidate integer readings — range a target while it listens and the distance is identifiable in the Log. Reads and subscriptions only; no new permissions.

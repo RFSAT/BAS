@@ -192,11 +192,7 @@ class CaptureActivity : BaseActivity() {
         }
         binding.btnCameraConfigure.setOnClickListener { configureCamera() }
         binding.btnAutoCollect.setOnClickListener { toggleAutoCollect() }
-        binding.btnUseZeroDist.setOnClickListener {
-            val zeroM = com.rfsat.bas.profiles.ProfileRepository(this).getRifle().zeroDistanceM
-            binding.etTargetDistance.setText(String.format("%.0f", zeroM))
-            notifyUser("Target distance set to the rig's zero (calibration) distance: ${String.format("%.0f", zeroM)} m.")
-        }
+        binding.btnUseZeroDist.setOnClickListener { distanceSourceMenu() }
         binding.btnAnalyze.isEnabled = false
 
         binding.btnArm.setOnClickListener { toggleArm() }
@@ -639,7 +635,12 @@ class CaptureActivity : BaseActivity() {
             showStreamPreviewIdle(source)
         } else {
             hideStreamPreview()
-            if (cameraGranted && videoCapture == null) startCamera()
+            // v1.14.0: rebind on EVERY pass, not only when videoCapture is null.
+            // Returning from another screen (or a GoPro live session) leaves the
+            // use cases unbound while the field is still set, and the preview
+            // then stays black — the Score screen rebinds each resume and never
+            // shows this, which is the difference the field report describes.
+            if (cameraGranted) startCamera()
         }
     }
 
@@ -809,6 +810,86 @@ class CaptureActivity : BaseActivity() {
 
     fun refreshCameraLabel() {
         binding.btnCameraType.text = "Camera: ${CameraConfig.type(this).label} ▾"
+    }
+
+    /** How the target distance is obtained: typed, taken from the rig's zero
+     *  (calibration) range, or — once its protocol is identified — read from a
+     *  Bluetooth rangefinder. */
+    private fun distanceSourceMenu() {
+        val items = arrayOf(
+            "Type it in (keyboard)",
+            "Use zero / calibration distance…",
+            "Rangefinder (FIRE4000) — discover / read")
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Target distance")
+            .setItems(items) { _, w ->
+                when (w) {
+                    0 -> { binding.etTargetDistance.requestFocus(); notifyUser("Type the distance in metres.") }
+                    1 -> zeroDistanceDialog()
+                    2 -> rangefinderRead()
+                }
+            }
+            .show()
+    }
+
+    /** Runs the BLE discovery probe. The FIRE4000 publishes no GATT profile, so
+     *  until a dry run identifies which characteristic carries the distance the
+     *  probe logs candidates rather than filling the field automatically. */
+    private fun rangefinderRead() {
+        val needed = if (android.os.Build.VERSION.SDK_INT >= 31) arrayOf(
+            android.Manifest.permission.BLUETOOTH_SCAN,
+            android.Manifest.permission.BLUETOOTH_CONNECT
+        ) else arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION)
+        val missing = needed.filter {
+            checkSelfPermission(it) != android.content.pm.PackageManager.PERMISSION_GRANTED
+        }
+        if (missing.isNotEmpty()) { requestPermissions(missing.toTypedArray(), 4302); return }
+        val probe = com.rfsat.bas.environment.RangefinderProbe
+        fun run(d: android.bluetooth.BluetoothDevice) {
+            notifyUser("Rangefinder: connecting — range a target while it listens; readings go to the Log.")
+            probe.probe(this, d) { m -> runCatching { notifyUser(m) } }
+        }
+        val bonded = probe.findPaired()
+        if (bonded != null) { run(bonded); return }
+        notifyUser("Scanning for a rangefinder…")
+        probe.scan(this) { d ->
+            if (d == null) notifyUser("No rangefinder found — check it is on. Advertisers seen were logged (Log tab).")
+            else run(d)
+        }
+    }
+
+    /**
+     * The rig's zero (calibration) distance — the range the scope, and usually
+     * the rangefinder, was calibrated at. Shows the stored value, lets it be
+     * EDITED and saved back to the rifle profile, and fills the target
+     * distance with it. Editable because the seeded rigs carry a nominal zero
+     * (a smallbore rig is 50 m) which is rarely the shooter's own.
+     */
+    private fun zeroDistanceDialog() {
+        val repo = com.rfsat.bas.profiles.ProfileRepository(this)
+        val rifle = repo.getRifle()
+        val et = android.widget.EditText(this).apply {
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
+            setText(String.format("%.0f", rifle.zeroDistanceM))
+            hint = "metres"
+        }
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Zero / calibration distance")
+            .setMessage("The range ${rifle.name} is zeroed at. Saved to the rig and used for the ballistic solution.")
+            .setView(et)
+            .setPositiveButton("Use and save") { _, _ ->
+                val v = et.text.toString().toDoubleOrNull()
+                if (v == null || v <= 0.0) { notifyUser("Enter a distance in metres."); return@setPositiveButton }
+                repo.saveRifle(rifle.copy(zeroDistanceM = v))
+                binding.etTargetDistance.setText(String.format("%.0f", v))
+                notifyUser("Zero distance saved: ${String.format("%.0f", v)} m.")
+            }
+            .setNeutralButton("Fill only") { _, _ ->
+                val v = et.text.toString().toDoubleOrNull() ?: rifle.zeroDistanceM
+                binding.etTargetDistance.setText(String.format("%.0f", v))
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     override fun onRemoteTrigger(): Boolean { runCatching { runAnalysis() }; return true }

@@ -97,13 +97,19 @@ class ProfileActivity : BaseActivity() {
         }
         setupBottomNav(R.id.nav_settings)
         runCatching { makeSectionsCollapsible() }
+        runCatching {
+            binding.tvSettingsVersion.text =
+                "BAS ${com.rfsat.bas.BuildConfig.VERSION_NAME} (build ${com.rfsat.bas.BuildConfig.VERSION_CODE}, ${com.rfsat.bas.BuildConfig.BUILD_TYPE})"
+        }
     }
 
     /**
      * Make each Settings section fold under its heading so the long screen is
      * easy to scan — tap a heading to open it. Done in code by grouping the
      * views that follow each tagged heading, so the layout needs no wrapping.
-     * Sections start collapsed; the shooter opens the one they want.
+     * Sections start OPEN — collapsing is opt-in — because a collapsed
+     * section hides options the shooter cannot then find (the rangefinder
+     * entry under "Elsewhere" was invisible in 1.12.0).
      */
     private fun makeSectionsCollapsible() {
         val headers = ArrayList<android.view.View>()
@@ -130,7 +136,7 @@ class ProfileActivity : BaseActivity() {
             }
             header.isClickable = true
             header.setOnClickListener { render(body.firstOrNull()?.visibility != android.view.View.VISIBLE) }
-            render(false)
+            render(true)
         }
     }
 
@@ -762,15 +768,18 @@ class ProfileActivity : BaseActivity() {
     }
 
     private fun rangeOptionsDialog() {
+        // Built from real CheckBoxes rather than setMultiChoiceItems so the
+        // label font can be reduced — at the default size these wrap to two
+        // lines and the list is hard to scan.
         val labels = arrayOf(
             "Speak corrections and scores",
             "Keep screen on during a session",
-            "Auto-reconnect camera Wi-Fi (wait longer)",
-            "Auto-advance to results after each shot",
-            "Auto-collect new clips from the camera",
-            "Volume / Bluetooth remote triggers capture",
-            "Skip confirmations (clear shots, remove marks)")
-        val checked = booleanArrayOf(
+            "Auto-reconnect camera Wi-Fi",
+            "Auto-advance to results after a shot",
+            "Auto-collect new clips from camera",
+            "Volume / Bluetooth remote triggers",
+            "Skip confirmations")
+        val initial = booleanArrayOf(
             com.rfsat.bas.ui.RangeSettings.speak(),
             com.rfsat.bas.ui.RangeSettings.keepAwake(),
             com.rfsat.bas.ui.RangeSettings.autoReconnect(),
@@ -778,18 +787,33 @@ class ProfileActivity : BaseActivity() {
             com.rfsat.bas.ui.RangeSettings.autoCollect(),
             com.rfsat.bas.ui.RangeSettings.remoteTrigger(),
             com.rfsat.bas.ui.RangeSettings.skipConfirm())
+        val pad = (12 * resources.displayMetrics.density).toInt()
+        val column = android.widget.LinearLayout(this).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            setPadding(pad + pad / 2, pad, pad, pad)
+        }
+        val boxes = labels.mapIndexed { i, text ->
+            android.widget.CheckBox(this).apply {
+                this.text = text
+                isChecked = initial[i]
+                textSize = 13f
+                maxLines = 1
+                ellipsize = android.text.TextUtils.TruncateAt.END
+                column.addView(this)
+            }
+        }
         androidx.appcompat.app.AlertDialog.Builder(this)
             .setTitle("Range options")
-            .setMultiChoiceItems(labels, checked) { _, which, isChecked -> checked[which] = isChecked }
+            .setView(android.widget.ScrollView(this).apply { addView(column) })
             .setPositiveButton("Save") { _, _ ->
-                com.rfsat.bas.ui.RangeSettings.setSpeak(this, checked[0])
-                com.rfsat.bas.ui.RangeSettings.setKeepAwake(this, checked[1])
-                com.rfsat.bas.ui.RangeSettings.setAutoReconnect(this, checked[2])
-                com.rfsat.bas.ui.RangeSettings.setAutoShowResults(this, checked[3])
-                com.rfsat.bas.ui.RangeSettings.setAutoCollect(this, checked[4])
-                com.rfsat.bas.ui.RangeSettings.setRemoteTrigger(this, checked[5])
-                com.rfsat.bas.ui.RangeSettings.setSkipConfirm(this, checked[6])
-                if (checked[0]) com.rfsat.bas.ui.Speaker.init(this)
+                com.rfsat.bas.ui.RangeSettings.setSpeak(this, boxes[0].isChecked)
+                com.rfsat.bas.ui.RangeSettings.setKeepAwake(this, boxes[1].isChecked)
+                com.rfsat.bas.ui.RangeSettings.setAutoReconnect(this, boxes[2].isChecked)
+                com.rfsat.bas.ui.RangeSettings.setAutoShowResults(this, boxes[3].isChecked)
+                com.rfsat.bas.ui.RangeSettings.setAutoCollect(this, boxes[4].isChecked)
+                com.rfsat.bas.ui.RangeSettings.setRemoteTrigger(this, boxes[5].isChecked)
+                com.rfsat.bas.ui.RangeSettings.setSkipConfirm(this, boxes[6].isChecked)
+                if (boxes[0].isChecked) com.rfsat.bas.ui.Speaker.init(this)
             }
             .setNegativeButton("Cancel", null)
             .show()

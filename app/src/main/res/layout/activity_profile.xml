@@ -535,7 +535,15 @@
                 style="@style/Sts.ActionButton"
                 android:text="Reset the active profiles to defaults" />
 
-        </LinearLayout>
+                    <TextView
+                android:id="@+id/tvSettingsVersion"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="18dp" android:layout_marginBottom="8dp"
+                android:textSize="12sp" android:gravity="center"
+                android:textColor="?android:attr/textColorSecondary"
+                android:text="" />
+
+</LinearLayout>
     </ScrollView>
 
     <include layout="@layout/include_bottom_nav" />

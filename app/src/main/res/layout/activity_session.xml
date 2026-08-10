@@ -85,6 +85,12 @@
                 android:inputType="numberDecimal"
                 android:autofillHints="" />
 
+            <Button android:id="@+id/btnDistanceSourceS"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Distance source ▾" android:textSize="12sp"
+                android:minWidth="0dp" android:minHeight="0dp"
+                android:paddingLeft="10dp" android:paddingRight="10dp" />
+
             <TextView style="@style/Sts.SectionHeading" android:text="Frame source" />
             <Spinner android:id="@+id/spSource"
                 android:layout_width="match_parent" android:layout_height="wrap_content" />

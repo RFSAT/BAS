@@ -16,27 +16,27 @@
         android:letterSpacing="0.1" android:text="WIND — dial before the shot" android:gravity="center" />
     <TextView android:id="@+id/tvRangeWind"
         android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1.5"
-        android:textColor="?attr/colorAccent" android:textSize="96sp" android:textStyle="bold"
+        android:textColor="?attr/colorAccent" android:textSize="84sp" android:textStyle="bold"
         android:gravity="center" android:text="—" android:autoSizeTextType="uniform"
-        android:autoSizeMinTextSize="32sp" android:autoSizeMaxTextSize="130sp" />
+        android:autoSizeMinTextSize="30sp" android:autoSizeMaxTextSize="112sp" />
 
     <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
         android:textColor="?android:attr/textColorSecondary" android:textSize="14sp"
         android:letterSpacing="0.1" android:text="GROUP — dial to centre" android:gravity="center" />
     <TextView android:id="@+id/tvRangeCorrection"
         android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
-        android:textColor="?android:attr/textColorPrimary" android:textSize="56sp" android:textStyle="bold"
+        android:textColor="?android:attr/textColorPrimary" android:textSize="48sp" android:textStyle="bold"
         android:gravity="center" android:text="—" android:autoSizeTextType="uniform"
-        android:autoSizeMinTextSize="24sp" android:autoSizeMaxTextSize="80sp" />
+        android:autoSizeMinTextSize="22sp" android:autoSizeMaxTextSize="68sp" />
 
     <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
         android:textColor="?android:attr/textColorSecondary" android:textSize="14sp"
         android:letterSpacing="0.1" android:text="SCORE" android:gravity="center" />
     <TextView android:id="@+id/tvRangeScore"
-        android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
-        android:textColor="?android:attr/textColorPrimary" android:textSize="56sp" android:textStyle="bold"
+        android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1.5"
+        android:textColor="?android:attr/textColorPrimary" android:textSize="84sp" android:textStyle="bold"
         android:gravity="center" android:text="0" android:autoSizeTextType="uniform"
-        android:autoSizeMinTextSize="24sp" android:autoSizeMaxTextSize="80sp" />
+        android:autoSizeMinTextSize="30sp" android:autoSizeMaxTextSize="112sp" />
 
     <Button android:id="@+id/btnRangeClose"
         android:layout_width="match_parent" android:layout_height="wrap_content"

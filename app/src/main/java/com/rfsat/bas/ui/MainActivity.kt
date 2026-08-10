@@ -40,9 +40,6 @@ class MainActivity : BaseActivity() {
     private fun initHome() {
         ScoringSession.attach(this)
 
-        binding.tvVersion.text =
-            "Version ${BuildConfig.VERSION_NAME} (build ${BuildConfig.VERSION_CODE}, ${BuildConfig.BUILD_TYPE})"
-
         binding.tvClaudeCredit.text = androidx.core.text.HtmlCompat.fromHtml(
             "with support from <a href=\"https://claude.ai\">Claude AI</a>",
             androidx.core.text.HtmlCompat.FROM_HTML_MODE_LEGACY

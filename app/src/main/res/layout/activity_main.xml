@@ -30,13 +30,6 @@
                 android:textSize="22sp"
                 android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/tvVersion"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="12sp"
-                android:layout_marginBottom="16dp" />
-
             <!-- Active setup: the one thing a shooter must confirm before
                  firing, so it is the first thing on the screen. -->
             <LinearLayout
@@ -147,16 +140,6 @@
                 android:lineSpacingExtra="4dp"
                 android:textColor="?android:attr/textColorPrimary"
                 android:text="@string/about_app_description"
-                android:justificationMode="inter_word" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:textSize="14sp"
-                android:lineSpacingExtra="4dp"
-                android:textColor="?android:attr/textColorSecondary"
-                android:text="@string/about_disciplines"
                 android:justificationMode="inter_word" />
 
             <TextView

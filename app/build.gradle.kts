@@ -33,6 +33,31 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.14.0 — feature + corrections from field feedback.
+        //   - DISTANCE SOURCE, and the rangefinder made visible. "= zero" was a
+        //     one-way fill from the rig's stored zero, so a smallbore seed put
+        //     50 m in the field with no way to say 200. It is now a "Distance"
+        //     menu on BOTH tabs: type it, use the zero/calibration distance
+        //     (editable and SAVED back to the rifle profile), or run the
+        //     FIRE4000 BLE probe. The probe was already in Settings but sat
+        //     under "Elsewhere", which 1.12.0 collapsed by default and so hid —
+        //     sections now start OPEN, collapsing is opt-in.
+        //   - Kestrel/environment readings survive a restart: EnvironmentManager
+        //     .restore is called at startup (it could already persist).
+        //   - Phone preview no longer comes up black on Ballistics: the camera
+        //     is rebound on EVERY resume, not only when videoCapture is null.
+        //     Returning from another screen left the use cases unbound while the
+        //     field was still set — the Score screen rebinds each resume, which
+        //     is why it never showed the fault.
+        //   - Range mode fonts rebalanced: wind slightly smaller, score raised
+        //     to match it. Scoring Results headline 26sp -> 40sp.
+        //   - Range options dialog rebuilt from real CheckBoxes at 13sp so each
+        //     label fits one line.
+        //   - Version moved off Home to the foot of Settings, so a Play
+        //     screenshot of Home survives a revision.
+        //   - Home text now promotes LONG RANGE (vapour-trail wind and scope
+        //     corrections), with rimfire and air noted as also supported.
+        //
         // 1.13.1 — correction: the 1.12.0 rewording of the app description
         //          introduced a bare apostrophe ("the shot's vapour trail"), and
         //          aapt2 reads \\ \' and " as escapes inside a <string> — so the
@@ -3014,8 +3039,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 21
-        versionName = "1.13.1"
+        versionCode = 22
+        versionName = "1.14.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two
