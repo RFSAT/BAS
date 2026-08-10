@@ -20,4 +20,17 @@ object EnvDeviceConfig {
     private fun p(c: Context) = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
     fun source(c: Context): EnvSource = EnvSource.fromName(p(c).getString("source", null))
     fun setSource(c: Context, s: EnvSource) = p(c).edit().putString("source", s.name).apply()
+
+    /** Feed the meter's wind into the solution as the wind AT THE FIRING POINT. */
+    fun useStationWind(c: Context): Boolean = p(c).getBoolean("station_wind", true)
+    fun setUseStationWind(c: Context, v: Boolean) = p(c).edit().putBoolean("station_wind", v).apply()
+
+    /**
+     * How the meter's wind direction is to be read. Held pointing downrange —
+     * the usual way — its direction is already relative to the line of fire.
+     * With a vane mount it is a true bearing, and then the line of fire has to
+     * be known; -1 means "no bearing set, treat the reading as relative".
+     */
+    fun lineOfFireDeg(c: Context): Double = p(c).getFloat("line_of_fire", -1f).toDouble()
+    fun setLineOfFireDeg(c: Context, v: Double) = p(c).edit().putFloat("line_of_fire", v.toFloat()).apply()
 }

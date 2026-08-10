@@ -33,6 +33,36 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.20.0 — feature: the meter\'s WIND, read and used.
+        //
+        //   IT WAS NEVER PARSED. The LiNK record decode in 1.19.0 took
+        //   temperature, humidity and pressure and stopped there, so a 5700
+        //   could be connected and reporting wind and the app would show none.
+        //   @4 is the wind speed and @10 the direction; both are read now.
+        //
+        //   AND IN THE FIELD LOG THERE WAS NO WIND TO SHOW: @4 held 0x8001 in
+        //   every frame — NK\'s "not measured", which is what a still impeller
+        //   reports. A null is kept as a null rather than shown as a calm
+        //   0 m/s, because that would be a measurement the meter never made.
+        //   The status line now says "wind not measured" instead of nothing.
+        //
+        //   USED AS THE WIND AT THE FIRING POINT. The two measurements answer
+        //   different questions: a Kestrel measures the air actually moving
+        //   past the shooter, exactly, but only there; the vapour trail
+        //   measures how the wind acts on the bullet all the way to the target,
+        //   which is what the solution needs, but its near-muzzle samples are
+        //   its weakest. So the meter enters the same weighted average as an
+        //   ANCHOR at zero downrange and the trail supplies the profile beyond
+        //   it — one more sample, never an override, so a disagreement widens
+        //   the spread instead of hiding behind a single number.
+        //
+        //   A weather meter reports the direction wind comes FROM, so
+        //   crosswind_right = -speed x sin(theta_relative); verified on the
+        //   bench that wind from the right pushes left and from the left pushes
+        //   right. Held pointing downrange its direction is already relative to
+        //   the line of fire; with a vane mount the bearing can be entered.
+        //   Settings -> Environmental devices carries the switch.
+        //
         // 1.19.1 — corrections: two faults a field log made obvious.
         //
         //   THE PHONE WAS OVERWRITING THE KESTREL. refreshFromPhoneSensors
@@ -3247,8 +3277,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 31
-        versionName = "1.19.1"
+        versionCode = 32
+        versionName = "1.20.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

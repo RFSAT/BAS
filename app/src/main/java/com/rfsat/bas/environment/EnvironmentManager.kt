@@ -63,7 +63,14 @@ object EnvironmentManager {
                 informationalAltitudeM =
                     if (p.contains("altM")) p.getFloat("altM", 0f).toDouble() else null
             )
-            val ageH = (System.currentTimeMillis() - p.getLong("time", 0L)) / 3_600_000.0
+            runCatching {
+            val ws = if (p.contains("windMps")) p.getFloat("windMps", 0f).toDouble() else null
+            val wd = if (p.contains("windDeg")) p.getFloat("windDeg", 0f).toDouble() else null
+            if (ws != null || wd != null)
+                current = current.copy(windSpeedMps = ws, windDirectionDeg = wd,
+                    windSource = p.getString("windSrc", "") ?: "")
+        }
+        val ageH = (System.currentTimeMillis() - p.getLong("time", 0L)) / 3_600_000.0
             Logger.i(TAG, "Environment restored from previous session (age %.1f h): %s".format(ageH, describe()))
         }
     }
@@ -80,6 +87,9 @@ object EnvironmentManager {
             .putString("hSrc", r.humiditySource)
             .putLong("time", System.currentTimeMillis())
         r.informationalAltitudeM?.let { e.putFloat("altM", it.toFloat()) }
+        r.windSpeedMps?.let { e.putFloat("windMps", it.toFloat()) }
+        r.windDirectionDeg?.let { e.putFloat("windDeg", it.toFloat()) }
+        e.putString("windSrc", r.windSource)
         e.apply()
     }
 
@@ -89,7 +99,14 @@ object EnvironmentManager {
         val temperatureSource: String,
         val pressureSource: String,
         val humiditySource: String,
-        val informationalAltitudeM: Double?
+        val informationalAltitudeM: Double?,
+        /** Wind from a meter with an impeller (the 5700; the DROP has none).
+         *  Null means NOT MEASURED — an impeller that is not turning reports
+         *  NK's sentinel, and reporting that as "0 m/s calm" would be a
+         *  measurement the meter never made. */
+        val windSpeedMps: Double? = null,
+        val windDirectionDeg: Double? = null,
+        val windSource: String = ""
     )
 
     @Volatile
@@ -97,6 +114,21 @@ object EnvironmentManager {
         Atmosphere(), "default", "default", "default", null
     )
         private set
+
+    /** Wind from the meter. Kept separate from setFromKestrel so a weather
+     *  read that measured no wind cannot clear a wind reading taken earlier. */
+    fun setWind(speedMps: Double?, directionDeg: Double?, source: String = "Kestrel") {
+        if (speedMps == null && directionDeg == null) return
+        current = current.copy(
+            windSpeedMps = speedMps ?: current.windSpeedMps,
+            windDirectionDeg = directionDeg ?: current.windDirectionDeg,
+            windSource = source
+        )
+        Logger.i(TAG, "Wind from $source: " +
+            (speedMps?.let { "%.1f m/s".format(it) } ?: "—") + " " +
+            (directionDeg?.let { "%.0f°".format(it) } ?: ""))
+        persist()
+    }
 
     fun setFromKestrel(temperatureC: Double?, pressurePa: Double?, humidityFrac: Double?) {
         val prev = current
@@ -213,10 +245,17 @@ object EnvironmentManager {
         val r = current
         val a = r.atmosphere
         val alt = r.informationalAltitudeM?.let { " ~%.0f m ASL".format(it) } ?: ""
-        return "%.1f°C (%s) · %.0f hPa (%s) · %.0f%% RH (%s)%s".format(
+        val wind = when {
+            r.windSpeedMps != null -> " · %.1f m/s%s (%s)".format(
+                r.windSpeedMps,
+                r.windDirectionDeg?.let { " @ %.0f°".format(it) } ?: "",
+                r.windSource.ifBlank { "meter" })
+            else -> " · wind not measured"
+        }
+        return "%.1f°C (%s) · %.0f hPa (%s) · %.0f%% RH (%s)%s%s".format(
             a.temperatureC, r.temperatureSource,
             a.seaLevelPressurePa / 100.0, r.pressureSource,
-            a.relativeHumidity * 100.0, r.humiditySource, alt
+            a.relativeHumidity * 100.0, r.humiditySource, alt, wind
         )
     }
 }

@@ -1607,14 +1607,24 @@ class CaptureActivity : BaseActivity() {
                 Logger.i(TAG, "Estimated ${windSamples.size} wind samples " +
                     "(mode=${if (tracer) "TRACER" else "VAPOR"} tof=${"%.2f".format(tofS)}s settle=${"%.2f".format(settleS)}s)")
 
+                // v1.20.0: the meter's wind is the wind AT THE FIRING POINT, so it
+                // joins the average as a sample at zero downrange while the trail
+                // supplies how the wind changes down the range. One more sample in
+                // the same weighted average — never an override.
+                val anchored = com.rfsat.bas.environment.StationWind.anchorSample(this@CaptureActivity)
+                    ?.let { a ->
+                        Logger.i(TAG, "Station wind anchor: ${"%+.2f".format(a.crosswindMps)} m/s at 0 m")
+                        listOf(a) + windSamples
+                    } ?: windSamples
+
                 val adjustment = AdjustmentCalculator.computeAdjustment(
-                    bullet, activeRifle, scope, atmosphere, targetDistanceYd, windSamples
+                    bullet, activeRifle, scope, atmosphere, targetDistanceYd, anchored
                 )
                 Logger.i(TAG, "Adjustment: windage=${adjustment.windageDirection} ${adjustment.windageScopeUnits} ${adjustment.scopeUnitLabel}, " +
                     "elevation=${adjustment.elevationDirection} ${adjustment.elevationScopeUnits} ${adjustment.scopeUnitLabel}, " +
                     "wind=${adjustment.estimatedCrosswindMps} m/s (conf=${adjustment.windConfidence}), warnings=${adjustment.warnings.size}")
 
-                AnalysisSession.windSamples = windSamples
+                AnalysisSession.windSamples = anchored
                 AnalysisSession.adjustment = adjustment
                 AnalysisSession.targetDistanceYd = targetDistanceYd
                 AnalysisSession.baseFovDeg = fovDeg

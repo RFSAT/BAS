@@ -274,10 +274,20 @@ object KestrelProvider {
                     val t = u16at(2)?.let { r -> (if (r > 0x7FFF) r - 0x10000 else r) / 100.0 }
                     val h = u16at(6)?.div(100.0)
                     val pHpa = u16at(8)?.div(10.0)
+                    // @4 is WIND SPEED and @10 the direction. On a 5700 with a
+                    // still impeller @4 is the not-measured sentinel, which is
+                    // why a session indoors shows no wind at all — that is the
+                    // meter saying "I did not measure this", and reporting it
+                    // as a calm 0 m/s would be inventing a measurement.
+                    val windRaw = u16at(4)
+                    val wind = windRaw?.div(100.0)?.takeIf { it in 0.0..60.0 }
+                    val dir = u16at(10)?.toDouble()?.takeIf { it in 0.0..360.0 }
                     if (t != null && t in -60.0..80.0) tempC = t
                     if (h != null && h in 0.0..100.0) humFrac = h / 100.0
                     if (pHpa != null && pHpa in 500.0..1100.0) pressPa = pHpa * 100.0
-                    Logger.i(TAG, "  LiNK record: temp=$t degC humidity=$h % pressure=$pHpa hPa")
+                    if (wind != null || dir != null) EnvironmentManager.setWind(wind, dir)
+                    Logger.i(TAG, "  LiNK record: temp=$t degC humidity=$h % pressure=$pHpa hPa " +
+                        "wind=${wind ?: "not measured"} (raw=${windRaw ?: "sentinel"}) dir=${dir ?: "—"}")
                     return
                 }
                 if (tempC == null && humFrac == null && pressPa == null &&

@@ -153,6 +153,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.20.0** — feature. The Kestrel's wind is now read (speed and direction from the LiNK record) and used as the wind at the firing point: it joins the weighted average as an anchor at zero downrange while the vapour trail supplies how the wind changes down the range. A still impeller reports NK's not-measured sentinel, which is kept as "wind not measured" rather than shown as calm. Direction is read as wind-from, with the line of fire either implied (meter pointed downrange) or entered as a bearing.
+
 **1.19.1** — corrections. A meter now outranks the phone per quantity, so re-entering the Ballistics tab no longer replaces a Kestrel pressure with the phone's barometer. And the Kestrel range bridge stopped reading weather as range: NK's not-measured sentinels are refused, the LiNK weather characteristics are excluded from range scanning, and a candidate must change from the standing value and repeat before it is offered. Locks learned by the old decoder are discarded.
 
 **1.19.0** — feature. The Kestrel 5700 Elite now works: it speaks NK's LiNK service (03290000-…), which nothing parsed, so it read every characteristic and yielded nothing. The measurement record in 03290310 is decoded (temperature, humidity, station pressure, with NK's not-measured sentinels rejected), verified against a real 5700AL-R log. Settings also gains an "Environmental devices" section — Automatic, Phone sensors, Kestrel 5700 Elite or Kestrel DROP D3 — so owning two meters no longer means taking whichever answers first.

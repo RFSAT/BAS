@@ -508,6 +508,10 @@
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 style="@style/Sts.ActionButton"
                 android:text="Read conditions now…" />
+            <Button android:id="@+id/btnStationWind"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                style="@style/Sts.ActionButton"
+                android:text="Use meter wind at the firing point: on" />
             <TextView android:id="@+id/tvEnvSummary"
                 style="@style/Sts.FieldLabel"
                 android:layout_width="match_parent" android:layout_height="wrap_content"

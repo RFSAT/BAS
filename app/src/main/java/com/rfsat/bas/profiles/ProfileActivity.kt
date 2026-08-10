@@ -558,6 +558,41 @@ class ProfileActivity : BaseActivity() {
                 .show()
         }
         binding.btnEnvRead.setOnClickListener { readEnvironment() }
+        binding.btnStationWind.setOnClickListener {
+            val cfg = com.rfsat.bas.environment.EnvDeviceConfig
+            val items = arrayOf(
+                "Use it — direction is relative to the line of fire",
+                "Use it — direction is a true bearing…",
+                "Do not use the meter's wind")
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Wind at the firing point")
+                .setMessage("A meter measures the air at YOUR position. The vapour trail measures " +
+                    "how the wind acts on the bullet all the way to the target. Used together, the " +
+                    "meter anchors the near end and the trail supplies the rest.")
+                .setItems(items) { _, w ->
+                    when (w) {
+                        0 -> { cfg.setUseStationWind(this, true); cfg.setLineOfFireDeg(this, -1.0) }
+                        1 -> {
+                            cfg.setUseStationWind(this, true)
+                            val et = android.widget.EditText(this).apply {
+                                inputType = android.text.InputType.TYPE_CLASS_NUMBER
+                                hint = "line of fire, degrees"
+                            }
+                            androidx.appcompat.app.AlertDialog.Builder(this)
+                                .setTitle("Line of fire (compass bearing)")
+                                .setView(et)
+                                .setPositiveButton("Save") { _, _ ->
+                                    et.text.toString().toDoubleOrNull()?.let { cfg.setLineOfFireDeg(this, it) }
+                                    refreshEnvLabels()
+                                }
+                                .setNegativeButton("Cancel", null).show()
+                        }
+                        2 -> cfg.setUseStationWind(this, false)
+                    }
+                    refreshEnvLabels()
+                }
+                .show()
+        }
         refreshEnvLabels()
         binding.btnRangefinderModel.setOnClickListener {
             com.rfsat.bas.environment.RangefinderUi.chooseModel(
@@ -809,6 +844,12 @@ class ProfileActivity : BaseActivity() {
 
     private fun refreshEnvLabels() {
         binding.btnEnvSource.text = "Source: ${com.rfsat.bas.environment.EnvDeviceConfig.source(this).label}"
+        val cfg = com.rfsat.bas.environment.EnvDeviceConfig
+        binding.btnStationWind.text = if (!cfg.useStationWind(this))
+            "Use meter wind at the firing point: off"
+        else if (cfg.lineOfFireDeg(this) < 0)
+            "Meter wind: on (direction relative to the line of fire)"
+        else "Meter wind: on (line of fire ${"%.0f".format(cfg.lineOfFireDeg(this))}°)"
         binding.tvEnvSummary.text = runCatching {
             com.rfsat.bas.environment.EnvironmentManager.describe()
         }.getOrDefault("")
