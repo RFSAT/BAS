@@ -59,4 +59,49 @@ object Corrections {
         if (a.windageDirection.isNotEmpty()) parts.add("${word(a.windageDirection)} ${a.windageClicks}")
         return if (parts.isEmpty()) "" else "Wind: " + parts.joinToString(", ") + "."
     }
+
+    // --- Angle-first presentation, matching the Ballistics results screen:
+    // the correction the solution produced is the headline, the turret clicks
+    // that deliver it are the caption. Clicks are specific to one turret; the
+    // angle is the quantity itself.
+
+    private fun arrowFor(d: String) = arrow(d)
+
+    /** "◀ 0.40 MRAD" — windage as an angle, in the scope's own unit. */
+    fun ballisticWindageBig(a: ScopeAdjustment): String =
+        if (!a.valid) "—" else "${arrow(a.windageDirection)} %.2f %s".format(
+            kotlin.math.abs(a.windageScopeUnits), a.scopeUnitLabel)
+
+    fun ballisticElevationBig(a: ScopeAdjustment): String =
+        if (!a.valid) "—" else "${arrow(a.elevationDirection)} %.2f %s".format(
+            kotlin.math.abs(a.elevationScopeUnits), a.scopeUnitLabel)
+
+    fun ballisticWindageCaption(a: ScopeAdjustment): String =
+        if (!a.valid) "" else "WINDAGE — ${kotlin.math.abs(a.windageClicks)} clk ${a.windageDirection}"
+
+    fun ballisticElevationCaption(a: ScopeAdjustment): String =
+        if (!a.valid) "" else "ELEVATION — ${kotlin.math.abs(a.elevationClicks)} clk ${a.elevationDirection}"
+
+    /** The scoring correction as an angle in the sight's own unit, arrows
+     *  first, with the clicks kept for the caption. */
+    fun scoringBig(c: SightCorrection, useMoa: Boolean): String {
+        if (!c.valid) return "—"
+        if (!c.needsAdjustment) return "On centre"
+        val u = if (useMoa) "MOA" else "MRAD"
+        val e = if (c.elevationDirection.isNotEmpty())
+            "${arrow(c.elevationDirection)} %.2f".format(
+                kotlin.math.abs(if (useMoa) c.elevationMoa else c.elevationMrad)) else ""
+        val w = if (c.windageDirection.isNotEmpty())
+            "${arrow(c.windageDirection)} %.2f".format(
+                kotlin.math.abs(if (useMoa) c.windageMoa else c.windageMrad)) else ""
+        return listOf(e, w).filter { it.isNotEmpty() }.joinToString("   ") + "  $u"
+    }
+
+    fun scoringCaption(c: SightCorrection): String {
+        if (!c.valid || !c.needsAdjustment) return ""
+        val parts = mutableListOf<String>()
+        if (c.elevationDirection.isNotEmpty()) parts.add("${kotlin.math.abs(c.elevationClicks)} clk ${c.elevationDirection}")
+        if (c.windageDirection.isNotEmpty()) parts.add("${kotlin.math.abs(c.windageClicks)} clk ${c.windageDirection}")
+        return parts.joinToString("   ")
+    }
 }

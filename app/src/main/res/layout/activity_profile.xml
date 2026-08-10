@@ -234,7 +234,7 @@
                 android:text="More info" />
 
             <!-- ===== Second opinion ===== -->
-            <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="AI assistance" />
+            <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="AI-assisted processing" />
 
             <TextView
                 android:layout_width="match_parent" android:layout_height="wrap_content"
@@ -301,7 +301,6 @@
                 android:textColor="?attr/colorAccent"
                 android:text="More info" />
 
-            <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Service keys and models" />
 
             <TextView
                 android:layout_width="match_parent" android:layout_height="wrap_content"
@@ -410,7 +409,7 @@
                 android:layout_height="wrap_content" android:inputType="numberDecimal" android:autofillHints="" />
 
             <!-- ===== Load ===== -->
-            <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Load" />
+            <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Ammunition" />
             <Button android:id="@+id/btnAmmoCatalog"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 style="@style/Sts.ActionButton"
@@ -440,7 +439,7 @@
                 android:layout_marginTop="6dp" android:textSize="12sp" />
 
             <!-- ===== Sight ===== -->
-            <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Sight" />
+            <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Optics and Sights" />
             <Button android:id="@+id/btnScopeCatalog"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 style="@style/Sts.ActionButton"
@@ -496,25 +495,6 @@
                 android:text="Save the active profiles"
                 style="@style/Sts.ActionButton" />
 
-            <!-- ===== Other options ===== -->
-            <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Other options" />
-            <Button android:id="@+id/btnCameraDefaults"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                style="@style/Sts.ActionButton"
-                android:text="Camera defaults…" />
-            <Button android:id="@+id/btnRunSetup"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                style="@style/Sts.ActionButton"
-                android:text="Run first-time setup again…" />
-            <Button android:id="@+id/btnRangeOptions"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                style="@style/Sts.ActionButton"
-                android:text="Range options (speech, keep-awake)…" />
-            <Button android:id="@+id/btnLog"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                style="@style/Sts.ActionButton"
-                android:text="Diagnostic log…" />
-
             <!-- ===== Rangefinder and distance ===== -->
             <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Rangefinder and distance" />
             <TextView style="@style/Sts.FieldLabel"
@@ -551,6 +531,25 @@
                 style="@style/Sts.ActionButton"
                 android:text="Competition rules…" />
 
+            <!-- ===== Other options ===== -->
+            <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Other options" />
+            <Button android:id="@+id/btnCameraDefaults"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                style="@style/Sts.ActionButton"
+                android:text="Camera defaults…" />
+            <Button android:id="@+id/btnRunSetup"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                style="@style/Sts.ActionButton"
+                android:text="Run first-time setup again…" />
+            <Button android:id="@+id/btnRangeOptions"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                style="@style/Sts.ActionButton"
+                android:text="Range options (speech, keep-awake)…" />
+            <Button android:id="@+id/btnLog"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                style="@style/Sts.ActionButton"
+                android:text="Diagnostic log…" />
+
             <!-- ===== Backup and reset ===== -->
             <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Backup and reset" />
             <Button android:id="@+id/btnBackup"
@@ -564,19 +563,18 @@
             <Button android:id="@+id/btnReset"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 style="@style/Sts.ActionButton"
-                android:text="Reset the active profiles to defaults" />
+                android:text="Reset to defaults" />
 
+</LinearLayout>
+    </ScrollView>
 
-                    <TextView
+    <TextView
                 android:id="@+id/tvSettingsVersion"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:layout_marginTop="18dp" android:layout_marginBottom="8dp"
                 android:textSize="12sp" android:gravity="center"
                 android:textColor="?android:attr/textColorSecondary"
                 android:text="" />
-
-</LinearLayout>
-    </ScrollView>
 
     <include layout="@layout/include_bottom_nav" />
 

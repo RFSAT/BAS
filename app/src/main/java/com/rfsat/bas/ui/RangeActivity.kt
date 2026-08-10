@@ -36,14 +36,19 @@ class RangeActivity : BaseActivity() {
     private fun refresh() {
         runCatching {
             val corr = ScoringSession.correction(this)
-            binding.tvRangeCorrection.text = Corrections.scoringGlance(corr)
-            binding.tvRangeCorrAngle.text = Corrections.scoringAngles(corr)
+            val useMoa = runCatching {
+                com.rfsat.bas.profiles.ProfileRepository(this).getScope().clickUnitIsMoa
+            }.getOrDefault(false)
+            binding.tvRangeCorrection.text = Corrections.scoringBig(corr, useMoa)
+            binding.tvRangeCorrAngle.text = Corrections.scoringCaption(corr)
             val res = ScoringSession.result(this)
             binding.tvRangeScore.text =
                 if (res.maxScore > 0) "${res.displayTotal} / ${"%.0f".format(res.maxScore)}" else res.displayTotal
             val adj = AnalysisSession.adjustment
-            binding.tvRangeWind.text = if (adj != null) Corrections.ballisticGlance(adj) else "—"
-            binding.tvRangeWindAngle.text = if (adj != null) Corrections.ballisticAngles(adj) else ""
+            binding.tvRangeWind.text = if (adj != null) Corrections.ballisticWindageBig(adj) else "—"
+            binding.tvRangeWindCaption.text = if (adj != null) Corrections.ballisticWindageCaption(adj) else "WINDAGE"
+            binding.tvRangeElev.text = if (adj != null) Corrections.ballisticElevationBig(adj) else "—"
+            binding.tvRangeElevCaption.text = if (adj != null) Corrections.ballisticElevationCaption(adj) else "ELEVATION"
             val n = ScoringSession.state.shots.size
             binding.tvRangeStatus.text = "$n shots"
             if (n != lastSpokenShots) {

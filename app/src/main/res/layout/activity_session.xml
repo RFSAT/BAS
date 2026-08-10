@@ -46,17 +46,15 @@
             android:textColor="?attr/colorAccent"
             android:textSize="12sp"
             android:maxLines="4" />
-        <TextView
-            android:id="@+id/tvCorrectionOverlayS"
-            android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:layout_gravity="top|center_horizontal" android:layout_marginTop="8dp"
-            android:background="#B3000000"
-            android:paddingLeft="12dp" android:paddingRight="12dp"
-            android:paddingTop="4dp" android:paddingBottom="4dp"
-            android:textColor="?attr/colorAccent" android:textSize="22sp" android:textStyle="bold"
-            android:visibility="gone" android:text="" />
 
     </FrameLayout>
+
+    <TextView android:id="@+id/tvCorrectionOverlayS"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:paddingLeft="12dp" android:paddingRight="12dp"
+        android:paddingTop="6dp" android:paddingBottom="6dp"
+        android:textColor="?attr/colorAccent" android:textSize="18sp" android:textStyle="bold"
+        android:gravity="center" android:visibility="gone" android:text="" />
 
     <ScrollView
         android:layout_width="match_parent"

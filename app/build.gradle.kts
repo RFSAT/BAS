@@ -33,6 +33,27 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.18.1 — corrections from field feedback: presentation, mostly.
+        //   - ANGLE FIRST, CLICKS SECOND. The Ballistics results screen already
+        //     led with the angle in the scope\'s own unit and kept the clicks as
+        //     its caption; Range mode and the Ballistics viewfinder overlay now
+        //     do the same, windage and elevation on separate lines. Clicks are
+        //     specific to one turret; the angle is the quantity the solution
+        //     produced. The scoring correction follows the sight\'s own unit.
+        //   - The Scoring correction line moved OUT of the viewfinder frame and
+        //     became a row beneath it, so it can no longer sit on top of the
+        //     registration notes.
+        //   - The Ballistics preview uses the same PreviewView configuration as
+        //     the Scoring screen, which is the one that has always behaved.
+        //   - Home: the disclaimer is the same size as the descriptions around it.
+        //   - Settings: "Other options" moved down to just above Backup and
+        //     reset; "Load" is now "Ammunition" and "Sight" is "Optics and
+        //     Sights"; the service keys folded into "AI-assisted processing";
+        //     the version line moved outside the sections entirely so it is
+        //     always visible; and "Reset to defaults" is now a real factory
+        //     reset — every store this app owns, the encrypted key store
+        //     included, since leaving that behind strands unreadable ciphertext.
+        //
         // 1.18.0 — feature: a Welcome screen on first run (and after a full
         //          reset), which asks how BAS will be used and configures it
         //          from the answers instead of leaving a new shooter to find
@@ -3164,8 +3185,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 28
-        versionName = "1.18.0"
+        versionCode = 29
+        versionName = "1.18.1"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

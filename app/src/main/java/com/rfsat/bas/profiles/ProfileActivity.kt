@@ -561,13 +561,13 @@ class ProfileActivity : BaseActivity() {
         binding.btnRestore.setOnClickListener { importBackup() }
         binding.btnReset.setOnClickListener {
             AlertDialog.Builder(this)
-                .setTitle("Reset the active profiles?")
-                .setMessage("Your saved profile sets, custom targets and custom rules are NOT touched — " +
-                    "only the firearm, load and sight currently in use.")
-                .setPositiveButton("Reset") { _, _ ->
-                    repo.resetToDefaults(); loadProfilesIntoFields()
-                    com.rfsat.bas.ui.SetupConfig.reset(this)
-                    notifyUser("Reset. The welcome screen will appear on the next start.")
+                .setTitle("Reset to defaults?")
+                .setMessage("This returns BAS to factory settings: equipment, cameras, rangefinder, " +
+                    "range options, display and your saved sets, targets and rules all go back to " +
+                    "how the app shipped. Export a backup first if you want to keep any of it.")
+                .setPositiveButton("Reset everything") { _, _ ->
+                    factoryReset(); loadProfilesIntoFields()
+                    notifyUser("Reset to defaults. The welcome screen will appear on the next start.")
                 }
                 .setNegativeButton("Cancel", null)
                 .show()
@@ -774,6 +774,24 @@ class ProfileActivity : BaseActivity() {
      *  published, so this enumerates the device and listens: range a target
      *  while it runs and the distance shows up in the Log as a value tracking
      *  the display, which identifies the characteristic and encoding. */
+    /** Factory reset: every SharedPreferences store this app owns, so nothing
+     *  survives that could contradict a fresh install. The API-key store is
+     *  included — it is encrypted against a keystore key, and leaving it behind
+     *  would strand ciphertext nobody can read. */
+    private fun factoryReset() {
+        val stores = listOf(
+            "bas_prefs", "bas_units", "bas_theme", "bas_range", "bas_camera",
+            "bas_distance", "bas_setup", "bas_import", "bas_environment",
+            "sts_profiles", "sts_targets", "sts_rules", "sts_session", "vtb_environment"
+        )
+        for (name in stores) runCatching {
+            getSharedPreferences(name, MODE_PRIVATE).edit().clear().apply()
+        }
+        runCatching { repo.resetToDefaults() }
+        runCatching { repo.seedDefaultSetsIfEmpty() }
+        runCatching { com.rfsat.bas.ui.SetupConfig.reset(this) }
+    }
+
     private fun refreshRangefinderLabel() {
         binding.btnRangefinderModel.text =
             "Rangefinder: ${com.rfsat.bas.environment.DistanceConfig.model(this).label}"

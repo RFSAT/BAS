@@ -589,7 +589,9 @@ class CaptureActivity : BaseActivity() {
         if (com.rfsat.bas.ui.RangeSettings.autoCollect()) runCatching { startAutoCollect(false) }
         runCatching {
             val adj = com.rfsat.bas.results.AnalysisSession.adjustment
-            val txt = if (adj != null && adj.valid) "Wind: " + com.rfsat.bas.ui.Corrections.ballisticGlance(adj) else ""
+            val txt = if (adj != null && adj.valid)
+                com.rfsat.bas.ui.Corrections.ballisticWindageBig(adj) + "   " +
+                com.rfsat.bas.ui.Corrections.ballisticElevationBig(adj) else ""
             binding.tvCorrectionOverlay.text = txt
             binding.tvCorrectionOverlay.visibility = if (txt.isEmpty()) android.view.View.GONE else android.view.View.VISIBLE
         }
