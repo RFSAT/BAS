@@ -544,6 +544,21 @@ class ProfileActivity : BaseActivity() {
         }
         binding.btnRangeOptions.setOnClickListener { rangeOptionsDialog() }
         binding.btnRangefinder.setOnClickListener { rangefinderProbe() }
+        binding.btnEnvSource.setOnClickListener {
+            val sources = com.rfsat.bas.environment.EnvSource.values()
+            val cur = com.rfsat.bas.environment.EnvDeviceConfig.source(this)
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Environmental data from")
+                .setSingleChoiceItems(sources.map { "${it.label}\n${it.blurb}" }.toTypedArray(),
+                    sources.indexOf(cur)) { d, w ->
+                    d.dismiss()
+                    com.rfsat.bas.environment.EnvDeviceConfig.setSource(this, sources[w])
+                    refreshEnvLabels()
+                }
+                .show()
+        }
+        binding.btnEnvRead.setOnClickListener { readEnvironment() }
+        refreshEnvLabels()
         binding.btnRangefinderModel.setOnClickListener {
             com.rfsat.bas.environment.RangefinderUi.chooseModel(
                 this, com.rfsat.bas.environment.DistanceConfig.model(this)) { m ->
@@ -790,6 +805,43 @@ class ProfileActivity : BaseActivity() {
         runCatching { repo.resetToDefaults() }
         runCatching { repo.seedDefaultSetsIfEmpty() }
         runCatching { com.rfsat.bas.ui.SetupConfig.reset(this) }
+    }
+
+    private fun refreshEnvLabels() {
+        binding.btnEnvSource.text = "Source: ${com.rfsat.bas.environment.EnvDeviceConfig.source(this).label}"
+        binding.tvEnvSummary.text = runCatching {
+            com.rfsat.bas.environment.EnvironmentManager.describe()
+        }.getOrDefault("")
+    }
+
+    /** Read conditions from the chosen source. The phone is always available;
+     *  a meter needs Bluetooth permission and a scan. */
+    private fun readEnvironment() {
+        val src = com.rfsat.bas.environment.EnvDeviceConfig.source(this)
+        if (src == com.rfsat.bas.environment.EnvSource.PHONE) {
+            com.rfsat.bas.environment.EnvironmentManager.refreshFromPhoneSensors(this) {
+                runOnUiThread { refreshEnvLabels(); notifyUser("Read from the phone's sensors.") }
+            }
+            return
+        }
+        val missing = com.rfsat.bas.environment.RangefinderUi.missingPermissions(this)
+        if (missing.isNotEmpty()) { requestPermissions(missing, 4307); return }
+        notifyUser("Looking for the meter…")
+        val provider = com.rfsat.bas.environment.KestrelProvider
+        fun read(d: android.bluetooth.BluetoothDevice) {
+            provider.read(this, d) { ok ->
+                runOnUiThread {
+                    refreshEnvLabels()
+                    notifyUser(if (ok) "Conditions updated." else "No values returned — see the Log tab.")
+                }
+            }
+        }
+        val bonded = provider.findPairedKestrel()
+        if (bonded != null) { read(bonded); return }
+        provider.scanForKestrel(this) { d ->
+            if (d == null) notifyUser("No meter found — check it is switched on and nearby.")
+            else read(d)
+        }
     }
 
     private fun refreshRangefinderLabel() {

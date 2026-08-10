@@ -78,6 +78,30 @@ object KestrelProvider {
     /** Standard Bluetooth Environmental Sensing service — some firmware
      *  exposes it alongside the proprietary one; parse it when present
      *  (these UUIDs and formats ARE official Bluetooth SIG definitions). */
+    /**
+     * Kestrel 5700 Elite / 5700X (and the Ruger 5700AL-R) speak NK's own LiNK
+     * service — NOT the DROP service and NOT the Bluetooth SIG Environmental
+     * Sensing service, which is why a 5700 could connect, read every
+     * characteristic successfully, and still yield nothing.
+     *
+     * 03290310 carries the current measurement record as little-endian uint16
+     * fields. Verified against a real 5700AL-R:
+     *
+     *     @2  temperature  x100  -> 3481 = 34.81 degC
+     *     @4  wind speed         -> 0x8001, the "no value" sentinel (still impeller)
+     *     @6  humidity     x100  -> 3398 = 33.98 %
+     *     @8  station pressure x10 (hPa) -> 10124 = 1012.4 hPa
+     *
+     * Endianness and the record layout were confirmed independently from
+     * 03290104, the device clock, which decoded to the exact wall-clock second
+     * in the same log (sec, min, hour, day, month, uint16 year).
+     *
+     * 0xFFFF and 0x8000/0x8001 mean "not measured" and must never be taken as
+     * a reading.
+     */
+    private val LINK_SERVICE: UUID = UUID.fromString("03290000-eab4-dea1-b24e-44ec023874db")
+    private val LINK_MEASUREMENT: UUID = UUID.fromString("03290310-eab4-dea1-b24e-44ec023874db")
+
     private val ESS_SERVICE: UUID = UUID.fromString("0000181a-0000-1000-8000-00805f9b34fb")
     private val ESS_TEMPERATURE: UUID = UUID.fromString("00002a6e-0000-1000-8000-00805f9b34fb") // sint16, 0.01 °C
     private val ESS_HUMIDITY: UUID = UUID.fromString("00002a6f-0000-1000-8000-00805f9b34fb")    // uint16, 0.01 %
@@ -238,6 +262,34 @@ object KestrelProvider {
                     var r = 0L
                     for (i in 0 until minOf(4, v.size)) r = r or ((v[i].toLong() and 0xFF) shl (8 * i))
                     return r
+                }
+                fun u16at(i: Int): Int? {
+                    if (i + 1 >= v.size) return null
+                    val raw = (v[i].toInt() and 0xFF) or ((v[i + 1].toInt() and 0xFF) shl 8)
+                    // NK marks an unmeasured field with these; a value taken from
+                    // one would be pure fiction.
+                    return if (raw == 0xFFFF || raw == 0x8000 || raw == 0x8001) null else raw
+                }
+                if (uuid == LINK_MEASUREMENT) {
+                    val t = u16at(2)?.let { r -> (if (r > 0x7FFF) r - 0x10000 else r) / 100.0 }
+                    val h = u16at(6)?.div(100.0)
+                    val pHpa = u16at(8)?.div(10.0)
+                    if (t != null && t in -60.0..80.0) tempC = t
+                    if (h != null && h in 0.0..100.0) humFrac = h / 100.0
+                    if (pHpa != null && pHpa in 500.0..1100.0) pressPa = pHpa * 100.0
+                    Logger.i(TAG, "  LiNK record: temp=$t degC humidity=$h % pressure=$pHpa hPa")
+                    return
+                }
+                if (tempC == null && humFrac == null && pressPa == null &&
+                    uuid.toString().startsWith("032903")) {
+                    // Fallback for a firmware whose record sits at other offsets:
+                    // take the first plausible pressure and pair it with the
+                    // nearest plausible temperature/humidity candidates.
+                    for (i in 0 until v.size - 1 step 2) {
+                        val raw = u16at(i) ?: continue
+                        val hPa = raw / 10.0
+                        if (pressPa == null && hPa in 500.0..1100.0) pressPa = hPa * 100.0
+                    }
                 }
                 when (uuid) {
                     ESS_TEMPERATURE -> if (v.size >= 2) tempC = sle16() / 100.0

@@ -33,6 +33,35 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.19.0 — feature: environmental device selection, and the Kestrel
+        //          5700 Elite actually works.
+        //
+        //   WHY IT DID NOT. A field log showed a 5700AL-R connecting, listing
+        //   every service, reading every characteristic successfully — and
+        //   yielding temp=null pressure=null humidity=null. The app only knew
+        //   the DROP service (12630000-...) and the Bluetooth SIG Environmental
+        //   Sensing service. The 5700 speaks neither: it exposes NK\'s own LiNK
+        //   service, 03290000-eab4-dea1-b24e-44ec023874db, which nothing here
+        //   parsed. Reading a device perfectly and understanding none of it is
+        //   the quietest kind of failure.
+        //
+        //   THE RECORD, decoded from that log and verified: 03290310 carries
+        //   little-endian uint16 fields — @2 temperature x100 (3481 = 34.81 C),
+        //   @4 wind speed (0x8001, the "not measured" sentinel, impeller
+        //   still), @6 humidity x100 (3398 = 33.98 %), @8 station pressure x10
+        //   (10124 = 1012.4 hPa). Endianness and layout were confirmed
+        //   INDEPENDENTLY from 03290104, the device clock, which decoded to the
+        //   exact wall-clock second in the same log. 0xFFFF and 0x8000/0x8001
+        //   are never taken as readings, and a generic offset search covers a
+        //   firmware whose record sits elsewhere.
+        //
+        //   AND THE METER IS NOW CHOSEN, not guessed: Settings gains an
+        //   "Environmental devices" section — Automatic, Phone sensors, Kestrel
+        //   5700 Elite (LiNK, including the Ruger 5700AL-R), or Kestrel DROP D3
+        //   — with a "Read conditions now" action and the current values shown
+        //   beneath it. Someone who owns both meters no longer depends on
+        //   whichever answers first.
+        //
         // 1.18.1 — corrections from field feedback: presentation, mostly.
         //   - ANGLE FIRST, CLICKS SECOND. The Ballistics results screen already
         //     led with the angle in the scope\'s own unit and kept the clicks as
@@ -3185,8 +3214,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 29
-        versionName = "1.18.1"
+        versionCode = 30
+        versionName = "1.19.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

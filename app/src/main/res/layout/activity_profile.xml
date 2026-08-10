@@ -495,6 +495,24 @@
                 android:text="Save the active profiles"
                 style="@style/Sts.ActionButton" />
 
+            <!-- ===== Environmental devices ===== -->
+            <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Environmental devices" />
+            <TextView style="@style/Sts.FieldLabel"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Where temperature, pressure and humidity come from. Air conditions change the trajectory, so a real meter is worth having — but the phone alone is enough to start." />
+            <Button android:id="@+id/btnEnvSource"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                style="@style/Sts.ActionButton"
+                android:text="Source: Automatic" />
+            <Button android:id="@+id/btnEnvRead"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                style="@style/Sts.ActionButton"
+                android:text="Read conditions now…" />
+            <TextView android:id="@+id/tvEnvSummary"
+                style="@style/Sts.FieldLabel"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="" />
+
             <!-- ===== Rangefinder and distance ===== -->
             <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Rangefinder and distance" />
             <TextView style="@style/Sts.FieldLabel"
