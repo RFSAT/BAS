@@ -20,6 +20,11 @@
         android:gravity="center" android:text="—" android:autoSizeTextType="uniform"
         android:autoSizeMinTextSize="30sp" android:autoSizeMaxTextSize="112sp" />
 
+    <TextView android:id="@+id/tvRangeWindAngle"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:textColor="?android:attr/textColorSecondary" android:textSize="15sp"
+        android:gravity="center" android:text="" />
+
     <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
         android:textColor="?android:attr/textColorSecondary" android:textSize="14sp"
         android:letterSpacing="0.1" android:text="GROUP — dial to centre" android:gravity="center" />
@@ -28,6 +33,11 @@
         android:textColor="?android:attr/textColorPrimary" android:textSize="48sp" android:textStyle="bold"
         android:gravity="center" android:text="—" android:autoSizeTextType="uniform"
         android:autoSizeMinTextSize="22sp" android:autoSizeMaxTextSize="68sp" />
+
+    <TextView android:id="@+id/tvRangeCorrAngle"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:textColor="?android:attr/textColorSecondary" android:textSize="15sp"
+        android:gravity="center" android:text="" />
 
     <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
         android:textColor="?android:attr/textColorSecondary" android:textSize="14sp"

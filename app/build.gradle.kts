@@ -33,6 +33,29 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.17.0 — feature + corrections: readable on the phone that is
+        //          actually lying in front of a prone shooter.
+        //   - CAMERA CUTOUT. The app draws into the cutout strip so no black
+        //     band appears, which on the many phones with a top-CENTRE selfie
+        //     camera put headings and controls under the lens. Content is now
+        //     padded by the displayCutout inset (not by systemBars, which are
+        //     hidden in immersive mode and would make the layout jump).
+        //   - RANGE MODE now states the ANGLE as well as the clicks: elevation
+        //     and windage in MRAD/MOA under the wind figure, and under the
+        //     group correction. Clicks are turret-specific; the angle is what
+        //     the solution actually produced.
+        //   - RETICLE COLOUR is one source for both viewfinders. Scoring drew
+        //     it from the accent-plus-match-state and ballistics from
+        //     textColorPrimary, so the two screens rarely agreed. A dedicated
+        //     basReticleColor theme attribute now carries a high-contrast
+        //     colour per mode (amber / deep red / green / red), and every line
+        //     gets a dark halo underneath — one colour cannot be contrasty on
+        //     both white paper and a black aiming mark, and the halo is what
+        //     makes it readable on either.
+        //   - Settings sections start COLLAPSED again, which is safe now that
+        //     each is named for what it holds; 1.12.0 collapsed a catch-all
+        //     called "Elsewhere" and options genuinely went missing.
+        //
         // 1.16.0 — feature: rangefinder support, three ways, with its own
         //          Settings section.
         //
@@ -3101,8 +3124,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 25
-        versionName = "1.16.0"
+        versionCode = 26
+        versionName = "1.17.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

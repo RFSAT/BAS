@@ -8,6 +8,7 @@
     <!-- Dark: the default. Dark pixels draw less power on OLED and suit
          low light on the firing point. -->
     <style name="Theme.BAS.Dark" parent="Theme.BAS.Base">
+        <item name="basReticleColor">@color/reticle_dark</item>
         <item name="android:windowBackground">@color/dark_bg</item>
         <item name="colorSurface">@color/dark_surface</item>
         <item name="colorPrimary">@color/dark_accent</item>
@@ -26,6 +27,7 @@
 
     <!-- Day: bright, high contrast for direct-sunlight legibility -->
     <style name="Theme.BAS.Day" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="basReticleColor">@color/reticle_day</item>
         <item name="android:windowBackground">@color/day_bg</item>
         <item name="colorSurface">@color/day_surface</item>
         <item name="colorPrimary">@color/day_accent</item>
@@ -41,6 +43,7 @@
 
     <!-- Night Green: monochrome green on black -->
     <style name="Theme.BAS.NightGreen" parent="Theme.BAS.Base">
+        <item name="basReticleColor">@color/reticle_ngreen</item>
         <item name="android:windowBackground">@color/ngreen_bg</item>
         <item name="colorSurface">@color/ngreen_surface</item>
         <item name="colorPrimary">@color/ngreen_accent</item>
@@ -59,6 +62,7 @@
 
     <!-- Night Red: monochrome red on black — preserves night vision best -->
     <style name="Theme.BAS.NightRed" parent="Theme.BAS.Base">
+        <item name="basReticleColor">@color/reticle_nred</item>
         <item name="android:windowBackground">@color/nred_bg</item>
         <item name="colorSurface">@color/nred_surface</item>
         <item name="colorPrimary">@color/nred_accent</item>

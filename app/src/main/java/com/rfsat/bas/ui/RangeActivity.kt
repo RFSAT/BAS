@@ -37,11 +37,13 @@ class RangeActivity : BaseActivity() {
         runCatching {
             val corr = ScoringSession.correction(this)
             binding.tvRangeCorrection.text = Corrections.scoringGlance(corr)
+            binding.tvRangeCorrAngle.text = Corrections.scoringAngles(corr)
             val res = ScoringSession.result(this)
             binding.tvRangeScore.text =
                 if (res.maxScore > 0) "${res.displayTotal} / ${"%.0f".format(res.maxScore)}" else res.displayTotal
             val adj = AnalysisSession.adjustment
             binding.tvRangeWind.text = if (adj != null) Corrections.ballisticGlance(adj) else "—"
+            binding.tvRangeWindAngle.text = if (adj != null) Corrections.ballisticAngles(adj) else ""
             val n = ScoringSession.state.shots.size
             binding.tvRangeStatus.text = "$n shots"
             if (n != lastSpokenShots) {

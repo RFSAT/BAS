@@ -51,4 +51,10 @@
     <color name="plot_shot_last">#FF9800</color>
     <color name="plot_group">#1565C0</color>
     <color name="plot_poa">#00897B</color>
+
+    <!-- Reticle: high-contrast in each mode, over paper as well as shadow. -->
+    <color name="reticle_dark">#FFC400</color>
+    <color name="reticle_day">#C62828</color>
+    <color name="reticle_ngreen">#4CFF4C</color>
+    <color name="reticle_nred">#FF5252</color>
 </resources>

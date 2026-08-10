@@ -14,6 +14,15 @@ import kotlin.math.max
  */
 object ReticleDrawer {
 
+    /** The reticle colour for a context's active theme — one source, so the
+     *  ballistics and scoring viewfinders can never drift apart again. */
+    fun colorFor(context: android.content.Context): Int {
+        val tv = android.util.TypedValue()
+        return if (context.theme.resolveAttribute(com.rfsat.bas.R.attr.basReticleColor, tv, true)) {
+            if (tv.resourceId != 0) context.getColor(tv.resourceId) else tv.data
+        } else 0xFFFFC400.toInt()
+    }
+
     fun draw(
         canvas: Canvas, cx: Float, cy: Float, r: Float, strokeRef: Float,
         reticle: Reticle, color: Int, custom: Bitmap?
@@ -29,6 +38,13 @@ object ReticleDrawer {
                 cx + w * scale / 2f, cy + h * scale / 2f), null)
             return
         }
+        // A dark halo under every line: the reticle sits over a photograph,
+        // and a single colour cannot be contrasty on both white paper and a
+        // black aiming mark. The halo makes it readable on either.
+        val halo = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            this.color = withAlpha(0x000000, 130); style = Paint.Style.STROKE
+            strokeWidth = max(3.0f, strokeRef * 0.0075f)
+        }
         val thin = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             this.color = withAlpha(color, 220); style = Paint.Style.STROKE
             strokeWidth = max(1.5f, strokeRef * 0.0035f)
@@ -42,6 +58,12 @@ object ReticleDrawer {
         }
         val text = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             this.color = withAlpha(color, 235); textSize = max(9f, strokeRef * 0.02f)
+        }
+        // halo pass for the cross-type reticles
+        if (reticle == Reticle.CROSS || reticle == Reticle.MIL_DOT ||
+            reticle == Reticle.MOA_GRID || reticle == Reticle.MOA_TREE || reticle == Reticle.MRAD_TREE) {
+            canvas.drawLine(cx - r, cy, cx + r, cy, halo)
+            canvas.drawLine(cx, cy - r, cx, cy + r, halo)
         }
         when (reticle) {
             Reticle.CROSS -> {

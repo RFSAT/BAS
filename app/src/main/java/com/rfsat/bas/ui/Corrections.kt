@@ -30,6 +30,21 @@ object Corrections {
         return if (parts.isEmpty()) "On centre." else "Come " + parts.joinToString(", ") + "."
     }
 
+    /** The same correction as an ANGLE, because clicks are turret-specific and
+     *  a shooter checking a solution wants the MOA/MRAD it came from. */
+    fun scoringAngles(c: SightCorrection): String {
+        if (!c.valid || !c.needsAdjustment) return ""
+        return "elev %.2f mrad / %.2f MOA   wind %.2f mrad / %.2f MOA"
+            .format(c.elevationMrad, c.elevationMoa, c.windageMrad, c.windageMoa)
+    }
+
+    fun ballisticAngles(a: ScopeAdjustment): String {
+        if (!a.valid) return ""
+        val u = a.scopeUnitLabel
+        return "elev %.2f %s   wind %.2f %s"
+            .format(a.elevationScopeUnits, u, a.windageScopeUnits, u)
+    }
+
     fun ballisticGlance(a: ScopeAdjustment): String {
         if (!a.valid) return "—"
         val e = if (a.elevationDirection.isNotEmpty()) "${arrow(a.elevationDirection)} ${a.elevationClicks}" else ""

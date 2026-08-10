@@ -32,12 +32,8 @@ class CrosshairOverlayView @JvmOverloads constructor(
 
     // Follow the active display style: same colour as the theme's primary
     // text (gold in Dark, dark green in Day, pure green/red in night modes).
-    private val themeTextColor: Int = run {
-        val tv = android.util.TypedValue()
-        if (context.theme.resolveAttribute(android.R.attr.textColorPrimary, tv, true)) {
-            if (tv.resourceId != 0) context.getColor(tv.resourceId) else tv.data
-        } else Color.parseColor("#C9A24B")
-    }
+    // One source with the scoring viewfinder, so the two can never drift.
+    private val themeTextColor: Int = com.rfsat.bas.ui.ReticleDrawer.colorFor(context)
 
     private val linePaint = Paint().apply {
         color = themeTextColor

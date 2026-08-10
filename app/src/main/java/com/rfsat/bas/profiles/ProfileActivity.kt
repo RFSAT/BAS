@@ -107,9 +107,11 @@ class ProfileActivity : BaseActivity() {
      * Make each Settings section fold under its heading so the long screen is
      * easy to scan — tap a heading to open it. Done in code by grouping the
      * views that follow each tagged heading, so the layout needs no wrapping.
-     * Sections start OPEN — collapsing is opt-in — because a collapsed
-     * section hides options the shooter cannot then find (the rangefinder
-     * entry under "Elsewhere" was invisible in 1.12.0).
+     * Sections start CLOSED so the long screen can be scanned by heading;
+     * tapping one opens it. Every section is now named for what it holds
+     * (Rangefinder and distance, Backup and reset, Target faces, Competition
+     * rules), which is what makes collapsing safe — 1.12.0 collapsed a
+     * catch-all called "Elsewhere" and options genuinely went missing.
      */
     private fun makeSectionsCollapsible() {
         val headers = ArrayList<android.view.View>()
@@ -146,7 +148,7 @@ class ProfileActivity : BaseActivity() {
                 if (title.contains("Profile sets", true))
                     for (linked in listOf("Firearm", "Load", "Sight")) renderers[linked]?.invoke(open)
             }
-            render(true)
+            render(false)
         }
     }
 

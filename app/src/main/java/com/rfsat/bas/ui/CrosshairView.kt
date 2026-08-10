@@ -193,7 +193,7 @@ class CrosshairView @JvmOverloads constructor(
      */
     private fun drawReticle(canvas: Canvas, cx: Float, cy: Float, d: Float) {
         val r = d * sizeFraction * 0.5f
-        ReticleDrawer.draw(canvas, cx, cy, r, d, reticle, stateColour(), customReticle)
+        ReticleDrawer.draw(canvas, cx, cy, r, d, reticle, ReticleDrawer.colorFor(context), customReticle)
     }
 
     private fun stateColour(): Int {

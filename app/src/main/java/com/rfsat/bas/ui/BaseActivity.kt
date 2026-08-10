@@ -49,7 +49,15 @@ open class BaseActivity : AppCompatActivity() {
         val content = findViewById<android.view.View>(android.R.id.content) ?: return
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(content) { v, insets ->
             val imeBottom = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.ime()).bottom
-            v.setPadding(v.paddingLeft, v.paddingTop, v.paddingRight, imeBottom)
+            // Most phones put the selfie camera at the TOP CENTRE, and this app
+            // draws into the cutout strip (LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS)
+            // so no black band appears. That means a heading or a control at the
+            // very top can sit UNDER the lens. Pad by the cutout's own inset —
+            // not by systemBars, which are hidden in immersive mode and would
+            // make the layout jump whenever a swipe revealed them.
+            val cutoutTop = insets.getInsets(
+                androidx.core.view.WindowInsetsCompat.Type.displayCutout()).top
+            v.setPadding(v.paddingLeft, cutoutTop, v.paddingRight, imeBottom)
             insets
         }
         androidx.core.view.ViewCompat.requestApplyInsets(content)
