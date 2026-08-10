@@ -113,6 +113,7 @@ class ProfileActivity : BaseActivity() {
      */
     private fun makeSectionsCollapsible() {
         val headers = ArrayList<android.view.View>()
+        val renderers = HashMap<String, (Boolean) -> Unit>()
         fun collect(v: android.view.View) {
             if (v.tag == "section") headers.add(v)
             if (v is android.view.ViewGroup) for (i in 0 until v.childCount) collect(v.getChildAt(i))
@@ -135,7 +136,16 @@ class ProfileActivity : BaseActivity() {
                 tv?.text = (if (open) "▾  " else "▸  ") + title
             }
             header.isClickable = true
-            header.setOnClickListener { render(body.firstOrNull()?.visibility != android.view.View.VISIBLE) }
+            renderers[title] = ::render
+            header.setOnClickListener {
+                val open = body.firstOrNull()?.visibility != android.view.View.VISIBLE
+                render(open)
+                // A profile set IS a firearm + load + sight, so opening it opens
+                // the three sections it is made of — otherwise "Profile sets"
+                // shows a picker whose contents are hidden below it.
+                if (title.contains("Profile sets", true))
+                    for (linked in listOf("Firearm", "Load", "Sight")) renderers[linked]?.invoke(open)
+            }
             render(true)
         }
     }

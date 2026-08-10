@@ -33,6 +33,27 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.15.0 — feature: Settings structure, a default rig, and ONE icon.
+        //   - Opening "Profile sets" now also opens Firearm, Load and Sight: a
+        //     set IS those three, so hiding them under a set picker made the
+        //     picker useless.
+        //   - New seeded set "Rimfire trainer — Ruger / Federal / Vector"
+        //     (Ruger Precision Rimfire .22LR + Federal Champion 40gr + Vector
+        //     Optics Continental 5-30x56), seeded FIRST so it is applied as the
+        //     default on a fresh install. The first-run rig picker is gone with
+        //     it — nothing to choose before shooting — and every later selection
+        //     persists as before.
+        //   - "Elsewhere" is now "Other options"; backup/restore/reset moved to
+        //     their own "Backup and reset" section; Target faces and Competition
+        //     rules are sections of their own at the foot of the screen.
+        //   - THE LAUNCHER ICON IS THE PLAY ICON AGAIN. The home screen still
+        //     carried the inherited scoring artwork while the store showed the
+        //     BAS mark — precisely the drift tools/generate_icons.py exists to
+        //     prevent. The generator now draws the BAS mark (rings, gold bull,
+        //     reticle with mil ticks, red group) and emits the 512 px Play
+        //     square AND the adaptive foreground + themed monochrome at every
+        //     density from that one drawing, at 66% for the adaptive safe zone.
+        //
         // 1.14.0 — feature + corrections from field feedback.
         //   - DISTANCE SOURCE, and the rangefinder made visible. "= zero" was a
         //     one-way fill from the rig's stored zero, so a smallbore seed put
@@ -3039,8 +3060,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 22
-        versionName = "1.14.0"
+        versionCode = 23
+        versionName = "1.15.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

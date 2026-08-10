@@ -189,6 +189,12 @@ class ProfileRepository(context: Context) {
             ScopeCatalog.all.firstOrNull { it.brand == brand && it.model == model }?.toScopeProfile()
 
         val seeds = listOfNotNull(
+            // Default rig on a fresh install: the long-range trainer this app
+            // is built around, so nothing has to be chosen before shooting.
+            build("Rimfire trainer — Ruger / Federal / Vector",
+                rifle("Ruger", "Precision Rimfire .22LR"),
+                ammo("Federal", "Champion"),
+                sight("Vector Optics", "Continental 5-30x56")),
             build("10 m Air Rifle — Anschütz",
                 rifle("Anschütz", "9015 Air Rifle"),
                 ammo("JSB", "Exact Diabolo 4.50"),
