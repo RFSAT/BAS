@@ -160,16 +160,39 @@ object EnvironmentManager {
                 finished = true
                 sm.unregisterListener(this)
                 val prev = current
+                // A METER OUTRANKS THE PHONE. The phone's barometer is a
+                // fallback, not a correction: once a Kestrel has supplied a
+                // quantity, a later phone read must not quietly replace it —
+                // which is what happened when returning to the Ballistics tab
+                // re-read the sensors and overwrote the Kestrel's pressure.
+                // Each quantity is kept per-source, so the phone still fills
+                // whatever the meter did not measure.
+                fun fromMeter(src: String) = src.isNotBlank() && !src.equals("phone", true) &&
+                    !src.equals("standard", true) && !src.equals("default", true)
+                val keepT = fromMeter(prev.temperatureSource)
+                val keepP = fromMeter(prev.pressureSource)
+                val keepH = fromMeter(prev.humiditySource)
+                if (keepT || keepP || keepH)
+                    Logger.i(TAG, "Phone sensors: keeping meter values (" +
+                        "temp=${if (keepT) prev.temperatureSource else "phone"}, " +
+                        "pressure=${if (keepP) prev.pressureSource else "phone"}, " +
+                        "humidity=${if (keepH) prev.humiditySource else "phone"})")
                 current = Reading(
                     Atmosphere(
-                        seaLevelPressurePa = pHpa?.let { it * 100.0 } ?: prev.atmosphere.seaLevelPressurePa,
-                        temperatureC = tC?.toDouble() ?: prev.atmosphere.temperatureC,
+                        seaLevelPressurePa = if (keepP) prev.atmosphere.seaLevelPressurePa
+                            else pHpa?.let { it * 100.0 } ?: prev.atmosphere.seaLevelPressurePa,
+                        temperatureC = if (keepT) prev.atmosphere.temperatureC
+                            else tC?.toDouble() ?: prev.atmosphere.temperatureC,
                         altitudeM = 0.0, // measured station pressure carries the altitude effect
-                        relativeHumidity = hPct?.let { it / 100.0 } ?: prev.atmosphere.relativeHumidity
+                        relativeHumidity = if (keepH) prev.atmosphere.relativeHumidity
+                            else hPct?.let { it / 100.0 } ?: prev.atmosphere.relativeHumidity
                     ),
-                    temperatureSource = if (tC != null) "phone" else prev.temperatureSource,
-                    pressureSource = if (pHpa != null) "phone" else prev.pressureSource,
-                    humiditySource = if (hPct != null) "phone" else prev.humiditySource,
+                    temperatureSource = if (keepT) prev.temperatureSource
+                        else if (tC != null) "phone" else prev.temperatureSource,
+                    pressureSource = if (keepP) prev.pressureSource
+                        else if (pHpa != null) "phone" else prev.pressureSource,
+                    humiditySource = if (keepH) prev.humiditySource
+                        else if (hPct != null) "phone" else prev.humiditySource,
                     informationalAltitudeM = pHpa?.let {
                         SensorManager.getAltitude(SensorManager.PRESSURE_STANDARD_ATMOSPHERE, it).toDouble()
                     } ?: prev.informationalAltitudeM

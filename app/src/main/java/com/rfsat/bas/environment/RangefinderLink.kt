@@ -40,6 +40,39 @@ object RangefinderLink {
         1.0 to "m", 0.1 to "dm", M_PER_YD to "yd", M_PER_YD / 10.0 to "0.1yd"
     )
 
+    /**
+     * Values NK uses for "not measured". A range decoded from one of these is
+     * pure fiction — and it happened: a field log locked onto 3276.9 m, which
+     * is 0x8001 scaled by 0.1, straight out of an empty weather field.
+     */
+    private fun isSentinel(raw: Int) = raw == 0xFFFF || raw == 0x8000 || raw == 0x8001
+
+    /**
+     * Kestrel LiNK characteristics that carry WEATHER, not range. They update
+     * every few seconds with temperature, pressure, density altitude and the
+     * rest, so a "plausible distance" can always be found in them — which is
+     * exactly how a wandering 1600-2400 m reading was produced while the
+     * target sat at 101 m. The range, when a FIRE4000 is linked, is not here.
+     */
+    private val WEATHER_CHARS = setOf(
+        "03290300", "03290310", "03290320", "03290330", "03290340",
+        "03290350", "03290360", "03290370", "03290380", "03290200",
+        "00002a19" // battery level
+    )
+
+    private fun isWeather(uuid: java.util.UUID): Boolean {
+        val head = uuid.toString().substringBefore('-')
+        return WEATHER_CHARS.contains(head)
+    }
+
+    /** Raw values seen on each characteristic before anything was ranged. A
+     *  range APPEARS when the shooter ranges; a value already sitting there is
+     *  a standing measurement, not a range. */
+    private val baseline = HashMap<String, MutableSet<Int>>()
+    /** Last candidate per characteristic, so a value must repeat before it is
+     *  believed — one frame of noise is not a measurement. */
+    private val pending = HashMap<String, Int>()
+
     private var gatt: BluetoothGatt? = null
 
     /** Find a device for [model]: bonded first, then advertising. */
@@ -107,6 +140,8 @@ object RangefinderLink {
     ) {
         val handler = Handler(Looper.getMainLooper())
         val notifyQueue = ArrayDeque<BluetoothGattCharacteristic>()
+        baseline.clear(); pending.clear()
+        val startedAt = System.currentTimeMillis()
         val cb = object : BluetoothGattCallback() {
             override fun onConnectionStateChange(g: BluetoothGatt, s: Int, newState: Int) {
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
@@ -155,12 +190,14 @@ object RangefinderLink {
             @Suppress("DEPRECATION")
             override fun onCharacteristicChanged(g: BluetoothGatt, ch: BluetoothGattCharacteristic) {
                 val v = ch.value ?: return
-                Logger.i(TAG, "frame ${ch.uuid}: ${v.joinToString(" ") { "%02X".format(it) }}")
                 val uuid = ch.uuid.toString()
+                Logger.i(TAG, "frame ${ch.uuid}: ${v.joinToString(" ") { "%02X".format(it) }}")
+
+                if (isWeather(ch.uuid)) return   // weather, never a range
+
                 val lockUuid = DistanceConfig.lockedUuid(context)
                 val lockScale = DistanceConfig.lockedScale(context)
                 if (lockUuid != null && lockScale > 0.0) {
-                    // Confirmed pairing: only this characteristic, only this unit.
                     if (uuid != lockUuid) return
                     val raw = firstRaw(v) ?: return
                     val m = raw * lockScale
@@ -170,11 +207,19 @@ object RangefinderLink {
                     }
                     return
                 }
-                val hit = decodeCandidate(v)
-                if (hit != null) {
-                    Logger.i(TAG, "distance candidate: ${"%.1f".format(hit.first)} m (scale=${hit.second}) on $uuid")
-                    handler.post { onCandidate(hit.first, uuid, hit.second) }
-                }
+
+                val hit = decodeCandidate(v) ?: return
+                val (metres, scale, raw) = hit
+
+                // For the first few seconds everything arriving is treated as
+                // the standing state, not as a range.
+                val seen = baseline.getOrPut(uuid) { HashSet() }
+                if (System.currentTimeMillis() - startedAt < 4000) { seen.add(raw); return }
+                if (seen.contains(raw)) return          // unchanged since connect
+                if (pending[uuid] != raw) { pending[uuid] = raw; return }  // needs to repeat
+
+                Logger.i(TAG, "distance candidate: ${"%.1f".format(metres)} m (raw=$raw scale=$scale) on $uuid")
+                handler.post { onCandidate(metres, uuid, scale) }
             }
         }
         status("Connecting…")
@@ -192,17 +237,22 @@ object RangefinderLink {
     /** The first 16-bit value in a frame, used once a pairing is locked. */
     fun firstRaw(v: ByteArray): Int? {
         if (v.size < 2) return null
-        return (v[0].toInt() and 0xFF) or ((v[1].toInt() and 0xFF) shl 8)
+        val raw = (v[0].toInt() and 0xFF) or ((v[1].toInt() and 0xFF) shl 8)
+        return if (isSentinel(raw)) null else raw
     }
 
-    /** Candidate range with the scale that produced it, for confirmation. */
-    fun decodeCandidate(v: ByteArray): Pair<Double, Double>? {
+    /** Candidate range, the scale that produced it, and the raw value — for
+     *  confirmation and for the change/stability tests. Sentinels are refused. */
+    fun decodeCandidate(v: ByteArray): Triple<Double, Double, Int>? {
         for (i in 0..v.size - 2) {
             val le = (v[i].toInt() and 0xFF) or ((v[i + 1].toInt() and 0xFF) shl 8)
             val be = ((v[i].toInt() and 0xFF) shl 8) or (v[i + 1].toInt() and 0xFF)
-            for (raw in listOf(le, be)) for ((scale, _) in SCALES) {
-                val m = raw * scale
-                if (DistanceConfig.plausible(m)) return m to scale
+            for (raw in listOf(le, be)) {
+                if (isSentinel(raw)) continue
+                for ((scale, _) in SCALES) {
+                    val m = raw * scale
+                    if (DistanceConfig.plausible(m)) return Triple(m, scale, raw)
+                }
             }
         }
         return null

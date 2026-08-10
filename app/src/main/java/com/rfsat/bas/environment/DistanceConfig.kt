@@ -22,10 +22,19 @@ object DistanceConfig {
      * temperature or a battery level as a range — the decoder cannot tell them
      * apart from the numbers alone.
      */
-    fun lockedUuid(c: Context): String? = p(c).getString("lock_uuid", null)
+    /** Locks saved before this version were learned by a decoder that could
+     *  latch onto NK's "not measured" sentinel (0x8001 read as 3276.9 m) or
+     *  onto a weather field. Any such lock is discarded on first use. */
+    private const val LOCK_EPOCH = 2
+
+    fun lockedUuid(c: Context): String? {
+        if (p(c).getInt("lock_epoch", 1) < LOCK_EPOCH) { clearLock(c); return null }
+        return p(c).getString("lock_uuid", null)
+    }
     fun lockedScale(c: Context): Double = p(c).getFloat("lock_scale", 0f).toDouble()
     fun setLock(c: Context, uuid: String, scale: Double) =
-        p(c).edit().putString("lock_uuid", uuid).putFloat("lock_scale", scale.toFloat()).apply()
+        p(c).edit().putString("lock_uuid", uuid).putFloat("lock_scale", scale.toFloat())
+            .putInt("lock_epoch", LOCK_EPOCH).apply()
     fun clearLock(c: Context) = p(c).edit().remove("lock_uuid").remove("lock_scale").apply()
 
     /** Reject nonsense before it reaches the solver. */

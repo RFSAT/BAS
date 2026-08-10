@@ -33,6 +33,39 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.19.1 — corrections: two faults a field log made obvious.
+        //
+        //   THE PHONE WAS OVERWRITING THE KESTREL. refreshFromPhoneSensors
+        //   replaced any quantity the phone could measure, and CaptureActivity
+        //   calls it on entry — so a Kestrel pressure survived until the
+        //   shooter opened the Ballistics tab, then quietly became the phone\'s
+        //   barometer. A meter now OUTRANKS the phone per quantity: the phone
+        //   fills only what no meter supplied, and says so in the log.
+        //
+        //   THE BRIDGE WAS READING WEATHER AS RANGE. With the target at 101 m
+        //   the log reported 192, 511, 1641, 2329 m — and finally locked onto
+        //   3276.9 m, which is 0x8001 scaled by 0.1: NK\'s "not measured"
+        //   sentinel, taken from an empty weather field. Three faults, all
+        //   fixed:
+        //     - sentinels (0xFFFF, 0x8000, 0x8001) are refused outright;
+        //     - the LiNK WEATHER characteristics (03290300-0380, 0200, and the
+        //       battery level) are excluded from range scanning — they carry
+        //       temperature, pressure and density altitude, they wander every
+        //       few seconds, so a "plausible distance" can always be found in
+        //       them, which is exactly how a 1600-2400 m reading appeared;
+        //     - a candidate must now CHANGE from what was already there when
+        //       the link opened, and must repeat, before it is offered. A range
+        //       appears when the shooter ranges; a value already sitting in a
+        //       field is a standing measurement.
+        //   Locks saved by the old decoder are discarded (lock epoch), so the
+        //   bad 3276.9 m pairing does not survive the upgrade.
+        //
+        //   NOTE, from the same log: the weather characteristics do NOT carry
+        //   the FIRE4000 range. It will be in the ballistics/target group
+        //   (03290101-0107 or the 8592 service) and only once a rangefinder is
+        //   linked and has actually ranged — which is what the change test is
+        //   now there to catch.
+        //
         // 1.19.0 — feature: environmental device selection, and the Kestrel
         //          5700 Elite actually works.
         //
@@ -3214,8 +3247,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 30
-        versionName = "1.19.0"
+        versionCode = 31
+        versionName = "1.19.1"
     }
 
     // Resolved once, here, rather than re-read from the environment in two
