@@ -153,6 +153,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.20.1** — correction. The wind field was the wrong one: 1.20.0 read @4 of the LiNK record, which holds the not-measured sentinel in every frame. Wind speed is @0 (×100 m/s) — 0 with the impeller still, 444 (4.44 m/s) when turning, matching the meter's own ~4.5 m/s. Zero is now reported as "calm" rather than "not measured".
+
 **1.20.0** — feature. The Kestrel's wind is now read (speed and direction from the LiNK record) and used as the wind at the firing point: it joins the weighted average as an anchor at zero downrange while the vapour trail supplies how the wind changes down the range. A still impeller reports NK's not-measured sentinel, which is kept as "wind not measured" rather than shown as calm. Direction is read as wind-from, with the line of fire either implied (meter pointed downrange) or entered as a bearing.
 
 **1.19.1** — corrections. A meter now outranks the phone per quantity, so re-entering the Ballistics tab no longer replaces a Kestrel pressure with the phone's barometer. And the Kestrel range bridge stopped reading weather as range: NK's not-measured sentinels are refused, the LiNK weather characteristics are excluded from range scanning, and a candidate must change from the standing value and repeat before it is offered. Locks learned by the old decoder are discarded.

@@ -246,6 +246,9 @@ object EnvironmentManager {
         val a = r.atmosphere
         val alt = r.informationalAltitudeM?.let { " ~%.0f m ASL".format(it) } ?: ""
         val wind = when {
+            r.windSpeedMps != null && r.windSpeedMps < 0.05 -> " · calm (0.0 m/s%s, %s)".format(
+                r.windDirectionDeg?.let { " @ %.0f°".format(it) } ?: "",
+                r.windSource.ifBlank { "meter" })
             r.windSpeedMps != null -> " · %.1f m/s%s (%s)".format(
                 r.windSpeedMps,
                 r.windDirectionDeg?.let { " @ %.0f°".format(it) } ?: "",

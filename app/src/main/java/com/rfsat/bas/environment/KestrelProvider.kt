@@ -274,20 +274,24 @@ object KestrelProvider {
                     val t = u16at(2)?.let { r -> (if (r > 0x7FFF) r - 0x10000 else r) / 100.0 }
                     val h = u16at(6)?.div(100.0)
                     val pHpa = u16at(8)?.div(10.0)
-                    // @4 is WIND SPEED and @10 the direction. On a 5700 with a
-                    // still impeller @4 is the not-measured sentinel, which is
-                    // why a session indoors shows no wind at all — that is the
-                    // meter saying "I did not measure this", and reporting it
-                    // as a calm 0 m/s would be inventing a measurement.
-                    val windRaw = u16at(4)
+                    // WIND SPEED IS @0, x100 m/s. 1.20.0 read @4 and got nothing,
+                    // because @4 is the not-measured sentinel in every frame of
+                    // every log — it is not the live wind field at all. @0 reads
+                    // 0 when the impeller is still and 444 (4.44 m/s) when it is
+                    // turning, which matches the ~4.5 m/s the meter itself
+                    // recorded. Zero here is a REAL measurement of calm, so it
+                    // must not be discarded the way a sentinel is.
+                    val windRaw = u16at(0)
                     val wind = windRaw?.div(100.0)?.takeIf { it in 0.0..60.0 }
+                    val altWindRaw = u16at(4)   // logged only, for diagnosis
                     val dir = u16at(10)?.toDouble()?.takeIf { it in 0.0..360.0 }
                     if (t != null && t in -60.0..80.0) tempC = t
                     if (h != null && h in 0.0..100.0) humFrac = h / 100.0
                     if (pHpa != null && pHpa in 500.0..1100.0) pressPa = pHpa * 100.0
                     if (wind != null || dir != null) EnvironmentManager.setWind(wind, dir)
                     Logger.i(TAG, "  LiNK record: temp=$t degC humidity=$h % pressure=$pHpa hPa " +
-                        "wind=${wind ?: "not measured"} (raw=${windRaw ?: "sentinel"}) dir=${dir ?: "—"}")
+                        "wind=${wind ?: "not measured"} m/s (raw@0=${windRaw ?: "sentinel"}, " +
+                        "@4=${altWindRaw ?: "sentinel"}) dir=${dir ?: "—"}")
                     return
                 }
                 if (tempC == null && humFrac == null && pressPa == null &&

@@ -33,6 +33,27 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.20.1 — correction: the wind field was the wrong one. 1.20.0 read
+        //          @4 of the LiNK record and reported "not measured" even while
+        //          the meter was recording 4.5 m/s — because @4 holds the
+        //          not-measured sentinel in EVERY frame of every log taken so
+        //          far. It is not the live wind field.
+        //
+        //          WIND SPEED IS @0, x100 m/s. It reads 0 with the impeller
+        //          still and 444 — 4.44 m/s — in the one frame where it was
+        //          turning, which is exactly the ~4.5 m/s the meter itself
+        //          averaged. Both field logs replay correctly through the fix.
+        //
+        //          And zero is now treated as what it is: a REAL measurement of
+        //          calm air, reported as "calm (0.0 m/s)" and distinct from
+        //          "wind not measured", which remains reserved for the sentinel.
+        //          The raw @0 and @4 values are both logged, so the next field
+        //          reading confirms the scale rather than assuming it.
+        //
+        //          NOTE the meter's own average and maximum are session
+        //          statistics held on the Kestrel; BAS reads the LIVE value, so
+        //          a still meter indoors correctly shows calm.
+        //
         // 1.20.0 — feature: the meter\'s WIND, read and used.
         //
         //   IT WAS NEVER PARSED. The LiNK record decode in 1.19.0 took
@@ -3277,8 +3298,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 32
-        versionName = "1.20.0"
+        versionCode = 33
+        versionName = "1.20.1"
     }
 
     // Resolved once, here, rather than re-read from the environment in two
