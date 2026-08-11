@@ -33,6 +33,41 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.21.0 — feature: Weather Information — three tiers, and the meter's
+        //          own ballistics.
+        //
+        //   SOURCES, in the order they deserve trust: the phone's sensors, a
+        //   Kestrel, or an online service — chosen in Settings under "Weather
+        //   Information" (was "Environmental devices"). Online covers
+        //   Open-Meteo (no key, hence the default), OpenWeatherMap, Windy,
+        //   Google Weather and Netatmo. Whichever is chosen supplies
+        //   temperature, pressure, humidity, wind speed, gust and direction,
+        //   and all of it feeds the solution as the conditions AT THE FIRING
+        //   POINT. A forecast is marked with the service's own name, because it
+        //   describes a region rather than the air at this rifle.
+        //
+        //   Endpoint shapes follow RFSAT's own ENACT web app: Windy's U/V
+        //   surface components resolved with atan2(-u,-v) and K->degC, OWM in
+        //   metric, and Netatmo through the RFSAT proxy that holds the OAuth
+        //   refresh token server-side — so no client secret ships in the APK.
+        //   Keys are the shooter's own and stay on the phone.
+        //
+        //   The Ballistics tab's "Kestrel" button is now "Weather" and uses
+        //   whichever source is configured.
+        //
+        //   KESTREL BALLISTICS, read-only for now. KestrelBallistics reads the
+        //   meter's ballistics blocks, pulls any gun-profile names out of them
+        //   and keeps a firing solution if one appears, so the glance screen
+        //   can show the METER's own correction beside BAS's. Writing profiles
+        //   TO the meter is deliberately not attempted: the LiNK protocol is
+        //   unpublished and a blind write could corrupt the shooter's own
+        //   profiles. Reading the gun list first — as suggested — is both the
+        //   safe half and the way to learn the record format.
+        //
+        //   Big Glance gains a source selector — Grouping, Ballistics, or
+        //   Kestrel — and the correction fonts were reduced so each fits one
+        //   line without wrapping.
+        //
         // 1.20.1 — correction: the wind field was the wrong one. 1.20.0 read
         //          @4 of the LiNK record and reported "not measured" even while
         //          the meter was recording 4.5 m/s — because @4 holds the
@@ -3298,8 +3333,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 33
-        versionName = "1.20.1"
+        versionCode = 34
+        versionName = "1.21.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

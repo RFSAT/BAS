@@ -157,7 +157,7 @@
         <TextView android:id="@+id/tvEnvStatus"
             android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
             android:textSize="11sp"/>
-        <Button android:id="@+id/btnKestrel" android:text="Kestrel"
+        <Button android:id="@+id/btnKestrel" android:text="Weather"
             android:textSize="11sp"
             android:layout_width="wrap_content" android:layout_height="wrap_content"/>
     </LinearLayout>

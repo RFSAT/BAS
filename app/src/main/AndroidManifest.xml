@@ -31,6 +31,8 @@
     <!-- Kestrel weather meter over BLE (integrated from VTB): bonded connect,
          plus a short advertising-only scan for the DROP D3. neverForLocation
          so no location permission is needed on Android 12+. -->
+    <!-- Position for an online forecast; coarse is plenty for weather. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN"
         android:usesPermissionFlags="neverForLocation" />

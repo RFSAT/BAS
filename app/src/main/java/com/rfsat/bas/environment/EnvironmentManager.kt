@@ -106,7 +106,8 @@ object EnvironmentManager {
          *  measurement the meter never made. */
         val windSpeedMps: Double? = null,
         val windDirectionDeg: Double? = null,
-        val windSource: String = ""
+        val windSource: String = "",
+        val windGustMps: Double? = null
     )
 
     @Volatile
@@ -117,6 +118,30 @@ object EnvironmentManager {
 
     /** Wind from the meter. Kept separate from setFromKestrel so a weather
      *  read that measured no wind cannot clear a wind reading taken earlier. */
+    /** Conditions from an online service. Marked with the service's own name,
+     *  because a forecast describes a region and the status line should say so
+     *  rather than let it pass for a measurement taken here. */
+    fun setFromService(tempC: Double?, pressPa: Double?, humFrac: Double?, source: String) {
+        val prev = current
+        current = prev.copy(
+            atmosphere = prev.atmosphere.copy(
+                temperatureC = tempC ?: prev.atmosphere.temperatureC,
+                seaLevelPressurePa = pressPa ?: prev.atmosphere.seaLevelPressurePa,
+                relativeHumidity = humFrac ?: prev.atmosphere.relativeHumidity
+            ),
+            temperatureSource = if (tempC != null) source else prev.temperatureSource,
+            pressureSource = if (pressPa != null) source else prev.pressureSource,
+            humiditySource = if (humFrac != null) source else prev.humiditySource
+        )
+        Logger.i(TAG, "Environment from $source: ${describe()}")
+        persist()
+    }
+
+    fun setWindGust(mps: Double) {
+        current = current.copy(windGustMps = mps)
+        persist()
+    }
+
     fun setWind(speedMps: Double?, directionDeg: Double?, source: String = "Kestrel") {
         if (speedMps == null && directionDeg == null) return
         current = current.copy(
@@ -249,8 +274,9 @@ object EnvironmentManager {
             r.windSpeedMps != null && r.windSpeedMps < 0.05 -> " · calm (0.0 m/s%s, %s)".format(
                 r.windDirectionDeg?.let { " @ %.0f°".format(it) } ?: "",
                 r.windSource.ifBlank { "meter" })
-            r.windSpeedMps != null -> " · %.1f m/s%s (%s)".format(
+            r.windSpeedMps != null -> " · %.1f m/s%s%s (%s)".format(
                 r.windSpeedMps,
+                r.windGustMps?.let { " gust %.1f".format(it) } ?: "",
                 r.windDirectionDeg?.let { " @ %.0f°".format(it) } ?: "",
                 r.windSource.ifBlank { "meter" })
             else -> " · wind not measured"

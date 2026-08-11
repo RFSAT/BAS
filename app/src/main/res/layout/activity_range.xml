@@ -4,6 +4,19 @@
     android:orientation="vertical"
     android:background="?android:attr/colorBackground" android:padding="12dp">
 
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <Button android:id="@+id/btnSrcGrouping"
+            android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+            android:text="Grouping" android:textSize="12sp" android:minHeight="0dp" />
+        <Button android:id="@+id/btnSrcBallistics"
+            android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+            android:text="Ballistics" android:textSize="12sp" android:minHeight="0dp" />
+        <Button android:id="@+id/btnSrcKestrel"
+            android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+            android:text="Kestrel" android:textSize="12sp" android:minHeight="0dp" />
+    </LinearLayout>
+
     <TextView android:id="@+id/tvRangeStatus"
         android:layout_width="match_parent" android:layout_height="wrap_content"
         android:textColor="?android:attr/textColorSecondary" android:textSize="14sp"
@@ -13,29 +26,29 @@
         android:layout_width="match_parent" android:layout_height="wrap_content"
         android:textColor="?android:attr/textColorSecondary" android:textSize="14sp"
         android:letterSpacing="0.08" android:gravity="center" android:text="WINDAGE" />
-    <TextView android:id="@+id/tvRangeWind"
+    <TextView android:id="@+id/tvRangeWind" android:maxLines="1"
         android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1.2"
-        android:textColor="?attr/colorAccent" android:textSize="72sp" android:textStyle="bold"
+        android:textColor="?attr/colorAccent" android:textSize="46sp" android:textStyle="bold"
         android:gravity="center" android:text="—" android:autoSizeTextType="uniform"
-        android:autoSizeMinTextSize="26sp" android:autoSizeMaxTextSize="96sp" />
+        android:autoSizeMinTextSize="18sp" android:autoSizeMaxTextSize="60sp" />
 
     <TextView android:id="@+id/tvRangeElevCaption"
         android:layout_width="match_parent" android:layout_height="wrap_content"
         android:textColor="?android:attr/textColorSecondary" android:textSize="14sp"
         android:letterSpacing="0.08" android:gravity="center" android:text="ELEVATION" />
-    <TextView android:id="@+id/tvRangeElev"
+    <TextView android:id="@+id/tvRangeElev" android:maxLines="1"
         android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1.2"
-        android:textColor="?attr/colorAccent" android:textSize="72sp" android:textStyle="bold"
+        android:textColor="?attr/colorAccent" android:textSize="46sp" android:textStyle="bold"
         android:gravity="center" android:text="—" android:autoSizeTextType="uniform"
-        android:autoSizeMinTextSize="26sp" android:autoSizeMaxTextSize="96sp" />
+        android:autoSizeMinTextSize="18sp" android:autoSizeMaxTextSize="60sp" />
 
     <TextView android:id="@+id/tvRangeCorrCaption"
         android:layout_width="match_parent" android:layout_height="wrap_content"
         android:textColor="?android:attr/textColorSecondary" android:textSize="14sp"
         android:letterSpacing="0.08" android:gravity="center" android:text="GROUP — dial to centre" />
-    <TextView android:id="@+id/tvRangeCorrection"
+    <TextView android:id="@+id/tvRangeCorrection" android:maxLines="1"
         android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
-        android:textColor="?android:attr/textColorPrimary" android:textSize="44sp" android:textStyle="bold"
+        android:textColor="?android:attr/textColorPrimary" android:textSize="38sp" android:textStyle="bold"
         android:gravity="center" android:text="—" android:autoSizeTextType="uniform"
         android:autoSizeMinTextSize="20sp" android:autoSizeMaxTextSize="60sp" />
     <TextView android:id="@+id/tvRangeCorrAngle"
@@ -46,7 +59,7 @@
     <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
         android:textColor="?android:attr/textColorSecondary" android:textSize="14sp"
         android:letterSpacing="0.08" android:gravity="center" android:text="SCORE" />
-    <TextView android:id="@+id/tvRangeScore"
+    <TextView android:id="@+id/tvRangeScore" android:maxLines="1"
         android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
         android:textColor="?android:attr/textColorPrimary" android:textSize="52sp" android:textStyle="bold"
         android:gravity="center" android:text="0" android:autoSizeTextType="uniform"

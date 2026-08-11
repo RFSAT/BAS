@@ -206,7 +206,21 @@ class CaptureActivity : BaseActivity() {
         com.rfsat.bas.environment.EnvironmentManager.refreshFromPhoneSensors(this) {
             binding.tvEnvStatus.text = com.rfsat.bas.environment.EnvironmentManager.describe()
         }
-        binding.btnKestrel.setOnClickListener { readKestrel() }
+        binding.btnKestrel.setOnClickListener {
+            // Whatever the shooter configured under Weather Information —
+            // phone, meter, or an online service.
+            if (com.rfsat.bas.environment.WeatherConfig.tier(this) ==
+                com.rfsat.bas.environment.WeatherTier.METER) readKestrel()
+            else {
+                notifyUser("Fetching conditions…")
+                com.rfsat.bas.environment.WeatherSource.refresh(this) { _, msg ->
+                    runOnUiThread {
+                        binding.tvEnvStatus.text = com.rfsat.bas.environment.EnvironmentManager.describe()
+                        notifyUser(msg)
+                    }
+                }
+            }
+        }
 
         val cameraGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
         audioPermissionGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED

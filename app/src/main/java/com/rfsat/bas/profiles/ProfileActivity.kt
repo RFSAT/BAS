@@ -557,6 +557,65 @@ class ProfileActivity : BaseActivity() {
                 }
                 .show()
         }
+        binding.btnWeatherTier.setOnClickListener {
+            val tiers = com.rfsat.bas.environment.WeatherTier.values()
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Conditions at the firing point")
+                .setSingleChoiceItems(tiers.map { it.label }.toTypedArray(),
+                    tiers.indexOf(com.rfsat.bas.environment.WeatherConfig.tier(this))) { d, w ->
+                    d.dismiss()
+                    com.rfsat.bas.environment.WeatherConfig.setTier(this, tiers[w]); refreshEnvLabels()
+                }
+                .show()
+        }
+        binding.btnWeatherService.setOnClickListener {
+            val svcs = com.rfsat.bas.environment.OnlineService.values()
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Online weather service")
+                .setSingleChoiceItems(svcs.map { it.label }.toTypedArray(),
+                    svcs.indexOf(com.rfsat.bas.environment.WeatherConfig.service(this))) { d, w ->
+                    d.dismiss()
+                    val svc = svcs[w]
+                    com.rfsat.bas.environment.WeatherConfig.setService(this, svc)
+                    if (svc.needsKey) {
+                        val et = android.widget.EditText(this).apply {
+                            setText(com.rfsat.bas.environment.WeatherConfig.key(this@ProfileActivity, svc))
+                            hint = svc.keyHint
+                        }
+                        androidx.appcompat.app.AlertDialog.Builder(this)
+                            .setTitle("${svc.label} key")
+                            .setMessage("Your own key, kept on this phone. Netatmo goes through the RFSAT proxy and needs no key here.")
+                            .setView(et)
+                            .setPositiveButton("Save") { _, _ ->
+                                com.rfsat.bas.environment.WeatherConfig.setKey(this, svc, et.text.toString())
+                                refreshEnvLabels()
+                            }
+                            .setNegativeButton("Cancel", null).show()
+                    }
+                    refreshEnvLabels()
+                }
+                .show()
+        }
+        binding.btnWeatherPosition.setOnClickListener {
+            val et = android.widget.EditText(this).apply {
+                hint = "lat, lon (blank = use the phone's location)"
+                setText(if (com.rfsat.bas.environment.WeatherConfig.hasPosition(this@ProfileActivity))
+                    "${com.rfsat.bas.environment.WeatherConfig.latitude(this@ProfileActivity)}, " +
+                    "${com.rfsat.bas.environment.WeatherConfig.longitude(this@ProfileActivity)}" else "")
+            }
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Position for forecasts")
+                .setView(et)
+                .setPositiveButton("Save") { _, _ ->
+                    val parts = et.text.toString().split(",")
+                    val la2 = parts.getOrNull(0)?.trim()?.toDoubleOrNull() ?: 0.0
+                    val lo = parts.getOrNull(1)?.trim()?.toDoubleOrNull() ?: 0.0
+                    com.rfsat.bas.environment.WeatherConfig.setPosition(this, la2, lo)
+                    refreshEnvLabels()
+                }
+                .setNegativeButton("Cancel", null).show()
+        }
+        binding.btnKestrelProfiles.setOnClickListener { importKestrelProfiles() }
         binding.btnEnvRead.setOnClickListener { readEnvironment() }
         binding.btnStationWind.setOnClickListener {
             val cfg = com.rfsat.bas.environment.EnvDeviceConfig
@@ -842,6 +901,44 @@ class ProfileActivity : BaseActivity() {
         runCatching { com.rfsat.bas.ui.SetupConfig.reset(this) }
     }
 
+    /** Read the gun profiles the Kestrel itself holds, and offer to add any
+     *  that BAS does not have. Read-only: nothing is written to the meter. */
+    private fun importKestrelProfiles() {
+        val missing = com.rfsat.bas.environment.RangefinderUi.missingPermissions(this)
+        if (missing.isNotEmpty()) { requestPermissions(missing, 4308); return }
+        val provider = com.rfsat.bas.environment.KestrelProvider
+        fun go(d: android.bluetooth.BluetoothDevice) {
+            com.rfsat.bas.environment.KestrelBallistics.read(this, d,
+                status = { m -> runOnUiThread { notifyUser(m) } },
+                onProfiles = { list ->
+                    runOnUiThread {
+                        if (list.isEmpty()) {
+                            androidx.appcompat.app.AlertDialog.Builder(this)
+                                .setTitle("No profiles read")
+                                .setMessage("The Kestrel's ballistics blocks came back empty. Open its " +
+                                    "ballistics screen and select a gun, then try again — the Log holds " +
+                                    "every block verbatim, which is what identifies the record format.")
+                                .setPositiveButton("Open Log") { _, _ ->
+                                    startActivity(Intent(this, LogActivity::class.java))
+                                }
+                                .setNegativeButton("Close", null).show()
+                        } else {
+                            val names = list.map { it.name }.toTypedArray()
+                            androidx.appcompat.app.AlertDialog.Builder(this)
+                                .setTitle("Profiles on the Kestrel")
+                                .setItems(names, null)
+                                .setPositiveButton("Close", null).show()
+                        }
+                    }
+                })
+        }
+        val bonded = provider.findPairedKestrel()
+        if (bonded != null) go(bonded)
+        else provider.scanForKestrel(this) { d ->
+            if (d == null) notifyUser("No Kestrel found.") else go(d)
+        }
+    }
+
     private fun refreshEnvLabels() {
         binding.btnEnvSource.text = "Source: ${com.rfsat.bas.environment.EnvDeviceConfig.source(this).label}"
         val cfg = com.rfsat.bas.environment.EnvDeviceConfig
@@ -850,6 +947,16 @@ class ProfileActivity : BaseActivity() {
         else if (cfg.lineOfFireDeg(this) < 0)
             "Meter wind: on (direction relative to the line of fire)"
         else "Meter wind: on (line of fire ${"%.0f".format(cfg.lineOfFireDeg(this))}°)"
+        binding.btnWeatherTier.text =
+            "Source: ${com.rfsat.bas.environment.WeatherConfig.tier(this).label}"
+        binding.btnWeatherService.text =
+            "Online service: ${com.rfsat.bas.environment.WeatherConfig.service(this).label}"
+        binding.btnWeatherPosition.text =
+            if (com.rfsat.bas.environment.WeatherConfig.hasPosition(this))
+                "Position: %.3f, %.3f".format(
+                    com.rfsat.bas.environment.WeatherConfig.latitude(this),
+                    com.rfsat.bas.environment.WeatherConfig.longitude(this))
+            else "Position: from the phone"
         binding.tvEnvSummary.text = runCatching {
             com.rfsat.bas.environment.EnvironmentManager.describe()
         }.getOrDefault("")
@@ -858,6 +965,14 @@ class ProfileActivity : BaseActivity() {
     /** Read conditions from the chosen source. The phone is always available;
      *  a meter needs Bluetooth permission and a scan. */
     private fun readEnvironment() {
+        if (com.rfsat.bas.environment.WeatherConfig.tier(this) !=
+            com.rfsat.bas.environment.WeatherTier.METER) {
+            notifyUser("Fetching conditions…")
+            com.rfsat.bas.environment.WeatherSource.refresh(this) { _, msg ->
+                runOnUiThread { refreshEnvLabels(); notifyUser(msg) }
+            }
+            return
+        }
         val src = com.rfsat.bas.environment.EnvDeviceConfig.source(this)
         if (src == com.rfsat.bas.environment.EnvSource.PHONE) {
             com.rfsat.bas.environment.EnvironmentManager.refreshFromPhoneSensors(this) {
