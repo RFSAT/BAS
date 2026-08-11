@@ -375,6 +375,10 @@
 
             <!-- ===== Firearm ===== -->
             <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Firearm" />
+            <Button android:id="@+id/btnKestrelProfiles"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                style="@style/Sts.ActionButton"
+                android:text="Import gun profiles from the Kestrel…" />
             <Button android:id="@+id/btnRifleCatalog"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 style="@style/Sts.ActionButton"
@@ -500,18 +504,14 @@
             <TextView style="@style/Sts.FieldLabel"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:text="Where temperature, pressure and humidity come from. Air conditions change the trajectory, so a real meter is worth having — but the phone alone is enough to start." />
-            <Button android:id="@+id/btnEnvSource"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                style="@style/Sts.ActionButton"
-                android:text="Source: Automatic" />
-            <Button android:id="@+id/btnEnvRead"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                style="@style/Sts.ActionButton"
-                android:text="Read conditions now…" />
             <Button android:id="@+id/btnWeatherTier"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 style="@style/Sts.ActionButton"
                 android:text="Source: weather meter" />
+            <Button android:id="@+id/btnWeatherDevice"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                style="@style/Sts.ActionButton"
+                android:text="Default external device…" />
             <Button android:id="@+id/btnWeatherService"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 style="@style/Sts.ActionButton"
@@ -520,14 +520,10 @@
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 style="@style/Sts.ActionButton"
                 android:text="Position for forecasts…" />
-            <Button android:id="@+id/btnKestrelProfiles"
+            <Button android:id="@+id/btnEnvRead"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 style="@style/Sts.ActionButton"
-                android:text="Import gun profiles from the Kestrel…" />
-            <Button android:id="@+id/btnStationWind"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                style="@style/Sts.ActionButton"
-                android:text="Use meter wind at the firing point: on" />
+                android:text="Read conditions now…" />
             <TextView android:id="@+id/tvEnvSummary"
                 style="@style/Sts.FieldLabel"
                 android:layout_width="match_parent" android:layout_height="wrap_content"

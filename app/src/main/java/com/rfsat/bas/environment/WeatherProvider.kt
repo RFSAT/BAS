@@ -9,9 +9,10 @@ import android.content.Context
  * air moving past this rifle, so it is a last resort rather than an equal.
  */
 enum class WeatherTier(val label: String) {
-    PHONE("Phone sensors"),
-    METER("Weather meter (Kestrel)"),
-    ONLINE("Online weather service")
+    AUTO("Automatic — phone, then device, then online"),
+    PHONE("Smartphone sensors"),
+    METER("External device (Kestrel)"),
+    ONLINE("Online service")
 }
 
 /** Online services. Open-Meteo needs no key, which is why it is the default. */
@@ -38,7 +39,7 @@ object WeatherConfig {
 
     fun tier(c: Context): WeatherTier =
         runCatching { WeatherTier.valueOf(p(c).getString("tier", null) ?: "") }
-            .getOrDefault(WeatherTier.METER)
+            .getOrDefault(WeatherTier.AUTO)
     fun setTier(c: Context, t: WeatherTier) = p(c).edit().putString("tier", t.name).apply()
 
     fun service(c: Context): OnlineService = OnlineService.fromName(p(c).getString("service", null))

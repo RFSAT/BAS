@@ -104,4 +104,31 @@ object Corrections {
         if (c.windageDirection.isNotEmpty()) parts.add("${kotlin.math.abs(c.windageClicks)} clk ${c.windageDirection}")
         return parts.joinToString("   ")
     }
+
+    // --- Grouping (scoring) split the same way as the ballistic rows, so the
+    // glance screen reads identically whichever source is selected.
+
+    fun groupWindageBig(c: SightCorrection, useMoa: Boolean): String {
+        if (!c.valid) return "—"
+        if (!c.needsAdjustment || c.windageDirection.isEmpty()) return "0.00 " + (if (useMoa) "MOA" else "MRAD")
+        return "${arrow(c.windageDirection)} %.2f %s".format(
+            kotlin.math.abs(if (useMoa) c.windageMoa else c.windageMrad), if (useMoa) "MOA" else "MRAD")
+    }
+
+    fun groupElevationBig(c: SightCorrection, useMoa: Boolean): String {
+        if (!c.valid) return "—"
+        if (!c.needsAdjustment || c.elevationDirection.isEmpty()) return "0.00 " + (if (useMoa) "MOA" else "MRAD")
+        return "${arrow(c.elevationDirection)} %.2f %s".format(
+            kotlin.math.abs(if (useMoa) c.elevationMoa else c.elevationMrad), if (useMoa) "MOA" else "MRAD")
+    }
+
+    fun groupWindageCaption(c: SightCorrection): String =
+        if (!c.valid) "WINDAGE — grouping"
+        else if (!c.needsAdjustment) "WINDAGE — on centre"
+        else "WINDAGE — ${kotlin.math.abs(c.windageClicks)} clk ${c.windageDirection}"
+
+    fun groupElevationCaption(c: SightCorrection): String =
+        if (!c.valid) "ELEVATION — grouping"
+        else if (!c.needsAdjustment) "ELEVATION — on centre"
+        else "ELEVATION — ${kotlin.math.abs(c.elevationClicks)} clk ${c.elevationDirection}"
 }

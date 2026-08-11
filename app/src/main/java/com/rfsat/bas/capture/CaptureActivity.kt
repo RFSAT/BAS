@@ -209,8 +209,15 @@ class CaptureActivity : BaseActivity() {
         binding.btnKestrel.setOnClickListener {
             // Whatever the shooter configured under Weather Information —
             // phone, meter, or an online service.
-            if (com.rfsat.bas.environment.WeatherConfig.tier(this) ==
-                com.rfsat.bas.environment.WeatherTier.METER) readKestrel()
+            val tier = com.rfsat.bas.environment.WeatherConfig.tier(this)
+            val needsFix = (tier == com.rfsat.bas.environment.WeatherTier.ONLINE ||
+                tier == com.rfsat.bas.environment.WeatherTier.AUTO) &&
+                !com.rfsat.bas.environment.WeatherConfig.hasPosition(this) &&
+                checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION) !=
+                    android.content.pm.PackageManager.PERMISSION_GRANTED
+            if (needsFix) requestPermissions(
+                arrayOf(android.Manifest.permission.ACCESS_COARSE_LOCATION), 4310)
+            if (tier == com.rfsat.bas.environment.WeatherTier.METER) readKestrel()
             else {
                 notifyUser("Fetching conditions…")
                 com.rfsat.bas.environment.WeatherSource.refresh(this) { _, msg ->

@@ -17,22 +17,43 @@ object WeatherSource {
     @SuppressLint("MissingPermission")
     fun refresh(context: Context, onDone: (Boolean, String) -> Unit) {
         when (WeatherConfig.tier(context)) {
+            WeatherTier.AUTO -> {
+                // Phone first — it needs nothing and is always here. Then the
+                // meter, which is the real measurement. Then a forecast, which
+                // describes a region rather than this firing point.
+                EnvironmentManager.refreshFromPhoneSensors(context) {
+                    fromMeter(context) { okMeter, msg ->
+                        if (okMeter) onDone(true, msg)
+                        else fromOnline(context) { okOnline, m2 ->
+                            onDone(okOnline || true, if (okOnline) m2 else EnvironmentManager.describe())
+                        }
+                    }
+                }
+            }
             WeatherTier.PHONE -> {
                 EnvironmentManager.refreshFromPhoneSensors(context) {
                     onDone(true, EnvironmentManager.describe())
                 }
             }
-            WeatherTier.METER -> {
-                val provider = KestrelProvider
-                val bonded = provider.findPairedKestrel()
-                if (bonded != null) provider.read(context, bonded) { ok ->
-                    onDone(ok, EnvironmentManager.describe())
-                } else provider.scanForKestrel(context) { d ->
-                    if (d == null) onDone(false, "No meter found — switch it on, or choose another source.")
-                    else provider.read(context, d) { ok -> onDone(ok, EnvironmentManager.describe()) }
-                }
-            }
-            WeatherTier.ONLINE -> Thread {
+            WeatherTier.METER -> fromMeter(context, onDone)
+            WeatherTier.ONLINE -> fromOnline(context, onDone)
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun fromMeter(context: Context, onDone: (Boolean, String) -> Unit) {
+        val provider = KestrelProvider
+        val bonded = provider.findPairedKestrel()
+        if (bonded != null) provider.read(context, bonded) { ok ->
+            onDone(ok, EnvironmentManager.describe())
+        } else provider.scanForKestrel(context) { d ->
+            if (d == null) onDone(false, "No weather device found — switch it on, or choose another source.")
+            else provider.read(context, d) { ok -> onDone(ok, EnvironmentManager.describe()) }
+        }
+    }
+
+    private fun fromOnline(context: Context, onDone: (Boolean, String) -> Unit) {
+        Thread {
                 val lat: Double
                 val lon: Double
                 if (WeatherConfig.hasPosition(context)) {
@@ -54,8 +75,7 @@ object WeatherSource {
                 c.windGustMps?.let { EnvironmentManager.setWindGust(it) }
                 Logger.i(TAG, "online conditions from ${c.source}: ${EnvironmentManager.describe()}")
                 onDone(true, EnvironmentManager.describe())
-            }.start()
-        }
+        }.start()
     }
 
     @SuppressLint("MissingPermission")

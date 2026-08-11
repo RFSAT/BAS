@@ -544,19 +544,6 @@ class ProfileActivity : BaseActivity() {
         }
         binding.btnRangeOptions.setOnClickListener { rangeOptionsDialog() }
         binding.btnRangefinder.setOnClickListener { rangefinderProbe() }
-        binding.btnEnvSource.setOnClickListener {
-            val sources = com.rfsat.bas.environment.EnvSource.values()
-            val cur = com.rfsat.bas.environment.EnvDeviceConfig.source(this)
-            androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("Environmental data from")
-                .setSingleChoiceItems(sources.map { "${it.label}\n${it.blurb}" }.toTypedArray(),
-                    sources.indexOf(cur)) { d, w ->
-                    d.dismiss()
-                    com.rfsat.bas.environment.EnvDeviceConfig.setSource(this, sources[w])
-                    refreshEnvLabels()
-                }
-                .show()
-        }
         binding.btnWeatherTier.setOnClickListener {
             val tiers = com.rfsat.bas.environment.WeatherTier.values()
             androidx.appcompat.app.AlertDialog.Builder(this)
@@ -565,6 +552,18 @@ class ProfileActivity : BaseActivity() {
                     tiers.indexOf(com.rfsat.bas.environment.WeatherConfig.tier(this))) { d, w ->
                     d.dismiss()
                     com.rfsat.bas.environment.WeatherConfig.setTier(this, tiers[w]); refreshEnvLabels()
+                }
+                .show()
+        }
+        binding.btnWeatherDevice.setOnClickListener {
+            val devs = com.rfsat.bas.environment.EnvSource.values()
+                .filter { it != com.rfsat.bas.environment.EnvSource.PHONE }
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Default external device")
+                .setSingleChoiceItems(devs.map { it.label }.toTypedArray(),
+                    devs.indexOf(com.rfsat.bas.environment.EnvDeviceConfig.source(this)).coerceAtLeast(0)) { d, w ->
+                    d.dismiss()
+                    com.rfsat.bas.environment.EnvDeviceConfig.setSource(this, devs[w]); refreshEnvLabels()
                 }
                 .show()
         }
@@ -617,41 +616,6 @@ class ProfileActivity : BaseActivity() {
         }
         binding.btnKestrelProfiles.setOnClickListener { importKestrelProfiles() }
         binding.btnEnvRead.setOnClickListener { readEnvironment() }
-        binding.btnStationWind.setOnClickListener {
-            val cfg = com.rfsat.bas.environment.EnvDeviceConfig
-            val items = arrayOf(
-                "Use it — direction is relative to the line of fire",
-                "Use it — direction is a true bearing…",
-                "Do not use the meter's wind")
-            androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("Wind at the firing point")
-                .setMessage("A meter measures the air at YOUR position. The vapour trail measures " +
-                    "how the wind acts on the bullet all the way to the target. Used together, the " +
-                    "meter anchors the near end and the trail supplies the rest.")
-                .setItems(items) { _, w ->
-                    when (w) {
-                        0 -> { cfg.setUseStationWind(this, true); cfg.setLineOfFireDeg(this, -1.0) }
-                        1 -> {
-                            cfg.setUseStationWind(this, true)
-                            val et = android.widget.EditText(this).apply {
-                                inputType = android.text.InputType.TYPE_CLASS_NUMBER
-                                hint = "line of fire, degrees"
-                            }
-                            androidx.appcompat.app.AlertDialog.Builder(this)
-                                .setTitle("Line of fire (compass bearing)")
-                                .setView(et)
-                                .setPositiveButton("Save") { _, _ ->
-                                    et.text.toString().toDoubleOrNull()?.let { cfg.setLineOfFireDeg(this, it) }
-                                    refreshEnvLabels()
-                                }
-                                .setNegativeButton("Cancel", null).show()
-                        }
-                        2 -> cfg.setUseStationWind(this, false)
-                    }
-                    refreshEnvLabels()
-                }
-                .show()
-        }
         refreshEnvLabels()
         binding.btnRangefinderModel.setOnClickListener {
             com.rfsat.bas.environment.RangefinderUi.chooseModel(
@@ -939,16 +903,19 @@ class ProfileActivity : BaseActivity() {
         }
     }
 
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 4309 && grantResults.isNotEmpty() &&
+            grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            readEnvironment()
+        }
+    }
+
     private fun refreshEnvLabels() {
-        binding.btnEnvSource.text = "Source: ${com.rfsat.bas.environment.EnvDeviceConfig.source(this).label}"
-        val cfg = com.rfsat.bas.environment.EnvDeviceConfig
-        binding.btnStationWind.text = if (!cfg.useStationWind(this))
-            "Use meter wind at the firing point: off"
-        else if (cfg.lineOfFireDeg(this) < 0)
-            "Meter wind: on (direction relative to the line of fire)"
-        else "Meter wind: on (line of fire ${"%.0f".format(cfg.lineOfFireDeg(this))}°)"
         binding.btnWeatherTier.text =
             "Source: ${com.rfsat.bas.environment.WeatherConfig.tier(this).label}"
+        binding.btnWeatherDevice.text =
+            "Default device: ${com.rfsat.bas.environment.EnvDeviceConfig.source(this).label}"
         binding.btnWeatherService.text =
             "Online service: ${com.rfsat.bas.environment.WeatherConfig.service(this).label}"
         binding.btnWeatherPosition.text =
@@ -965,8 +932,31 @@ class ProfileActivity : BaseActivity() {
     /** Read conditions from the chosen source. The phone is always available;
      *  a meter needs Bluetooth permission and a scan. */
     private fun readEnvironment() {
-        if (com.rfsat.bas.environment.WeatherConfig.tier(this) !=
-            com.rfsat.bas.environment.WeatherTier.METER) {
+        val tier = com.rfsat.bas.environment.WeatherConfig.tier(this)
+        if (tier != com.rfsat.bas.environment.WeatherTier.METER) {
+            // An online forecast needs a position. The permission was declared
+            // but never ASKED for, which is why a fetch simply stalled — so ask
+            // now, and if it is refused offer to type the coordinates instead.
+            val needsFix = (tier == com.rfsat.bas.environment.WeatherTier.ONLINE ||
+                tier == com.rfsat.bas.environment.WeatherTier.AUTO) &&
+                !com.rfsat.bas.environment.WeatherConfig.hasPosition(this)
+            val granted = checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION) ==
+                android.content.pm.PackageManager.PERMISSION_GRANTED
+            if (needsFix && !granted) {
+                androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle("Where are you shooting?")
+                    .setMessage("An online forecast is for a place, so BAS needs either permission " +
+                        "to read the phone's location or the coordinates typed in. Nothing is sent " +
+                        "anywhere except the weather request itself.")
+                    .setPositiveButton("Allow location") { _, _ ->
+                        requestPermissions(arrayOf(
+                            android.Manifest.permission.ACCESS_COARSE_LOCATION), 4309)
+                    }
+                    .setNeutralButton("Type coordinates") { _, _ -> binding.btnWeatherPosition.performClick() }
+                    .setNegativeButton("Cancel", null)
+                    .show()
+                return
+            }
             notifyUser("Fetching conditions…")
             com.rfsat.bas.environment.WeatherSource.refresh(this) { _, msg ->
                 runOnUiThread { refreshEnvLabels(); notifyUser(msg) }

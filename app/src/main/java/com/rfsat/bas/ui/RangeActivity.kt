@@ -63,11 +63,10 @@ class RangeActivity : BaseActivity() {
                         if (adj != null) Corrections.ballisticElevationCaption(adj) else "ELEVATION — ballistics"
                 }
                 Src.GROUPING -> {
-                    // The shift the GROUP asks for, split the same way.
-                    binding.tvRangeWind.text = Corrections.scoringBig(corr, useMoa)
-                    binding.tvRangeWindCaption.text = "GROUPING — dial to centre"
-                    binding.tvRangeElev.text = Corrections.scoringCaption(corr).ifBlank { "—" }
-                    binding.tvRangeElevCaption.text = "CLICKS"
+                    binding.tvRangeWind.text = Corrections.groupWindageBig(corr, useMoa)
+                    binding.tvRangeWindCaption.text = Corrections.groupWindageCaption(corr)
+                    binding.tvRangeElev.text = Corrections.groupElevationBig(corr, useMoa)
+                    binding.tvRangeElevCaption.text = Corrections.groupElevationCaption(corr)
                 }
                 Src.KESTREL -> {
                     val k = com.rfsat.bas.environment.KestrelBallistics.lastSolution

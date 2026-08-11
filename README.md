@@ -153,6 +153,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.21.1** — corrections. Weather Information now has a single source choice — Automatic, Smartphone sensors, External device or Online service — with sub-menus for the default device and service. Coarse location is actually requested when a forecast needs it (it was declared but never asked for, which stalled every online fetch), with typed coordinates as the alternative. The unclear "Meter wind" button is gone (wind follows the chosen source), importing Kestrel gun profiles moved to the Firearm section, and Big Glance "Grouping" now reads like the other two views.
+
 **1.21.0** — feature. Settings gains "Weather Information": conditions come from the phone's sensors, a Kestrel, or an online service (Open-Meteo needs no key; OpenWeatherMap, Windy, Google Weather and Netatmo via the RFSAT proxy), supplying temperature, pressure, humidity, wind speed, gust and direction as the conditions at the firing point. The Ballistics "Kestrel" button is now "Weather" and follows that choice. `KestrelBallistics` reads the meter's own gun profiles and firing solution (read-only), and Range mode gains a Grouping / Ballistics / Kestrel selector with single-line correction text.
 
 **1.20.1** — correction. The wind field was the wrong one: 1.20.0 read @4 of the LiNK record, which holds the not-measured sentinel in every frame. Wind speed is @0 (×100 m/s) — 0 with the impeller still, 444 (4.44 m/s) when turning, matching the meter's own ~4.5 m/s. Zero is now reported as "calm" rather than "not measured".

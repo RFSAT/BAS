@@ -33,6 +33,27 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.21.1 — corrections: the weather section made sense of, and the
+        //          location that silently blocked every forecast.
+        //   - ONE source choice, not two. It was possible to set a "source" and
+        //     a "tier" independently and have them disagree. Now: Automatic,
+        //     Smartphone sensors, External device, or Online service — with
+        //     sub-menus for WHICH external device and WHICH online service.
+        //     Automatic tries the phone, then the default device, then the
+        //     default service.
+        //   - LOCATION WAS DECLARED BUT NEVER REQUESTED, so an online fetch
+        //     simply stalled with nothing to say. BAS now asks for coarse
+        //     location when a forecast needs it, explains why in one sentence,
+        //     offers typed coordinates instead, and retries once granted.
+        //   - The "Meter wind" button is gone. Wind is read from whatever
+        //     source is configured, like every other quantity; there was no
+        //     reason for it to be a separate decision.
+        //   - Importing the Kestrel\'s gun profiles moved out of the weather
+        //     section into Firearm, where a list of rifles belongs.
+        //   - Big Glance "Grouping" now reads exactly like the other two:
+        //     windage and elevation on their own lines, angle first, clicks in
+        //     the caption.
+        //
         // 1.21.0 — feature: Weather Information — three tiers, and the meter's
         //          own ballistics.
         //
@@ -3333,8 +3354,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 34
-        versionName = "1.21.0"
+        versionCode = 35
+        versionName = "1.21.1"
     }
 
     // Resolved once, here, rather than re-read from the environment in two
