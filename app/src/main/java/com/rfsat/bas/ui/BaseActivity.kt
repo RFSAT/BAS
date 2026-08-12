@@ -134,6 +134,14 @@ open class BaseActivity : AppCompatActivity() {
         findViewById<android.view.View>(R.id.btnExit)?.setOnClickListener {
             finishAffinity() // close the whole task, not just this screen
         }
+        // Back goes through the SAME dispatcher as the system gesture, so one
+        // rule governs both: whatever the hardware/gesture back would do here,
+        // this button does. Screens that handle back themselves — an open
+        // dialog, a registration step part-way through — keep that behaviour
+        // instead of being closed out from under the shooter.
+        findViewById<android.view.View>(R.id.btnBack)?.setOnClickListener {
+            onBackPressedDispatcher.onBackPressed()
+        }
         val nav = findViewById<BottomNavigationView>(R.id.bottomNav) ?: return
         if (nav.menu.findItem(selectedItemId) != null) {
             nav.selectedItemId = selectedItemId // set BEFORE the listener, to avoid a callback loop

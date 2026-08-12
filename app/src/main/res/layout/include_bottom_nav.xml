@@ -14,6 +14,27 @@
     android:orientation="horizontal"
     android:background="?attr/colorSurface">
 
+    <!-- Back sits at the FAR LEFT, mirroring Exit at the far right, and like
+         Exit it lives outside the BottomNavigationView: its menu is capped at
+         five items and these two are not tabs — they act on the stack, not on
+         which tab is current. -->
+    <LinearLayout
+        android:id="@+id/btnBack"
+        android:layout_width="44dp"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Back">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_nav_back"
+            app:tint="?android:attr/textColorPrimary"
+            android:importantForAccessibility="no" />
+    </LinearLayout>
+
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNav"
         android:layout_width="0dp"
@@ -27,7 +48,7 @@
 
     <LinearLayout
         android:id="@+id/btnExit"
-        android:layout_width="50dp"
+        android:layout_width="44dp"
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:gravity="center"

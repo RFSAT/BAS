@@ -46,6 +46,26 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.23.0 — feature: a Back button on every screen that carries the tab
+        //          bar, at the FAR LEFT, mirroring Exit at the far right.
+        //
+        //          Like Exit it sits OUTSIDE the BottomNavigationView, whose
+        //          menu is capped at five items — and neither is a tab: they
+        //          act on the stack rather than on which tab is current, so
+        //          putting them in the menu would have been wrong even if there
+        //          were room.
+        //
+        //          It goes through onBackPressedDispatcher, the same path as
+        //          the system gesture, so ONE rule governs both. That matters
+        //          on the screens that handle back themselves: a registration
+        //          part-way through, or an open dialog, keeps its own behaviour
+        //          instead of the shooter being closed out from under. Range
+        //          mode and the welcome wizard keep their own Close/Back, as
+        //          neither carries the tab bar.
+        //
+        //          Both edge buttons narrowed 50dp -> 44dp so five tabs still
+        //          have room for their labels on a 360dp screen.
+        //
         // 1.22.3 — repackage: versionCode 38 had already been uploaded to Play,
         //          and Play will not accept a code it has seen before — the
         //          rule this project\'s own versioning note states, which is
@@ -3431,8 +3451,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 39
-        versionName = "1.22.3"
+        versionCode = 40
+        versionName = "1.23.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

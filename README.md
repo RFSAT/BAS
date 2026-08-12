@@ -153,6 +153,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.23.0** — feature. A Back button at the far left of the bottom bar on every screen that carries it, mirroring Exit at the far right. It routes through `onBackPressedDispatcher`, so it behaves exactly like the system back gesture and screens that handle back themselves keep their own behaviour. Both edge buttons narrowed to 44dp so the five tabs keep their labels.
+
 **1.22.3** — repackage. Same tree as 1.22.2 under a fresh versionCode (39), because Play rejects a code it has already accepted.
 
 **1.22.2** — correction. Fixed the static check, not the code: it collected enums by simple name, so STS's `Mode {BOX, CORNERS}` and VTB's `Mode {VAPOR, TRACER, PELLET}` collided and the verdict depended on file order. A `when` is now resolved against the enum in its own file, ambiguous names are skipped, and the member pattern no longer drops the final entry (which had hidden a second false positive).
