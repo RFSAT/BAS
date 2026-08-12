@@ -46,6 +46,13 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.22.3 — repackage: versionCode 38 had already been uploaded to Play,
+        //          and Play will not accept a code it has seen before — the
+        //          rule this project\'s own versioning note states, which is
+        //          exactly why versionCode increments on EVERY build that
+        //          leaves the machine. No source change from 1.22.2; this is
+        //          the same tree under code 39.
+        //
         // 1.22.2 — correction: the static check itself was wrong, twice, and
         //          the second fault was hiding behind the first.
         //
@@ -3424,8 +3431,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 38
-        versionName = "1.22.2"
+        versionCode = 39
+        versionName = "1.22.3"
     }
 
     // Resolved once, here, rather than re-read from the environment in two
