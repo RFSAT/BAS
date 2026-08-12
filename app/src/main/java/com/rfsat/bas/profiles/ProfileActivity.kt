@@ -601,6 +601,34 @@ class ProfileActivity : BaseActivity() {
         }
         binding.btnRangeOptions.setOnClickListener { rangeOptionsDialog() }
         binding.btnRangefinder.setOnClickListener { rangefinderProbe() }
+        binding.btnLanguage.setOnClickListener { chooseLanguage() }
+        binding.btnLanguageProvider.setOnClickListener {
+            val ps = com.rfsat.bas.i18n.Translator.Provider.values()
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("How to translate")
+                .setSingleChoiceItems(ps.map { it.label }.toTypedArray(),
+                    ps.indexOf(com.rfsat.bas.i18n.Translator.provider(this))) { d, w ->
+                    d.dismiss()
+                    com.rfsat.bas.i18n.Translator.setProvider(this, ps[w]); refreshLanguage()
+                }
+                .show()
+        }
+        binding.btnLanguageKey.setOnClickListener {
+            val et = android.widget.EditText(this).apply {
+                setText(com.rfsat.bas.i18n.Translator.apiKey(this@ProfileActivity))
+                hint = "Google Cloud Translation key"
+            }
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Translation service key")
+                .setMessage("Your own key, kept on this phone. It is used only while a language " +
+                    "is being translated for the first time.")
+                .setView(et)
+                .setPositiveButton("Save") { _, _ ->
+                    com.rfsat.bas.i18n.Translator.setApiKey(this, et.text.toString()); refreshLanguage()
+                }
+                .setNegativeButton("Cancel", null).show()
+        }
+        refreshLanguage()
         binding.btnWeatherTier.setOnClickListener {
             val tiers = com.rfsat.bas.environment.WeatherTier.values()
             androidx.appcompat.app.AlertDialog.Builder(this)
@@ -967,6 +995,89 @@ class ProfileActivity : BaseActivity() {
             readEnvironment()
         }
     }
+
+    private fun refreshLanguage() {
+        val lang = com.rfsat.bas.i18n.Translator.language(this)
+        binding.btnLanguage.text = "Language: ${lang.label()}"
+        binding.btnLanguageProvider.text = when (com.rfsat.bas.i18n.Translator.provider(this)) {
+            com.rfsat.bas.i18n.Translator.Provider.ON_DEVICE -> "Translated: on device (free)"
+            com.rfsat.bas.i18n.Translator.Provider.CLOUD -> "Translated: Google Cloud (key)"
+        }
+        binding.btnLanguageKey.visibility =
+            if (com.rfsat.bas.i18n.Translator.provider(this) == com.rfsat.bas.i18n.Translator.Provider.CLOUD)
+                View.VISIBLE else View.GONE
+        binding.tvLanguageStatus.text = when {
+            lang.code == com.rfsat.bas.i18n.Languages.SOURCE.code ->
+                "Showing the original English."
+            com.rfsat.bas.i18n.TranslationStore.size() > 0 ->
+                "${com.rfsat.bas.i18n.TranslationStore.size()} phrases stored — no connection needed."
+            else -> "Not translated yet."
+        }
+    }
+
+    private fun online(): Boolean = runCatching {
+        val cm = getSystemService(android.net.ConnectivityManager::class.java)
+        val n = cm.activeNetwork ?: return false
+        val caps = cm.getNetworkCapabilities(n) ?: return false
+        caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+            caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+    }.getOrDefault(false)
+
+    /** Pick a language. English needs nothing; any other needs the network once. */
+    private fun chooseLanguage() {
+        val langs = com.rfsat.bas.i18n.Languages.ALL
+        val current = com.rfsat.bas.i18n.Translator.language(this)
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Language")
+            .setSingleChoiceItems(langs.map { it.label() }.toTypedArray(), langs.indexOf(current)) { d, w ->
+                d.dismiss()
+                applyLanguage(langs[w])
+            }
+            .show()
+    }
+
+    private fun applyLanguage(lang: com.rfsat.bas.i18n.Language) {
+        val translator = com.rfsat.bas.i18n.Translator
+        // Back to English costs nothing: the app simply stops applying the
+        // cache and redraws its own text. It is never translated back.
+        if (lang.code == com.rfsat.bas.i18n.Languages.SOURCE.code) {
+            translator.setLanguage(this, lang); refreshLanguage(); recreate(); return
+        }
+        com.rfsat.bas.i18n.TranslationStore.load(this, lang.code)
+        val corpus = readCorpus()
+        val missing = corpus.count { !com.rfsat.bas.i18n.TranslationStore.has(it) }
+        if (missing > 0 && !online()) {
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("A connection is needed once")
+                .setMessage("${lang.native} has not been translated on this phone yet. That needs " +
+                    "the internet once, to fetch the language model (about 30 MB) and translate " +
+                    "the interface. Connect, choose the language again, and it is stored for " +
+                    "good — the range does not need a signal.")
+                .setPositiveButton("OK", null)
+                .show()
+            return
+        }
+        notifyUser("Translating into ${lang.native}…")
+        translator.translateAll(this, lang, corpus,
+            onProgress = { p ->
+                if (p.done % 128 == 0) runOnUiThread { notifyUser("Translated ${p.done} of ${p.total}…") }
+            },
+            onDone = { ok, msg ->
+                runOnUiThread {
+                    notifyUser(msg)
+                    refreshLanguage()
+                    if (ok) recreate()
+                }
+            })
+    }
+
+    /** The whole interface, collected at build time by
+     *  tools/collect_ui_strings.py, so a language switch translates everything
+     *  at once rather than a screen at a time. */
+    private fun readCorpus(): List<String> = runCatching {
+        resources.openRawResource(R.raw.ui_strings).bufferedReader().readLines()
+            .map { it.trim() }.filter { it.isNotEmpty() }
+    }.getOrDefault(emptyList())
 
     private fun refreshEnvLabels() {
         binding.btnWeatherTier.text =

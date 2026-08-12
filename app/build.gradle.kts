@@ -46,6 +46,57 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.25.1 — feature: translation now costs nothing. ML Kit translates ON
+        //          THE PHONE — no API key, no per-character charge, and once a
+        //          language model is fetched (about 30 MB, the one moment a
+        //          connection is needed) it runs with no network at all. Every
+        //          one of the 24 official EU languages is supported on-device,
+        //          Irish and Maltese included, so nothing is lost by dropping
+        //          the paid path to an option.
+        //
+        //          The cloud provider stays available for a phone without Play
+        //          services, and its key field appears only when it is chosen.
+        //          The model client is opened once per language rather than per
+        //          phrase — 570 strings through a per-phrase client would
+        //          re-check the download 570 times — and closed when the run
+        //          ends. Masking of units and product names is unchanged, so
+        //          MOA and Kestrel survive either provider.
+        //
+        // 1.25.0 — feature: the interface in any EU language, translated once
+        //          and then kept.
+        //
+        //   WHY NOT PER-LANGUAGE RESOURCES. That is the textbook answer, and it
+        //   is the better one for an app written with translation in mind. BAS
+        //   is not: of ~570 visible strings, 22 are in strings.xml and the rest
+        //   are literals in layouts and Kotlin. Externalising all of them and
+        //   then maintaining 24 translations by hand is a large change with a
+        //   large surface for error — and a wrong translation of "windage" is
+        //   worse than none. So translation happens on the RENDERED VIEWS.
+        //
+        //   ONCE, THEN NEVER AGAIN. Choosing a language translates the whole
+        //   interface in batches and writes it to the phone
+        //   (translations_<code>.json). Every later launch reads the cache, so
+        //   a range with no signal is no obstacle. Choosing a language that is
+        //   not yet stored while offline says exactly that, rather than failing
+        //   silently.
+        //
+        //   ENGLISH IS NEVER TRANSLATED BACK. The cache is keyed by the
+        //   ORIGINAL English, and nothing is applied when English is selected —
+        //   the app simply draws its own text. Screens are re-inflated on a
+        //   change (an epoch counter checked in onResume), because a view
+        //   already showing translated text no longer holds the original, and
+        //   only re-inflation gets it back from the layout.
+        //
+        //   UNITS AND NAMES SURVIVE. MOA, MRAD, hPa, m/s, Kestrel, GoPro, RTSP
+        //   and the rest are masked before the call and restored after, so a
+        //   unit cannot come back as a word. Numeric rows — the conditions
+        //   table, the shot list — are left alone, since translating them would
+        //   break the columns.
+        //
+        //   The picker lists all 24 official EU languages, each naming itself
+        //   with its flag. tools/collect_ui_strings.py gathers the corpus and
+        //   CI regenerates it, so a new string cannot silently go untranslated.
+        //
         // 1.24.0 — corrections, all of them about text and controls behaving
         //          the same way wherever they appear.
         //
@@ -3514,8 +3565,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 43
-        versionName = "1.24.0"
+        versionCode = 45
+        versionName = "1.25.1"
     }
 
     // Resolved once, here, rather than re-read from the environment in two
@@ -3616,6 +3667,10 @@ dependencies {
 
     // Profile / target / session persistence
     implementation("com.google.code.gson:gson:2.11.0")
+    // On-device translation: free, no API key, and once a language model is
+    // downloaded it runs with no connection at all — which is the whole point
+    // on a range. ~30 MB per language, managed by Play services.
+    implementation("com.google.mlkit:translate:17.0.3")
 
     // Encrypted storage for the Claude API key. A key that bills the user's
     // own account does not belong in plain SharedPreferences, where any

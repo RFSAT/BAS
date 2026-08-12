@@ -153,6 +153,10 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.25.1** — feature. Translation is now free: ML Kit runs it on the phone, with no API key and no per-character cost. A connection is needed once to fetch the language model (~30 MB); everything after that is offline. All 24 EU languages are supported on-device, Irish and Maltese included. The paid cloud provider remains as an option, and its key field only appears when it is selected.
+
+**1.25.0** — feature. The interface can be shown in any of the 24 official EU languages. Choosing one translates the whole UI at once and stores it on the phone, so the network is needed only that once — and the app says so plainly if you pick an untranslated language while offline. English is never translated back: the cache is keyed by the original text and simply stops being applied. Units and product names are masked so they survive intact. Settings → Language.
+
 **1.24.0** — corrections. Every bullet list now hangs its wrapped lines under the text rather than the mark (ballistics warnings, welcome screen and camera scan report joined the scoring warnings in using the `Bullets` helper); the "smaller than one click" warning is split into its two statements; Back is hidden on Home, where it would otherwise close the app; and Competition rules' "Copy & edit" and "Delete" are proper buttons like "Use this".
 
 **1.23.2** — refinement. Conditions are shown as an aligned table — quantity, value, unit and source in fixed monospaced columns, matching the scoring screen's correction figures — on both the Ballistics view and in Settings, with gust and direction on their own rows.

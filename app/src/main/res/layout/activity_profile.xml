@@ -500,7 +500,29 @@
                 style="@style/Sts.ActionButton" />
 
             <!-- ===== Environmental devices ===== -->
-            <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Weather Information" />
+                        <!-- ===== Language ===== -->
+            <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Language" />
+            <TextView android:justificationMode="inter_word" style="@style/Sts.FieldLabel"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="The interface is written in English and translated on demand. Translation runs on the phone and is free — a connection is needed once, to fetch the language model, and never again. The result is kept, so the range needs no signal. Units and names — MOA, MRAD, hPa, Kestrel, GoPro — are never translated." />
+            <Button android:id="@+id/btnLanguage"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                style="@style/Sts.ActionButton"
+                android:text="Language: English" />
+            <Button android:id="@+id/btnLanguageProvider"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                style="@style/Sts.ActionButton"
+                android:text="Translated: on device (free)" />
+            <Button android:id="@+id/btnLanguageKey"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                style="@style/Sts.ActionButton"
+                android:text="Translation service key…" />
+            <TextView android:id="@+id/tvLanguageStatus"
+                style="@style/Sts.FieldLabel"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="" />
+
+<TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Weather Information" />
             <TextView android:justificationMode="inter_word" style="@style/Sts.FieldLabel"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:text="Where temperature, pressure and humidity come from. Air conditions change the trajectory, so a real meter is worth having — but the phone alone is enough to start." />

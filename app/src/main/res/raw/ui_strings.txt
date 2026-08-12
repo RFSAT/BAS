@@ -1,0 +1,570 @@
+BAS Ballistics and Scoring
+Home
+Session
+Results
+Targets
+Settings
+Rules
+Log
+Exit
+Built for long range: the shot's vapour trail is read for crosswind and turned into a scope correction, then the group is scored to confirm it. Centrefire rifle in .308, 6.5 Creedmoor, .223 and similar chamberings out to 1000 yards, with rimfire and air disciplines supported at shorter ranges.
+About the developer
+BAS is developed by Dr Artur Krukowski. It integrates target scoring and vapour-trail ballistics into one application, sharing a design principle: the physics and the rules are written down explicitly in the source, with their assumptions stated, so a shooter can see exactly why the app produced the number it did.
+BAS is a training and practice aid. Official match results are determined by the appointed jury under the current rulebook of the governing body. Ring dimensions and rule parameters shipped with the app are nominal published figures and are editable — verify them against the rulebook in force for your competition.
+Operate the app only from behind the firing line, with the firearm made safe and the range in a condition permitted by the range officer. Never handle a phone and a loaded firearm at the same time.
+Ballistics
+Scoring
+Record
+Stop
+Analyze trail
+Import video
+Mark boresight
+Use this
+Copy & edit
+Delete
+Add my own target…
+Grouping
+GROUP — dial to centre
+Close
+Barrel/twist from manufacturer specs; zero distance is a starting point — set your actual zero and confirm on paper.
+Brand
+Type
+Display and units
+Theme
+Units
+Show the diagnostic log on the Home screen
+Full screen (hide the system bars)
+Viewfinder reticle
+Drawn over the camera picture to help line it up. Choose None when the camera looks through a scope that already shows one.
+More info
+Wi-Fi camera setup
+Tell the app how the camera itself is set. It changes nothing on the camera — it lets the app know what the picture will be, and say so when a setting will cost you a score.
+Zoom
+Video size
+White balance
+Exposure compensation (EV)
+Mains frequency
+Red dot is switched on
+Image stabilisation is switched on
+Stream lens correction
+Straightens live frames from a camera with a wide lens. Measure the figure once on Import, from a photo taken with the same camera, then enter it here. 0 is off.
+Detection algorithms
+Where the scale comes from
+How the app works out millimetres per pixel. Cross-check is safest — it usually catches a wrong target face.
+Measure ring spacing only along the tilt axis
+Experimental. May help on cards photographed at an angle, and may make them worse. Leave off unless you are testing it.
+Find shots in the photograph itself
+Leave on. Finds shots in the photograph itself, including inside the black — with it off, centre hits are often missed.
+Require a shot to have the profile of a puncture
+Fewer false hits: rejects printed marks that happen to look like shots.
+Also find shots that missed the rings
+Shows shots that missed the rings. They score nothing, and printing near the edge of the card may be marked too.
+Scale from circles fitted to each printed ring
+No visible difference on a flat card. May help on cards photographed at an angle.
+AI-assisted processing
+Ask an AI service to check a card. Needs a connection and costs a fraction of a penny each time.
+On import, score with:
+Embedded uses the app's own detection. Naming a service hands it the whole card — needs a connection, and positions are less precise.
+Enable the second opinion button
+Second opinion asks:
+Let the AI answer override the app
+Applies the AI answer without asking. Useful when the app marks things that are not shots; positions are less precise than the app's.
+Service to set up:
+Model:
+Set API key…
+Forget key
+Each service needs its own key, from its own console. Not the password you sign in to the chat service with. Kept encrypted on this device.
+Profile sets
+Apply
+Save as…
+Firearm
+Import gun profiles from the Kestrel…
+Pick from the catalogue…
+Name
+Chambering
+Barrel length (in)
+Twist rate (1 turn in … in)
+Sight height above bore (in)
+Zero distance (m)
+Ammunition
+Projectile diameter (in)
+Weight (gr)
+Muzzle velocity (fps)
+Ballistic coefficient (G1)
+Optics and Sights
+Sight type
+Click unit
+Click movement (mm) at the reference distance
+Reference distance (m)
+Sight radius (mm, iron sights only; 0 = unknown)
+Elevation travel (MOA)
+Windage travel (MOA)
+Elevation drum is marked the opposite way round
+Windage drum is marked the opposite way round
+Save the active profiles
+Weather Information
+Where temperature, pressure and humidity come from. Air conditions change the trajectory, so a real meter is worth having — but the phone alone is enough to start.
+Source: weather meter
+Default external device…
+Online service…
+Position for forecasts…
+Read conditions now…
+Rangefinder and distance
+How the range to the target is obtained. Leica, Vortex and SIG BDX-X units can be bridged through a Kestrel 5700 Elite; others connect directly. Entering it by hand always works.
+Rangefinder: Enter by hand
+Test the link — read a range…
+Diagnostics: probe a device…
+Forget the learned range signal
+Target faces
+Target faces…
+Competition rules
+Competition rules…
+Other options
+Camera defaults…
+Run first-time setup again…
+Range options (speech, keep-awake)…
+Diagnostic log…
+Backup and reset
+Export a backup of everything
+Restore from a backup
+Reset to defaults
+Enter your chronographed average. A second measurement at a different temperature (≥3°C apart) also solves the MV temperature coefficient.
+Measured MV (fps)
+Temp (°C)
+2nd MV (fps, optional)
+2nd Temp (°C)
+Target face
+Ballistics (wind)
+Target
+Wind
+Impact
+Apply wind estimate to other profile
+Speak: off
+History
+Add
+Move
+Whole card
+Reset view
+My photo
+Sight correction
+Group
+Shot distribution
+Series
+Worth knowing
+Stage time (practical disciplines)
+Notes
+Shots
+Second opinion
+Share report
+Export CSV
+Clear all shots from this session
+Finish and start a new session
+conditions, hold-off, anything worth remembering
+Published optical/turret specs — verify against your scope's manual; travel varies by tube and reticle.
+Click
+Magnification
+Welcome to BAS
+Back
+Next
+Skip — use the defaults
+Active setup
+Profile set
+Load
+Sight
+Distance
+Diagnostic log
+Range mode — big glance display
+Resume the session in progress
+What this app does
+Before you rely on a score
+developed by Dr Artur Krukowski
+Published figures from test barrels — verify against your box; chronograph and drop-calibrate for best accuracy.
+Manufacturer
+Calibre
+Velocity
+Weight
+Share log
+Full report
+Clear log
+1. Choose the photographs
+Photo of the shot target
+Photo of the clean target (optional, much more accurate)
+With both photographs the app scores what CHANGED between them, which ignores the printed rings, the paper texture and the aiming mark entirely. With only the shot target it has to tell holes from printing by shape and size alone, which works but is the weaker mode.
+2. Course of fire
+3. Register the target
+Identify target and register
+Fits the printed rings, works out which target face it is, and takes the scale from the ring spacing. More accurate than the aiming mark alone, and it does not depend on the face selected above being right.
+Auto-detect the target
+Uses the target face selected above without searching for a better one, finds the black centre, fits the printed rings and draws them. Check the box, then drag a corner handle to resize it or the middle to move it.
+Photo taken at an angle — register by tapping the four card corners instead
+Register
+Reset
+Image aspect
+Stretches the picture itself so the printed rings come out round. Use it when the drawn circles sit over the printing on one axis but not the other. The picture is re-registered afterwards.
+Width %
+Height %
+Apply and re-register
+Original picture
+Lens distortion
+Straightens a picture bowed by a wide lens. Measured from the printed rings; matters at close range and hardly at all down a range.
+Coefficient
+Tilt and rotation
+Match the dashed outline to the rings. Rotation turns the target in the picture; the two tilts lean it away from the camera, one about each axis. If the outline gets worse, drag the slider the other way — a symmetric mark cannot say which way a target leans, so the starting guess picks a side.
+Rotation
+Horizontal tilt
+Vertical tilt
+Apply estimated tilt
+Reset tilt
+4. Score
+Replace the shots already in this session
+Clear all recorded shots
+Detect the hits and score them
+Open the full results
+The photographed target
+Course of fire
+Distance source ▾
+Frame source
+What can this camera be told?
+↻ Reconnect
+Registration
+The app finds the black centre and draws a square box around the scoring area. Drag a handle to adjust it, or the middle to move it. Registration ties image pixels to millimetres; without it nothing can be scored.
+Target viewed at an angle — register by tapping the four card corners instead
+Upload a target photo to score
+Camera: Phone ▾
+Configure ▾
+Or score live, as you shoot:
+Alignment guide
+Guide size
+Analysis resolution
+Lock exposure and focus
+A phone camera re-meters and re-focuses continuously. Between two frames of the same card that changes the brightness of everything, which is precisely what differential detection looks for, and re-focusing shifts the field of view enough to make the registration stale. Locking happens automatically when you register; this releases it if the light changes for real.
+Capture clean target (reference)
+Start live detection
+Score the target now (single frame)
+Undo shot
+Record the next shots as sighters
+Use the microphone to time shots (helps outdoors; turn off on a busy indoor range)
+Arm (Auto-Trigger)
+Target (m)
+Distance ▾
+FOV (° @1×)
+Zoom (×)
+Camera zoom: 1×
+Weather
+Shot break (s) — auto
+Source
+Save
+Auto-collect: off
+Sensitivity %
+blank = from the sound
+ELEVATION — from the Kestrel
+$n shots
+Step ${step + 1} of ${steps.size}
+Share
+Dismiss
+This combination uses figures that are the commonly published ones rather than
+Resume — ${ScoringSession.state.shots.size} shot(s) recorded
+That image could not be used: ${it.message}
+Your reticle will be drawn over the viewfinder, at the guide size set on the
+Settings failed to load: ${it.message}
+Imports will be scored by the app's own algorithms.
+${p.label} has no key — the button would have nothing to call.
+Live frames are used as they come.
+That is not a usable coefficient. Measure one on the Import screen,
+Live frames will be straightened with k = %.3f.
+Other ${p.label} model
+Type the model identifier exactly as the service publishes it.
+Use
+${p.label} will use $v.
+Cancel
+${target.label} API key
+From ${target.console}, not the password you sign in
+Nothing entered.
+This device would not give the app encrypted storage, so the key has
+${p.label} key forgotten.
+Misses will be reported. The puncture test has been switched on with it:
+Scale source set to \u201c${chosen.label}\u201d. Re-register any target
+Conditions at the firing point
+Default external device
+Online weather service
+${svc.label} key
+Your own key, kept on this phone. Netatmo goes through the RFSAT proxy and needs no key here.
+Position for forecasts
+Forgotten — the next reading will ask for confirmation again.
+Reset to defaults?
+This returns BAS to factory settings: equipment, cameras, rangefinder,
+Reset everything
+Reset to defaults. The welcome screen will appear on the next start.
+Saved. The active profile set is now shown as edited — use 'Save as…' to keep it.
+Applied '${set.name}'.
+Save the current firearm, load and sight as a set
+A set needs a name.
+Saved '$name'.
+Delete '${set.name}'?
+No profiles read
+The Kestrel's ballistics blocks came back empty. Open its
+Open Log
+Profiles on the Kestrel
+No Kestrel found.
+Where are you shooting?
+An online forecast is for a place, so BAS needs either permission
+Allow location
+Type coordinates
+Fetching conditions…
+Read from the phone's sensors.
+Looking for the meter…
+No meter found — check it is switched on and nearby.
+Set to enter distance by hand — choose a rangefinder first.
+Range: ${String.format(
+Rangefinder: connecting — then range a target while it listens.
+Scanning for a rangefinder…
+No rangefinder found — make sure it is on and discoverable. Advertisers seen were logged (Log tab).
+Range options
+Camera defaults
+Default camera: ${it.label}
+Firearm catalogue
+Loaded ${e.brand} ${e.model}. Adjust the fields for your own rifle.
+Ammunition catalogue
+Loaded ${e.manufacturer} ${e.product}. Published figures — refine them
+Sight catalogue
+Loaded ${e.brand} ${e.model}.
+This replaces your profile sets, custom targets and custom rules with the
+Restore
+BAS ${com.rfsat.bas.BuildConfig.VERSION_NAME} (build ${com.rfsat.bas.BuildConfig.VERSION_CODE}, ${com.rfsat.bas.BuildConfig.BUILD_TYPE})
+Set key applies to: ${CloudSettings.setupProvider(this).label}
+Model for ${CloudSettings.setupProvider(this).label}:
+Power factor ${
+Source: ${com.rfsat.bas.environment.WeatherConfig.tier(this).label}
+Default device: ${com.rfsat.bas.environment.EnvDeviceConfig.source(this).label}
+Online service: ${com.rfsat.bas.environment.WeatherConfig.service(this).label}
+Rangefinder: ${com.rfsat.bas.environment.DistanceConfig.model(this).label}
+${shown.size} of ${RifleCatalog.all.size} firearms
+${shown.size} of ${AmmoCatalog.all.size} loads
+${shown.size} of ${ScopeCatalog.all.size} sights
+${it.name} is now the active target.
+Built-in faces cannot be deleted — copy one instead.
+Delete ${face.name}?
+Sessions already scored against this face keep their scores, but the plot will
+Keep
+The ten-ring diameter and the ring pitch must both be greater than zero.
+Saved as '${saved.name}'.
+Add my own target
+Added '${saved.name}'.
+No target selected.
+This screen failed to start: ${it.message}
+Target face switched to ${faces[idx].name} to match the rules.
+All recorded shots cleared.
+Showing the last photo you scored. Pick another to replace it, or register and
+Choose a photo first.
+Both figures must be percentages between %.0f and %.0f.
+The picture could not be resized — it may be too large for this device.
+Picture stretched to %.1f%% by %.1f%%. Registering again from the new pixels.
+The coefficient must be a number between %.2f and %.2f. Negative straightens a
+The picture could not be corrected — it may be too large for this device.
+Lens correction applied. Registering again from the corrected picture.
+The picture is already the original.
+Back to the original picture. Registering it again.
+That image could not be read. Try a JPEG or PNG from the gallery.
+Clean target loaded. Register the SHOT target below; the clean one is
+Choose a photo of the shot target first.
+No black aiming mark could be found, so a box has been placed in the middle
+Tap all four corners of the card — ${binding.overlay.cornerCount()} of 4 so far.
+Those four taps do not form a quadrilateral. Tap the corners in order, going clockwise.
+Tap “Auto-detect the target” first, or drag a box around the scoring area.
+This face has no ${boxMeaning.label.lowercase()} for a box to measure.
+Registered. Now detect the hits.
+The card could not be flattened for scoring; falling back to the app's own detection.
+Scoring with ${provider.label}…
+Register the card first.
+No picture to work from yet.
+The printed rings could not be fitted — the target may be cropped, very low
+The rings were fitted, but no catalogue face matches these proportions.
+${face.name} has unevenly pitched rings, so a fitted pitch cannot set its
+The aiming mark looks round, so there is no tilt to apply.
+Applied the estimated tilt. If the dashed outline now fits the rings worse,
+Distance (${UnitsManager.distanceUnitLabel()})
+Stretched to width %.1f%%, height %.1f%% of the original.
+The rings are evenly spaced; no lens correction needed.
+Original picture.
+No shots recorded.
+Rotation  %+.1f°
+Horizontal tilt  %+.1f°
+Vertical tilt  %+.1f°
+GoPro: fetching the latest photo…
+No GoPro photo found — see the Log tab.
+GoPro live stopped
+GoPro: starting live view…
+Preview surface not ready — tap again.
+Target distance
+Type the distance.
+Rangefinder: ${it.label}
+Distance ${String.format(
+Rangefinder: connecting — range a target; readings go to the Log.
+No rangefinder found — see the Log tab.
+Phone camera — no configuration.
+Choose "RTSP/MJPEG stream" as the source below and enter its address.
+Connecting to ${type.label} Wi-Fi…
+No file found from ${type.label} — see the Log tab.
+Analysis resolution set to ${chosen.label}. The camera has been rebound and
+Camera released. It will meter and focus by itself again.
+Exposure, white balance and focus locked at the centre of frame.
+This camera would not accept the lock; carry on without it.
+The camera could not be started: ${it.message}
+Without camera access the app can still score by hand on the Results screen.
+Already connecting…
+Already connected to ${externalSource?.label}.
+Enter the stream address first.
+Asking the camera what it answers — this takes a few seconds.
+An MJPEG address starts with http. For an rtsp:// address choose
+An RTSP address starts with rtsp. For an http:// address choose
+Waiting for the video surface…
+The stream view never became ready, so nothing could be decoded.
+No frame yet — is the camera or stream running?
+No black aiming mark could be found, so a box has been placed in the middle for
+Found the target. Check the box, then Register.
+Tap all four corners of the card first — ${binding.overlay.cornerCount()} of 4 so far.
+Those four taps do not define a quadrilateral. Tap the corners in order, going clockwise.
+Registered. Capture the clean target next, then start live detection.
+Register the target first.
+No frame yet — is the source running?
+Reference captured at ${frame.width} x ${frame.height}. Everything that appears
+No frame available yet.
+Taking a full-resolution photograph\u2026
+The photograph could not be matched to the registration, so the preview
+No clean reference was captured, so the target is being read from a single frame.
+No new holes found.
+Shot ${last.index}: ${last.displayValue}  (${last.clockPosition})
+Exposure, white balance and focus are now locked so that later frames can be
+${face.name} has unevenly pitched rings, so a fitted pitch cannot set its scale.
+Camera: ${com.rfsat.bas.capture.CameraConfig.type(this).label} ▾
+Guide size — %d%% of the screen
+No shots recorded yet.
+Rangefinder
+Is this the range?
+The rangefinder sent a value that reads as
+Yes, use it
+No, keep listening
+Camera permission is required to capture the trail.
+Video imported — ready to analyze. Note: clips recorded with stabilization ON can bias wind estimates.
+Video source
+Was this clip recorded by “${scope.name}”? If so, enter the magnification used and the analysis geometry is set from the scope's optics.
+From scope
+Scope geometry applied (${scope.name}, ${z}×). Ready to analyze.
+Phone camera
+No Kestrel found nearby — make sure it's on and close by. Advertisers seen were logged (Log tab).
+Kestrel connected but no readable environment values — its GATT layout was logged (Log tab) for exact wiring.
+Camera unavailable on this device — Import still works. See the Log tab.
+Could not open the camera — Import still works. See the Log tab.
+No recorded stream to export yet — record from an RTSP source first.
+Stream clip exported (${f.length() / 1024} KB).
+Export failed: ${t.message}
+Stream captured (${active.framesWritten} frames). Tap Save to export the clip, or Analyze to process it.
+No video received from the scope — see the Log tab and share it; the RTSP handshake there identifies the fix. ${active.lastError ?:
+Type the distance in metres.
+Target distance ${String.format(
+Rangefinder: connecting — range a target while it listens; readings go to the Log.
+No rangefinder found — check it is on. Advertisers seen were logged (Log tab).
+Zero / calibration distance
+The range ${rifle.name} is zeroed at. Saved to the rig and used for the ballistic solution.
+Use and save
+Enter a distance in metres.
+Zero distance saved: ${String.format(
+Fill only
+Auto-collect needs a file camera (GoPro / TACTACAM / ShotKam).
+Auto-collect armed — record with the camera; new clips are collected and analysed.
+Collected ${f.name} — analysing…
+Phone camera — no network configuration.
+Downloaded ${f.name} — tap Analyze.
+RTSP / MJPEG
+GoPro (10.5.5.9)
+GoPro: $label…
+GoPro: fetching the latest clip…
+GoPro download failed — see the Log tab.
+GoPro: reading state…
+GoPro state
+GoPro live is already running
+GoPro: starting live preview…
+Preview surface not ready — tap again in a moment.
+GoPro live is not running
+Scanning the camera's Wi-Fi… (progress in the Log tab)
+Download newest
+Connecting to the camera's Wi-Fi…
+Download failed — see the Log tab.
+Download latest from camera
+Connect this phone to the camera's Wi-Fi first, then confirm the camera's address.
+Download
+Could not fetch a file from ${preset.name}. See the Log tab — it lists the endpoints tried so the exact path can be added.
+Microphone permission is required for auto-trigger.
+Camera isn't ready yet.
+Preview isn't ready yet — try again in a moment.
+No video available yet — record or import one first.
+Camera FOV must be 10–120° (got ${
+Zoom must be 0.5–50× (got ${
+Could not read the video file — see Log.
+Note: this source has image stabilization set ON, which moves the frame and biases the wind estimate. Turn it OFF on the camera for best results.
+Projectile not trackable on this clip \u2014 analysed the vapor trail instead.
+Analysis failed: ${t.message}. See the Log tab for details.
+Target (${com.rfsat.bas.ui.UnitsManager.distanceUnitLabel()})
+Camera zoom: ${value.toInt()}×
+Camera zoom: ${saved}×
+Scanning for Kestrel…
+Reading Kestrel…
+Live source: ${source.name} \u2014 ${streamUrl()}. Connecting for preview\u2026 press Capture to record.
+Acquiring Wi-Fi network…
+Scope stream: $msg
+Camera: ${CameraConfig.type(this).label} ▾
+Auto-collect: armed
+Disarm
+Listening for shot…
+Shot detected — recording…
+Recording (~${
+Recording complete — ready to analyze.
+Camera
+${type.label} address
+${it.name} is now the active course of fire, with its own target face.
+Built-in rule sets cannot be deleted — copy one instead.
+No rule set selected.
+${r.name}\n${r.summary()}
+Tap a shot on the plot first — with Add and Move both off — and it will be
+Removed shot %d, worth %s, at %.1f, %.1f mm.
+No photograph is stored for this session. Score a target from a photo
+Could not render the results: ${it.message}
+Shot ${shot.index}: ${shot.displayValue}
+Nothing left to remove.
+Removed ${victims.size}. Undo by adding them back from the plot.
+Remove unsupported marks
+Remove all ${victims.size}
+Removed $outside outside the scoring rings.
+Keep them
+There are no shots to clear.
+Clear all shots?
+${ScoringSession.state.shots.size} shot(s) will be removed. The target, rules and
+Clear
+Shot ${shot.index} moved: ${shot.displayValue} → ${rescored.displayValue}
+Shot ${shot.index} — ${shot.displayValue}
+%.2f mm right, %.2f mm up (%.2f mm from centre, %s)\n%s, confidence %.2f
+Set an API key for the service the second opinion asks, in Settings, and
+There is no photograph in this session to look at. The second opinion reads the
+Asking ${provider.label}…
+Review %d to remove
+Add %d missed
+Add %d suggested
+No shots recorded yet — history fills as analyses complete.
+Shot history (newest first)
+Shot history cleared.
+No analysis data to export.
+No saved profile sets — create them in Profiles ("Save as set").
+Apply measured wind to…
+Compute
+Correction for "${set.name}"
+Score the target ▸
+No analysis yet — run a capture first.
+${fmt1(UnitsManager.displayDistance(AnalysisSession.targetDistanceYd * 0.9144))}
+$windArrow ${fmt2(abs(adjustment.windageScopeUnits))} ${adjustment.scopeUnitLabel}
+WINDAGE — ${abs(adjustment.windageClicks)} clk ${adjustment.windageDirection}
+$elevArrow ${fmt2(abs(adjustment.elevationScopeUnits))} ${adjustment.scopeUnitLabel}
+ELEVATION — ${abs(adjustment.elevationClicks)} clk ${adjustment.elevationDirection}
+${fmt1(UnitsManager.displayDistance(AnalysisSession.targetDistanceYd * 0.9144))} $dU
+${fmt1(UnitsManager.displaySpeed(abs(adjustment.estimatedCrosswindMps)))}$sdTxt $sU
+${fmt1(UnitsManager.displaySpeed(kotlin.math.abs(mean)))} ±${fmt1(UnitsManager.displaySpeed(sem))} $sU
+${fmt1(UnitsManager.displayOffset(abs(latM)))} $oU ${if (latM >= 0)

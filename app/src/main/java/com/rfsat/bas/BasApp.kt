@@ -46,6 +46,7 @@ class BasApp : Application() {
         runCatching { ThemeManager.init(this) }
         runCatching { UnitsManager.init(this) }
         runCatching { com.rfsat.bas.ui.RangeSettings.init(this) }
+        runCatching { com.rfsat.bas.i18n.Translator.init(this) }
         runCatching { com.rfsat.bas.ui.Speaker.init(this) }
         runCatching { com.rfsat.bas.detect.ScaleSettings.init(this) }
         runCatching { com.rfsat.bas.targets.TargetRepository(this).seedBuiltInsIfEmpty() }

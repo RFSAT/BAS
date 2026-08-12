@@ -21,8 +21,23 @@ open class BaseActivity : AppCompatActivity() {
         runCatching { enterFullScreen() }
     }
 
+    /** The language generation this screen was inflated for. */
+    private var inflatedEpoch: Int = com.rfsat.bas.i18n.Translator.epoch
+
     override fun onResume() {
         super.onResume()
+        runCatching {
+            // A screen built under the previous language still holds that
+            // text in its views; re-inflating is what restores the original
+            // English (or picks up the new language) rather than patching
+            // over what is already there.
+            if (inflatedEpoch != com.rfsat.bas.i18n.Translator.epoch) {
+                inflatedEpoch = com.rfsat.bas.i18n.Translator.epoch
+                recreate()
+                return
+            }
+            com.rfsat.bas.i18n.Translator.apply(window?.decorView)
+        }
         runCatching { applyImeInsets() }
         runCatching {
             if (RangeSettings.keepAwake())
