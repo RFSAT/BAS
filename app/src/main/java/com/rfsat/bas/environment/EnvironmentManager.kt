@@ -121,19 +121,47 @@ object EnvironmentManager {
     /** Conditions from an online service. Marked with the service's own name,
      *  because a forecast describes a region and the status line should say so
      *  rather than let it pass for a measurement taken here. */
-    fun setFromService(tempC: Double?, pressPa: Double?, humFrac: Double?, source: String) {
+    /**
+     * How much a source is worth, per quantity. A meter measures the air at the
+     * firing point; the phone measures it too, for the little it can sense; a
+     * forecast describes a region and is the weakest of the three.
+     */
+    fun rankOf(source: String): Int = when {
+        source.isBlank() -> 0
+        source.equals("standard", true) || source.equals("default", true) -> 0
+        source.equals("phone", true) -> 2
+        source.contains("kestrel", true) -> 3
+        else -> 1   // an online service
+    }
+
+    /**
+     * Conditions from an online service. With [force] false — which is what
+     * Automatic uses — this FILLS GAPS ONLY: it never replaces a value a real
+     * instrument measured. Running the three tiers in turn and letting each
+     * overwrite the last is how a phone's own barometer reading ended up
+     * replaced by a forecast, which was the bug this rank exists to stop.
+     */
+    fun setFromService(tempC: Double?, pressPa: Double?, humFrac: Double?, source: String,
+                       force: Boolean = true) {
         val prev = current
+        val r = rankOf(source)
+        fun beats(existing: String) = force || r >= rankOf(existing)
+        val takeT = tempC != null && beats(prev.temperatureSource)
+        val takeP = pressPa != null && beats(prev.pressureSource)
+        val takeH = humFrac != null && beats(prev.humiditySource)
         current = prev.copy(
             atmosphere = prev.atmosphere.copy(
-                temperatureC = tempC ?: prev.atmosphere.temperatureC,
-                seaLevelPressurePa = pressPa ?: prev.atmosphere.seaLevelPressurePa,
-                relativeHumidity = humFrac ?: prev.atmosphere.relativeHumidity
+                temperatureC = if (takeT) tempC!! else prev.atmosphere.temperatureC,
+                seaLevelPressurePa = if (takeP) pressPa!! else prev.atmosphere.seaLevelPressurePa,
+                relativeHumidity = if (takeH) humFrac!! else prev.atmosphere.relativeHumidity
             ),
-            temperatureSource = if (tempC != null) source else prev.temperatureSource,
-            pressureSource = if (pressPa != null) source else prev.pressureSource,
-            humiditySource = if (humFrac != null) source else prev.humiditySource
+            temperatureSource = if (takeT) source else prev.temperatureSource,
+            pressureSource = if (takeP) source else prev.pressureSource,
+            humiditySource = if (takeH) source else prev.humiditySource
         )
-        Logger.i(TAG, "Environment from $source: ${describe()}")
+        Logger.i(TAG, "Environment from $source (force=$force): kept " +
+            "temp=${current.temperatureSource} pressure=${current.pressureSource} " +
+            "humidity=${current.humiditySource}")
         persist()
     }
 
@@ -142,8 +170,15 @@ object EnvironmentManager {
         persist()
     }
 
-    fun setWind(speedMps: Double?, directionDeg: Double?, source: String = "Kestrel") {
+    fun setWind(speedMps: Double?, directionDeg: Double?, source: String = "Kestrel",
+                force: Boolean = true) {
         if (speedMps == null && directionDeg == null) return
+        // Nothing measured by an instrument is replaced by a forecast.
+        if (!force && current.windSpeedMps != null &&
+            rankOf(source) < rankOf(current.windSource)) {
+            Logger.i(TAG, "Wind from $source ignored — ${current.windSource} already measured it")
+            return
+        }
         current = current.copy(
             windSpeedMps = speedMps ?: current.windSpeedMps,
             windDirectionDeg = directionDeg ?: current.windDirectionDeg,
@@ -279,6 +314,8 @@ object EnvironmentManager {
                 r.windGustMps?.let { " gust %.1f".format(it) } ?: "",
                 r.windDirectionDeg?.let { " @ %.0f°".format(it) } ?: "",
                 r.windSource.ifBlank { "meter" })
+            r.windSource.isNotBlank() && rankOf(r.windSource) == 1 ->
+                " · no wind from ${r.windSource}"
             else -> " · wind not measured"
         }
         return "%.1f°C (%s) · %.0f hPa (%s) · %.0f%% RH (%s)%s%s".format(

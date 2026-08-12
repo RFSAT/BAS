@@ -33,6 +33,42 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        //          WIND FROM THE SERVICES, checked one by one: Open-Meteo
+        //          (wind_speed_10m / _direction_10m / _gusts_10m),
+        //          OpenWeatherMap (wind.speed/deg/gust), Windy (U/V surface
+        //          components) and Google Weather all report it — the request
+        //          BAS makes already asks for it. Netatmo is the exception: its
+        //          public stations carry wind only where the owner has fitted
+        //          an anemometer module, so it is labelled as such in the
+        //          picker. Every fetch now logs what each provider returned per
+        //          quantity, with wind marked NOT PROVIDED when the service
+        //          itself omitted it, and the status line says "no wind from
+        //          <service>" rather than the ambiguous "wind not measured",
+        //          which could not be told apart from a still impeller.
+        //
+        // 1.22.0 — feature + correction: what "Automatic" actually means, and
+        //          sections you can tell apart.
+        //
+        //   AUTOMATIC WAS OVERWRITING ITSELF. It ran phone, then meter, then
+        //   online — and each stage replaced whatever the last had put there,
+        //   so a phone barometer reading (measured HERE) was quietly overridden
+        //   by a forecast (computed for a region). Sources now carry a RANK:
+        //   meter 3, phone 2, online 1. In Automatic each stage FILLS GAPS
+        //   ONLY and never replaces a better-ranked measurement, so the phone
+        //   keeps pressure, a Kestrel takes everything it measures, and the
+        //   service supplies just what neither could — typically temperature,
+        //   humidity and, with no meter present, the wind. Choosing a source
+        //   explicitly still forces it, because that is an instruction rather
+        //   than a fallback. Every quantity's source is named in the status
+        //   line, so the mixture is visible rather than implied.
+        //
+        //   SETTINGS SECTIONS are now visually separate: a monochrome icon
+        //   beside each heading, tinted from the theme, and the body inside the
+        //   same rounded panel the Home screen uses. Built in code from the
+        //   tagged headings, so the long layout needed no restructuring. The
+        //   Results screen's Shots and Shot distribution blocks got the same
+        //   panel.
+        //
         // 1.21.1 — corrections: the weather section made sense of, and the
         //          location that silently blocked every forecast.
         //   - ONE source choice, not two. It was possible to set a "source" and
@@ -3354,8 +3390,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 35
-        versionName = "1.21.1"
+        versionCode = 36
+        versionName = "1.22.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

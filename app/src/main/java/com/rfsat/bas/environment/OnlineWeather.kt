@@ -42,7 +42,7 @@ object OnlineWeather {
             Logger.w(TAG, "${svc.label}: no API key set")
             return null
         }
-        return runCatching {
+        val c = runCatching {
             when (svc) {
                 OnlineService.OPEN_METEO -> openMeteo(lat, lon)
                 OnlineService.OPEN_WEATHER_MAP -> owm(lat, lon, key)
@@ -51,6 +51,22 @@ object OnlineWeather {
                 OnlineService.NETATMO -> netatmo(lat, lon, key)
             }
         }.onFailure { Logger.e(TAG, "${svc.label} failed", it) }.getOrNull()
+        // Say exactly what came back, per quantity. "Wind not measured" with no
+        // further detail was impossible to act on: it could not be told apart
+        // from a service that simply does not report wind.
+        if (c == null) Logger.w(TAG, "${svc.label}: no usable response")
+        else Logger.i(TAG, "${svc.label} @ %.4f,%.4f -> temp=%s press=%s hum=%s wind=%s gust=%s dir=%s"
+            .format(lat, lon,
+                c.temperatureC?.let { "%.1fC".format(it) } ?: "—",
+                c.pressureHpa?.let { "%.1fhPa".format(it) } ?: "—",
+                c.humidityPct?.let { "%.0f%%".format(it) } ?: "—",
+                c.windMps?.let { "%.1fm/s".format(it) } ?: "NOT PROVIDED",
+                c.windGustMps?.let { "%.1fm/s".format(it) } ?: "—",
+                c.windFromDeg?.let { "%.0f°".format(it) } ?: "—"))
+        if (c != null && c.windMps == null && svc == OnlineService.NETATMO)
+            Logger.w(TAG, "Netatmo: no wind — public stations only report it when the owner " +
+                "has an anemometer module; choose another service for wind.")
+        return c
     }
 
     // ---- providers -------------------------------------------------------

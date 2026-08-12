@@ -119,10 +119,17 @@
                 android:textSize="12sp" />
 
             <TextView style="@style/Sts.SectionHeading" android:text="Shot distribution" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_card"
+                android:padding="10dp" android:layout_marginTop="4dp" android:layout_marginBottom="10dp">
+
             <TextView android:id="@+id/tvDistribution"
                 style="@style/Sts.Value"
                 android:textSize="12sp"
                 android:typeface="monospace" />
+            </LinearLayout>
+
             <com.rfsat.bas.ui.ScoreHistogramView
                 android:id="@+id/histogram"
                 android:layout_width="match_parent"
@@ -166,10 +173,17 @@
                 android:autofillHints="" />
 
             <TextView style="@style/Sts.SectionHeading" android:text="Shots" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_card"
+                android:padding="10dp" android:layout_marginTop="4dp" android:layout_marginBottom="10dp">
+
             <TextView android:id="@+id/tvShots"
                 style="@style/Sts.Value"
                 android:typeface="monospace"
                 android:textSize="12sp" />
+            </LinearLayout>
+
 
             <LinearLayout
                 android:layout_width="match_parent"

@@ -24,9 +24,9 @@ object WeatherSource {
                 EnvironmentManager.refreshFromPhoneSensors(context) {
                     fromMeter(context) { okMeter, msg ->
                         if (okMeter) onDone(true, msg)
-                        else fromOnline(context) { okOnline, m2 ->
-                            onDone(okOnline || true, if (okOnline) m2 else EnvironmentManager.describe())
-                        }
+                        else fromOnline(context, { okOnline, m2 ->
+                            onDone(true, if (okOnline) m2 else EnvironmentManager.describe())
+                        }, force = false)
                     }
                 }
             }
@@ -52,7 +52,7 @@ object WeatherSource {
         }
     }
 
-    private fun fromOnline(context: Context, onDone: (Boolean, String) -> Unit) {
+    private fun fromOnline(context: Context, onDone: (Boolean, String) -> Unit, force: Boolean = true) {
         Thread {
                 val lat: Double
                 val lon: Double
@@ -69,9 +69,10 @@ object WeatherSource {
                 val c = OnlineWeather.fetch(context, lat, lon)
                 if (c == null) { onDone(false, "The weather service returned nothing — see the Log."); return@Thread }
                 EnvironmentManager.setFromService(
-                    c.temperatureC, c.pressureHpa?.times(100.0), c.humidityPct?.div(100.0), c.source)
+                    c.temperatureC, c.pressureHpa?.times(100.0), c.humidityPct?.div(100.0),
+                    c.source, force)
                 if (c.windMps != null || c.windFromDeg != null)
-                    EnvironmentManager.setWind(c.windMps, c.windFromDeg, c.source)
+                    EnvironmentManager.setWind(c.windMps, c.windFromDeg, c.source, force)
                 c.windGustMps?.let { EnvironmentManager.setWindGust(it) }
                 Logger.i(TAG, "online conditions from ${c.source}: ${EnvironmentManager.describe()}")
                 onDone(true, EnvironmentManager.describe())

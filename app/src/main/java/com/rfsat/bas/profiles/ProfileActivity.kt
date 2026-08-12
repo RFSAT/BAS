@@ -113,6 +113,37 @@ class ProfileActivity : BaseActivity() {
      * rules), which is what makes collapsing safe — 1.12.0 collapsed a
      * catch-all called "Elsewhere" and options genuinely went missing.
      */
+    /** Icon for a section, by what its heading says. Monochrome single-path
+     *  vectors, tinted from the theme, so all four display modes control them. */
+    private fun iconFor(title: String): Int {
+        val t = title.lowercase()
+        return when {
+            t.contains("display") -> R.drawable.ic_sec_display
+            t.contains("reticle") -> R.drawable.ic_sec_reticle
+            t.contains("camera") -> R.drawable.ic_sec_camera
+            t.contains("lens") -> R.drawable.ic_sec_camera
+            t.contains("detection") -> R.drawable.ic_sec_detect
+            t.contains("ai") -> R.drawable.ic_sec_ai
+            t.contains("profile set") -> R.drawable.ic_sec_profiles
+            t.contains("firearm") -> R.drawable.ic_sec_firearm
+            t.contains("ammunition") -> R.drawable.ic_sec_ammo
+            t.contains("optics") || t.contains("sight") -> R.drawable.ic_sec_optics
+            t.contains("rangefinder") || t.contains("distance") -> R.drawable.ic_sec_range
+            t.contains("weather") -> R.drawable.ic_sec_weather
+            t.contains("target") -> R.drawable.ic_sec_targets
+            t.contains("rules") -> R.drawable.ic_sec_rules
+            t.contains("backup") || t.contains("reset") -> R.drawable.ic_sec_backup
+            else -> R.drawable.ic_sec_other
+        }
+    }
+
+    /**
+     * Group each section under its heading: an icon beside the title, and the
+     * body inside a rounded panel so one section is visibly separate from the
+     * next. Tapping a heading folds it. Built in code from the tagged headings,
+     * so the long layout needs no wrapping of its own — and the same panel
+     * drawable the Home screen uses keeps the two screens consistent.
+     */
     private fun makeSectionsCollapsible() {
         val headers = ArrayList<android.view.View>()
         val renderers = HashMap<String, (Boolean) -> Unit>()
@@ -121,6 +152,9 @@ class ProfileActivity : BaseActivity() {
             if (v is android.view.ViewGroup) for (i in 0 until v.childCount) collect(v.getChildAt(i))
         }
         collect(binding.root)
+        val pad = (10 * resources.displayMetrics.density).toInt()
+        val gap = (10 * resources.displayMetrics.density).toInt()
+
         for (header in headers) {
             val parent = header.parent as? android.view.ViewGroup ?: continue
             val start = parent.indexOfChild(header)
@@ -133,20 +167,43 @@ class ProfileActivity : BaseActivity() {
             }
             val tv = header as? android.widget.TextView
             val title = tv?.text?.toString().orEmpty()
+
+            // icon beside the heading
+            runCatching {
+                tv?.setCompoundDrawablesRelativeWithIntrinsicBounds(iconFor(title), 0, 0, 0)
+                tv?.compoundDrawablePadding = (8 * resources.displayMetrics.density).toInt()
+            }
+
+            // move the body into a rounded panel
+            val panel = android.widget.LinearLayout(this).apply {
+                orientation = android.widget.LinearLayout.VERTICAL
+                setBackgroundResource(R.drawable.bg_card)
+                setPadding(pad, pad, pad, pad)
+                val lp = android.widget.LinearLayout.LayoutParams(
+                    android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT)
+                lp.bottomMargin = gap
+                layoutParams = lp
+            }
+            runCatching {
+                for (b in body) parent.removeView(b)
+                for (b in body) panel.addView(b)
+                parent.addView(panel, parent.indexOfChild(header) + 1)
+            }
+
             fun render(open: Boolean) {
-                for (b in body) b.visibility = if (open) android.view.View.VISIBLE else android.view.View.GONE
+                panel.visibility = if (open) android.view.View.VISIBLE else android.view.View.GONE
                 tv?.text = (if (open) "▾  " else "▸  ") + title
             }
-            header.isClickable = true
             renderers[title] = ::render
+            header.isClickable = true
             header.setOnClickListener {
-                val open = body.firstOrNull()?.visibility != android.view.View.VISIBLE
+                val open = panel.visibility != android.view.View.VISIBLE
                 render(open)
-                // A profile set IS a firearm + load + sight, so opening it opens
-                // the three sections it is made of — otherwise "Profile sets"
-                // shows a picker whose contents are hidden below it.
                 if (title.contains("Profile sets", true))
-                    for (linked in listOf("Firearm", "Load", "Sight")) renderers[linked]?.invoke(open)
+                    for (linked in listOf("Firearm", "Ammunition", "Optics and Sights"))
+                        renderers.keys.firstOrNull { it.contains(linked, true) }
+                            ?.let { renderers[it]?.invoke(open) }
             }
             render(false)
         }

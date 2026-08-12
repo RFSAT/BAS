@@ -25,7 +25,7 @@ enum class OnlineService(
     OPEN_WEATHER_MAP("OpenWeatherMap", true, "appid"),
     WINDY("Windy point forecast", true, "Windy API key"),
     GOOGLE_WEATHER("Google Weather", true, "Google Maps Platform key"),
-    NETATMO("Netatmo Weathermap", true, "OAuth access token");
+    NETATMO("Netatmo (wind needs an anemometer station)", false, "");
 
     companion object {
         fun fromName(n: String?): OnlineService = values().firstOrNull { it.name == n } ?: OPEN_METEO
