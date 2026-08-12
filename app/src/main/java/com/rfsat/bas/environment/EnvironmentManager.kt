@@ -301,27 +301,41 @@ object EnvironmentManager {
         handler.postDelayed({ listener.finish() }, SENSOR_TIMEOUT_MS)
     }
 
-    fun describe(): String {
+    /**
+     * The measurements as separate tokens — value, unit and the source that
+     * produced it kept together, because a value and its provenance are one
+     * fact, not two.
+     */
+    fun describeParts(): List<String> {
         val r = current
         val a = r.atmosphere
-        val alt = r.informationalAltitudeM?.let { " ~%.0f m ASL".format(it) } ?: ""
-        val wind = when {
-            r.windSpeedMps != null && r.windSpeedMps < 0.05 -> " · calm (0.0 m/s%s, %s)".format(
-                r.windDirectionDeg?.let { " @ %.0f°".format(it) } ?: "",
-                r.windSource.ifBlank { "meter" })
-            r.windSpeedMps != null -> " · %.1f m/s%s%s (%s)".format(
-                r.windSpeedMps,
-                r.windGustMps?.let { " gust %.1f".format(it) } ?: "",
-                r.windDirectionDeg?.let { " @ %.0f°".format(it) } ?: "",
-                r.windSource.ifBlank { "meter" })
-            r.windSource.isNotBlank() && rankOf(r.windSource) == 1 ->
-                " · no wind from ${r.windSource}"
-            else -> " · wind not measured"
-        }
-        return "%.1f°C (%s) · %.0f hPa (%s) · %.0f%% RH (%s)%s%s".format(
-            a.temperatureC, r.temperatureSource,
-            a.seaLevelPressurePa / 100.0, r.pressureSource,
-            a.relativeHumidity * 100.0, r.humiditySource, alt, wind
+        val parts = mutableListOf(
+            "%.1f\u00B0C (%s)".format(a.temperatureC, r.temperatureSource),
+            "%.0f hPa (%s)".format(a.seaLevelPressurePa / 100.0, r.pressureSource),
+            "%.0f%% RH (%s)".format(a.relativeHumidity * 100.0, r.humiditySource)
         )
+        r.informationalAltitudeM?.let { parts.add("~%.0f m ASL".format(it)) }
+        val dir = r.windDirectionDeg?.let { " @ %.0f\u00B0".format(it) } ?: ""
+        parts.add(when {
+            r.windSpeedMps != null && r.windSpeedMps < 0.05 ->
+                "calm (0.0 m/s%s, %s)".format(dir, r.windSource.ifBlank { "meter" })
+            r.windSpeedMps != null ->
+                "%.1f m/s%s%s (%s)".format(
+                    r.windSpeedMps,
+                    r.windGustMps?.let { " gust %.1f".format(it) } ?: "",
+                    dir,
+                    r.windSource.ifBlank { "meter" })
+            r.windSource.isNotBlank() && rankOf(r.windSource) == 1 ->
+                "no wind from ${r.windSource}"
+            else -> "wind not measured"
+        })
+        return parts
     }
+
+    /** One measurement per line, for a status panel: nothing can wrap in the
+     *  middle of a reading and read as two different facts. */
+    fun describeLines(): String = describeParts().joinToString("\n")
+
+    /** One line, for the log. */
+    fun describe(): String = describeParts().joinToString(" \u00B7 ")
 }

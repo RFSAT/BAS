@@ -153,6 +153,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.22.1** — correction. The conditions panels on Ballistics and in Settings now print one measurement per line, so a wrap can no longer fall inside a reading and separate a value from the source that produced it. Logs keep the single-line form.
+
 **1.22.0** — feature + correction. "Automatic" now fills gaps instead of overwriting: sources are ranked (meter > phone > online) so a phone's own pressure is not replaced by a forecast, and the service supplies only what the others could not — including wind when no meter is present. Choosing a source explicitly still forces it. Settings sections now carry a themed icon and sit in rounded panels, as do the Results screen's Shots and Shot distribution blocks.
 
 **1.21.1** — corrections. Weather Information now has a single source choice — Automatic, Smartphone sensors, External device or Online service — with sub-menus for the default device and service. Coarse location is actually requested when a forecast needs it (it was declared but never asked for, which stalled every online fetch), with typed coordinates as the alternative. The unclear "Meter wind" button is gone (wind follows the chosen source), importing Kestrel gun profiles moved to the Firearm section, and Big Glance "Grouping" now reads like the other two views.

@@ -982,7 +982,7 @@ class ProfileActivity : BaseActivity() {
                     com.rfsat.bas.environment.WeatherConfig.longitude(this))
             else "Position: from the phone"
         binding.tvEnvSummary.text = runCatching {
-            com.rfsat.bas.environment.EnvironmentManager.describe()
+            com.rfsat.bas.environment.EnvironmentManager.describeLines()
         }.getOrDefault("")
     }
 

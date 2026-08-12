@@ -46,6 +46,16 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.22.1 — correction: conditions are listed one measurement per line.
+        //          The status line ran the readings together, so a wrap could
+        //          fall inside one of them — "27% RH (Open-Meteo)" split after
+        //          "27% RH" and read as two separate facts, the value orphaned
+        //          from the source that produced it. A value, its unit and its
+        //          provenance are ONE fact, so describeParts() keeps them
+        //          together and the status panels on Ballistics and in Settings
+        //          print one per line. Logs and the transient snackbar keep the
+        //          single-line form, where compactness is worth more.
+        //
         // 1.22.0 — feature + correction: what "Automatic" actually means, and
         //          sections you can tell apart.
         //
@@ -3390,8 +3400,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 36
-        versionName = "1.22.0"
+        versionCode = 37
+        versionName = "1.22.1"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

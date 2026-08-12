@@ -202,9 +202,9 @@ class CaptureActivity : BaseActivity() {
         // v17.0: range conditions. Phone sensors auto-refresh on entry
         // (barometer on the S24; ambient temp/humidity where the device has
         // them); a paired Kestrel can override on demand.
-        binding.tvEnvStatus.text = com.rfsat.bas.environment.EnvironmentManager.describe()
+        binding.tvEnvStatus.text = com.rfsat.bas.environment.EnvironmentManager.describeLines()
         com.rfsat.bas.environment.EnvironmentManager.refreshFromPhoneSensors(this) {
-            binding.tvEnvStatus.text = com.rfsat.bas.environment.EnvironmentManager.describe()
+            binding.tvEnvStatus.text = com.rfsat.bas.environment.EnvironmentManager.describeLines()
         }
         binding.btnKestrel.setOnClickListener {
             // Whatever the shooter configured under Weather Information —
@@ -222,7 +222,7 @@ class CaptureActivity : BaseActivity() {
                 notifyUser("Fetching conditions…")
                 com.rfsat.bas.environment.WeatherSource.refresh(this) { _, msg ->
                     runOnUiThread {
-                        binding.tvEnvStatus.text = com.rfsat.bas.environment.EnvironmentManager.describe()
+                        binding.tvEnvStatus.text = com.rfsat.bas.environment.EnvironmentManager.describeLines()
                         notifyUser(msg)
                     }
                 }
@@ -450,7 +450,7 @@ class CaptureActivity : BaseActivity() {
         com.rfsat.bas.environment.KestrelProvider.scanForKestrel(this) { device ->
             if (device == null) {
                 binding.btnKestrel.isEnabled = true
-                binding.tvEnvStatus.text = com.rfsat.bas.environment.EnvironmentManager.describe()
+                binding.tvEnvStatus.text = com.rfsat.bas.environment.EnvironmentManager.describeLines()
                 notifyUser("No Kestrel found nearby — make sure it's on and close by. Advertisers seen were logged (Log tab).")
             } else {
                 startKestrelRead(device)
@@ -463,7 +463,7 @@ class CaptureActivity : BaseActivity() {
         binding.tvEnvStatus.text = "Reading Kestrel…"
         com.rfsat.bas.environment.KestrelProvider.read(this, device) { got ->
             binding.btnKestrel.isEnabled = true
-            binding.tvEnvStatus.text = com.rfsat.bas.environment.EnvironmentManager.describe()
+            binding.tvEnvStatus.text = com.rfsat.bas.environment.EnvironmentManager.describeLines()
             if (!got) notifyUser("Kestrel connected but no readable environment values — its GATT layout was logged (Log tab) for exact wiring.")
         }
     }
