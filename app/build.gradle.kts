@@ -46,6 +46,30 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.22.2 — correction: the static check itself was wrong, twice, and
+        //          the second fault was hiding behind the first.
+        //
+        //          CI reported "when over Mode is missing [BOX]" in
+        //          TrailExtractor. The code is exhaustive; the gate was not.
+        //          Enums were collected by SIMPLE NAME across the whole tree,
+        //          and merging two codebases produced two of them:
+        //          detect.RegistrationOverlayView.Mode {BOX, CORNERS} from STS
+        //          and capture.TrailExtractor.Mode {VAPOR, TRACER, PELLET} from
+        //          VTB. Whichever file was globbed last defined "Mode" for
+        //          every when in the project — so the verdict depended on file
+        //          order, which is why the same tree passed here and failed in
+        //          CI. A when is now resolved against the enum declared in ITS
+        //          OWN file first, and a name that resolves to two different
+        //          enums is skipped rather than guessed at.
+        //
+        //          AND THE MEMBER PATTERN DROPPED THE LAST ENTRY. It required a
+        //          trailing comma or semicolon, which the final member of an
+        //          enum does not have — so PELLET was never counted, and the
+        //          moment the name collision was fixed the gate would have
+        //          reported PELLET as uncovered instead. Both are fixed, and
+        //          both directions are self-tested: removing a real branch is
+        //          still caught, PELLET included.
+        //
         // 1.22.1 — correction: conditions are listed one measurement per line.
         //          The status line ran the readings together, so a wrap could
         //          fall inside one of them — "27% RH (Open-Meteo)" split after
@@ -3400,8 +3424,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 37
-        versionName = "1.22.1"
+        versionCode = 38
+        versionName = "1.22.2"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

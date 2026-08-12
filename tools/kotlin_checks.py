@@ -111,13 +111,26 @@ for f in files:
         i+=1
 
 # ---- 3. when over an enum must cover it, or have an else ----
-enums={}
+# Enums are collected PER FILE. Two merged codebases can each declare an enum
+# with the same simple name — BAS has detect.RegistrationOverlayView.Mode
+# {BOX, CORNERS} and capture.TrailExtractor.Mode {VAPOR, TRACER, PELLET} — and
+# keying them by name alone made the verdict depend on the order the files were
+# globbed. A when in one file was checked against the other file's members.
+enums_by_file={}
+enums_global={}
+_member_re = re.compile(r'^\s*([A-Z][A-Z0-9_]*)\s*(?:[(,;]|//|$)', re.M)
 for f in files:
     src=open(f).read()
-    for m in re.finditer(r'enum class (\w+)[^{]*\{(.*?)\n\}', src, re.S):
+    local={}
+    for m in re.finditer(r'enum class (\w+)[^{]*\{(.*?)\n\s*\}', src, re.S):
         name=m.group(1); body=m.group(2)
-        members=re.findall(r'^\s*([A-Z][A-Z0-9_]*)\s*[(,;]', body, re.M)
-        if members: enums[name]=set(members)
+        # The LAST member carries no trailing comma or semicolon, so the old
+        # pattern silently dropped it and reported it as an uncovered branch.
+        members=set(_member_re.findall(body))
+        if members:
+            local[name]=members
+            enums_global.setdefault(name, []).append(members)
+    enums_by_file[f]=local
 for f in files:
     code=strip(open(f).read())
     for m in re.finditer(r'when\s*\(([^()]*)\)\s*\{', code):
@@ -139,9 +152,17 @@ for f in files:
         types={t for t,_ in used}
         if len(types)!=1: continue
         t=types.pop()
-        if t not in enums: continue
+        local=enums_by_file.get(f, {})
+        if t in local:
+            members=local[t]                       # declared right here — unambiguous
+        else:
+            variants=enums_global.get(t)
+            if not variants: continue
+            distinct=[set(x) for x in {frozenset(v) for v in variants}]
+            if len(distinct)!=1: continue          # same name, different enums: cannot resolve
+            members=distinct[0]
         covered={v for _,v in used}
-        missing=enums[t]-covered
+        missing=members-covered
         if missing:
             line=code.count('\n',0,m.start())+1
             problems.append(f"{os.path.basename(f)}:{line}  when over {t} is missing {sorted(missing)} and has no else")

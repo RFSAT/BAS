@@ -153,6 +153,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.22.2** — correction. Fixed the static check, not the code: it collected enums by simple name, so STS's `Mode {BOX, CORNERS}` and VTB's `Mode {VAPOR, TRACER, PELLET}` collided and the verdict depended on file order. A `when` is now resolved against the enum in its own file, ambiguous names are skipped, and the member pattern no longer drops the final entry (which had hidden a second false positive).
+
 **1.22.1** — correction. The conditions panels on Ballistics and in Settings now print one measurement per line, so a wrap can no longer fall inside a reading and separate a value from the source that produced it. Logs keep the single-line form.
 
 **1.22.0** — feature + correction. "Automatic" now fills gaps instead of overwriting: sources are ranked (meter > phone > online) so a phone's own pressure is not replaced by a forecast, and the service supplies only what the others could not — including wind when no meter is present. Choosing a source explicitly still forces it. Settings sections now carry a themed icon and sit in rounded panels, as do the Results screen's Shots and Shot distribution blocks.
