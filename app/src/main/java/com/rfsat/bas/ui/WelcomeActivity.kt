@@ -39,6 +39,15 @@ class WelcomeActivity : BaseActivity() {
 
     private lateinit var steps: List<Step>
 
+    // Kept as constants so the body text stays readable; rendered through
+    // Bullets so a wrapped line hangs under the text, not under the mark.
+    private val BULLET_BALLISTICS =
+        "Ballistics — it measures the crosswind from the shot itself, on video, and turns " +
+        "it into the clicks to dial on your turrets."
+    private val BULLET_SCORING =
+        "Scoring — it registers the target face, finds every hole, and reports the score, " +
+        "the group and the sight correction the group implies."
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityWelcomeBinding.inflate(layoutInflater)
@@ -73,10 +82,7 @@ class WelcomeActivity : BaseActivity() {
         steps = listOf(
             Step("Welcome to BAS",
                 "BAS does two jobs, in the order a shooter needs them.\n\n" +
-                "• Ballistics — it measures the crosswind from the shot itself, on video, and turns " +
-                "it into the clicks to dial on your turrets.\n\n" +
-                "• Scoring — it registers the target face, finds every hole, and reports the score, " +
-                "the group and the sight correction the group implies.\n\n" +
+                BULLET_BALLISTICS + "\n\n" + BULLET_SCORING + "\n\n" +
                 "How do you mean to use it? You can change this later.",
                 modes.map { "${it.label} — ${it.blurb}" },
                 { modes.indexOf(mode) }, { i -> mode = modes[i] }),
@@ -124,7 +130,13 @@ class WelcomeActivity : BaseActivity() {
         val s = steps[step]
         binding.tvWelcomeTitle.text = s.title
         binding.tvWelcomeStep.text = "Step ${step + 1} of ${steps.size}"
-        binding.tvWelcomeBody.text = s.body
+        binding.tvWelcomeBody.text =
+            if (step == 0) android.text.SpannableStringBuilder()
+                .append(s.body.substringBefore(BULLET_BALLISTICS))
+                .append(com.rfsat.bas.ui.Bullets.list(
+                    listOf(BULLET_BALLISTICS, BULLET_SCORING), binding.tvWelcomeBody.textSize))
+                .append(s.body.substringAfter(BULLET_SCORING))
+            else s.body
         binding.rgWelcome.removeAllViews()
         s.options.forEachIndexed { i, label ->
             val rb = RadioButton(this).apply {

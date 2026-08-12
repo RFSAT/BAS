@@ -139,8 +139,17 @@ open class BaseActivity : AppCompatActivity() {
         // this button does. Screens that handle back themselves — an open
         // dialog, a registration step part-way through — keep that behaviour
         // instead of being closed out from under the shooter.
-        findViewById<android.view.View>(R.id.btnBack)?.setOnClickListener {
-            onBackPressedDispatcher.onBackPressed()
+        findViewById<android.view.View>(R.id.btnBack)?.let { back ->
+            // Home is the root: there is nowhere to go back TO, and a back
+            // arrow that quits the app is a trap. Hidden rather than removed,
+            // so the tab bar keeps the same spacing on every screen.
+            if (this is MainActivity) {
+                back.visibility = android.view.View.INVISIBLE
+                back.isClickable = false
+            } else {
+                back.visibility = android.view.View.VISIBLE
+                back.setOnClickListener { onBackPressedDispatcher.onBackPressed() }
+            }
         }
         val nav = findViewById<BottomNavigationView>(R.id.bottomNav) ?: return
         if (nav.menu.findItem(selectedItemId) != null) {

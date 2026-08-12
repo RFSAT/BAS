@@ -190,7 +190,11 @@ object CorrectionCalculator {
             elevDir = if (elevUp != scope.invertElevationDirection) "UP" else "DOWN"
 
             if (windClicks == 0 && elevClicks == 0) {
-                warnings += "The correction is smaller than one click. The sight is as close as it can be set."
+                // Two statements, so two bullets: one says what was measured,
+                // the other what to do about it. Run together they read as a
+                // single long sentence and the actionable half gets lost.
+                warnings += "The correction is smaller than one click."
+                warnings += "The sight is as close as it can be set."
             }
         }
 

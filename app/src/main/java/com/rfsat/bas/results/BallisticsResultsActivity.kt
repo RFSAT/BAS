@@ -50,7 +50,8 @@ class BallisticsResultsActivity : BaseActivity() {
                 "${fmt1(UnitsManager.displayDistance(AnalysisSession.targetDistanceYd * 0.9144))} " +
                 UnitsManager.distanceUnitLabel() + cameraSuffix()
             binding.tvWarnings.visibility = View.VISIBLE
-            binding.tvWarnings.text = adjustment.warnings.joinToString("\n") { "\u26A0 $it" }
+            binding.tvWarnings.text =
+                com.rfsat.bas.ui.Bullets.list(adjustment.warnings, binding.tvWarnings.textSize)
             return
         }
 
@@ -113,7 +114,7 @@ class BallisticsResultsActivity : BaseActivity() {
         if (adjustment.warnings.isNotEmpty()) {
             binding.tvWarnings.visibility = View.VISIBLE
             binding.tvWarnings.text =
-                adjustment.warnings.joinToString("\n") { "\u26A0 $it" }
+                com.rfsat.bas.ui.Bullets.list(adjustment.warnings, binding.tvWarnings.textSize)
         }
 
         // Chart x-axis (v18.0, per user): distance covered by the bullet

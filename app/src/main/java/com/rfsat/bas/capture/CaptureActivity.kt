@@ -1190,10 +1190,12 @@ class CaptureActivity : BaseActivity() {
     }
 
     private fun showScanReport(report: CameraScanner.Report) {
-        val body = if (report.lines.isEmpty())
+        val body: CharSequence = if (report.lines.isEmpty())
             "Nothing answered. Is the phone joined to the camera's Wi-Fi?"
-        else report.lines.joinToString("\n").let {
-            if (it.length > 1600) it.take(1600) + "\n…(full detail in the Log tab)" else it
+        else {
+            val shown = if (report.lines.size > 20) report.lines.take(20) + "…(full detail in the Log tab)"
+                        else report.lines
+            com.rfsat.bas.ui.Bullets.list(shown, resources.displayMetrics.scaledDensity * 14f, gap = "\n")
         }
         val b = androidx.appcompat.app.AlertDialog.Builder(this)
             .setTitle(if (report.mediaCount > 0) "Found ${report.mediaCount} file(s)" else "Scan results")

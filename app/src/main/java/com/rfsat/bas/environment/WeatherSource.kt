@@ -31,7 +31,7 @@ object WeatherSource {
                 }
             }
             WeatherTier.PHONE -> {
-                EnvironmentManager.refreshFromPhoneSensors(context) {
+                EnvironmentManager.refreshFromPhoneSensors(context, force = true) {
                     onDone(true, EnvironmentManager.describe())
                 }
             }

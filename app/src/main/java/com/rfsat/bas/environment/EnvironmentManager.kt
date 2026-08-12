@@ -215,7 +215,8 @@ object EnvironmentManager {
      * Registers listeners, takes the first value of each, unregisters after
      * all report or [SENSOR_TIMEOUT_MS]. Calls [onDone] on the main thread.
      */
-    fun refreshFromPhoneSensors(context: Context, onDone: (Reading) -> Unit = {}) {
+    fun refreshFromPhoneSensors(context: Context, force: Boolean = false,
+                                onDone: (Reading) -> Unit = {}) {
         val sm = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
         val pressure = sm.getDefaultSensor(Sensor.TYPE_PRESSURE)
         val temp = sm.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE)
@@ -252,42 +253,43 @@ object EnvironmentManager {
                 finished = true
                 sm.unregisterListener(this)
                 val prev = current
-                // A METER OUTRANKS THE PHONE. The phone's barometer is a
-                // fallback, not a correction: once a Kestrel has supplied a
-                // quantity, a later phone read must not quietly replace it —
-                // which is what happened when returning to the Ballistics tab
-                // re-read the sensors and overwrote the Kestrel's pressure.
-                // Each quantity is kept per-source, so the phone still fills
-                // whatever the meter did not measure.
-                fun fromMeter(src: String) = src.isNotBlank() && !src.equals("phone", true) &&
-                    !src.equals("standard", true) && !src.equals("default", true)
-                val keepT = fromMeter(prev.temperatureSource)
-                val keepP = fromMeter(prev.pressureSource)
-                val keepH = fromMeter(prev.humiditySource)
-                if (keepT || keepP || keepH)
-                    Logger.i(TAG, "Phone sensors: keeping meter values (" +
-                        "temp=${if (keepT) prev.temperatureSource else "phone"}, " +
-                        "pressure=${if (keepP) prev.pressureSource else "phone"}, " +
-                        "humidity=${if (keepH) prev.humiditySource else "phone"})")
-                current = Reading(
-                    Atmosphere(
-                        seaLevelPressurePa = if (keepP) prev.atmosphere.seaLevelPressurePa
-                            else pHpa?.let { it * 100.0 } ?: prev.atmosphere.seaLevelPressurePa,
-                        temperatureC = if (keepT) prev.atmosphere.temperatureC
-                            else tC?.toDouble() ?: prev.atmosphere.temperatureC,
-                        altitudeM = 0.0, // measured station pressure carries the altitude effect
-                        relativeHumidity = if (keepH) prev.atmosphere.relativeHumidity
-                            else hPct?.let { it / 100.0 } ?: prev.atmosphere.relativeHumidity
+                // WHAT THE PHONE MAY REPLACE. Entering the Ballistics tab
+                // re-reads the sensors, and this used to REBUILD the reading
+                // from scratch — which silently dropped the wind (the
+                // constructor call omitted those fields, so they reverted to
+                // their defaults) and recomputed the altitude from the phone's
+                // own pressure even when another source's pressure was kept.
+                // That is why the same session showed wind on one screen and
+                // "not measured" on the next, with two different ASL figures.
+                //
+                // Now the reading is COPIED, so anything not measured here
+                // survives untouched, and the phone only writes where it
+                // outranks what is already there: with [force] false — an
+                // automatic refresh on entering a screen — it fills only what
+                // no source has supplied at all.
+                fun mayReplace(existing: String): Boolean =
+                    if (force) rankOf(existing) <= rankOf("phone") else rankOf(existing) == 0
+                val takeT = tC != null && mayReplace(prev.temperatureSource)
+                val takeP = pHpa != null && mayReplace(prev.pressureSource)
+                val takeH = hPct != null && mayReplace(prev.humiditySource)
+                Logger.i(TAG, "Phone sensors (force=$force): " +
+                    "temp=${if (takeT) "phone" else prev.temperatureSource}, " +
+                    "pressure=${if (takeP) "phone" else prev.pressureSource}, " +
+                    "humidity=${if (takeH) "phone" else prev.humiditySource}")
+                current = prev.copy(
+                    atmosphere = prev.atmosphere.copy(
+                        seaLevelPressurePa = if (takeP) pHpa!! * 100.0 else prev.atmosphere.seaLevelPressurePa,
+                        temperatureC = if (takeT) tC!!.toDouble() else prev.atmosphere.temperatureC,
+                        relativeHumidity = if (takeH) hPct!! / 100.0 else prev.atmosphere.relativeHumidity
                     ),
-                    temperatureSource = if (keepT) prev.temperatureSource
-                        else if (tC != null) "phone" else prev.temperatureSource,
-                    pressureSource = if (keepP) prev.pressureSource
-                        else if (pHpa != null) "phone" else prev.pressureSource,
-                    humiditySource = if (keepH) prev.humiditySource
-                        else if (hPct != null) "phone" else prev.humiditySource,
-                    informationalAltitudeM = pHpa?.let {
-                        SensorManager.getAltitude(SensorManager.PRESSURE_STANDARD_ATMOSPHERE, it).toDouble()
-                    } ?: prev.informationalAltitudeM
+                    temperatureSource = if (takeT) "phone" else prev.temperatureSource,
+                    pressureSource = if (takeP) "phone" else prev.pressureSource,
+                    humiditySource = if (takeH) "phone" else prev.humiditySource,
+                    // The altitude is derived FROM the pressure in use, so it is
+                    // only recomputed when the phone's pressure was adopted.
+                    informationalAltitudeM = if (takeP)
+                        SensorManager.getAltitude(SensorManager.PRESSURE_STANDARD_ATMOSPHERE, pHpa!!).toDouble()
+                    else prev.informationalAltitudeM
                 )
                 Logger.i(TAG, "Environment from phone sensors: ${describe()}")
                 persist()
@@ -332,9 +334,41 @@ object EnvironmentManager {
         return parts
     }
 
-    /** One measurement per line, for a status panel: nothing can wrap in the
-     *  middle of a reading and read as two different facts. */
-    fun describeLines(): String = describeParts().joinToString("\n")
+    /**
+     * One measurement per line, in columns: quantity, value, unit, source.
+     * Monospaced and right-aligned on the value, the same treatment the scoring
+     * screen gives its correction table — a column of figures is read by
+     * comparing digits in the same place, which only works if they line up.
+     */
+    fun describeLines(): String {
+        val r = current
+        val a = r.atmosphere
+        fun row(label: String, value: String, unit: String, source: String) =
+            "%-12s%7s %-4s%s".format(
+                label, value, unit,
+                if (source.isBlank()) "" else "($source)")
+
+        val rows = mutableListOf<String>()
+        rows += row("Temperature", "%.1f".format(a.temperatureC), "\u00B0C", r.temperatureSource)
+        rows += row("Pressure", "%.0f".format(a.seaLevelPressurePa / 100.0), "hPa", r.pressureSource)
+        rows += row("Humidity", "%.0f".format(a.relativeHumidity * 100.0), "%", r.humiditySource)
+        r.informationalAltitudeM?.let { rows += row("Altitude", "~%.0f".format(it), "m", "") }
+
+        val src = r.windSource.ifBlank { "meter" }
+        when {
+            r.windSpeedMps != null && r.windSpeedMps < 0.05 ->
+                rows += row("Wind", "calm", "", src)
+            r.windSpeedMps != null -> {
+                rows += row("Wind", "%.1f".format(r.windSpeedMps), "m/s", src)
+                r.windGustMps?.let { rows += row("Gust", "%.1f".format(it), "m/s", "") }
+                r.windDirectionDeg?.let { rows += row("Direction", "%.0f".format(it), "\u00B0", "") }
+            }
+            r.windSource.isNotBlank() && rankOf(r.windSource) == 1 ->
+                rows += row("Wind", "\u2014", "", "none from ${r.windSource}")
+            else -> rows += row("Wind", "\u2014", "", "not measured")
+        }
+        return rows.joinToString("\n")
+    }
 
     /** One line, for the log. */
     fun describe(): String = describeParts().joinToString(" \u00B7 ")

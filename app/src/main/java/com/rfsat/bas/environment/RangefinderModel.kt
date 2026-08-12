@@ -22,7 +22,7 @@ enum class RangefinderModel(
     val viaKestrel: Boolean
 ) {
     MANUAL("Enter by hand", emptyList(), false),
-    KESTREL_BRIDGE("Via Kestrel 5700 Elite (Leica / Vortex / SIG)", listOf("kestrel", "5700", "elite", "drop"), true),
+    KESTREL_BRIDGE("Kestrel 5700 Elite (Leica / Vortex / SIG)", listOf("kestrel", "5700", "elite", "drop"), true),
     SIG_KILO("SIG KILO (BDX / BDX-X)", listOf("kilo", "sig", "bdx"), false),
     LEICA("Leica Geovid Pro / CRF .COM", listOf("leica", "geovid", "crf", "rangemaster"), false),
     VORTEX("Vortex Fury HD 5000 AB / Razor HD 4000 GB", listOf("vortex", "fury", "razor", "impact"), false),

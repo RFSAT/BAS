@@ -1022,7 +1022,7 @@ class ProfileActivity : BaseActivity() {
         }
         val src = com.rfsat.bas.environment.EnvDeviceConfig.source(this)
         if (src == com.rfsat.bas.environment.EnvSource.PHONE) {
-            com.rfsat.bas.environment.EnvironmentManager.refreshFromPhoneSensors(this) {
+            com.rfsat.bas.environment.EnvironmentManager.refreshFromPhoneSensors(this, force = true) {
                 runOnUiThread { refreshEnvLabels(); notifyUser("Read from the phone's sensors.") }
             }
             return

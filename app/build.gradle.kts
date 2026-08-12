@@ -46,6 +46,69 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.24.0 — corrections, all of them about text and controls behaving
+        //          the same way wherever they appear.
+        //
+        //   BULLET LISTS HANG PROPERLY EVERYWHERE. The scoring warnings already
+        //   used the Bullets helper, whose whole purpose is a hanging indent —
+        //   but the ballistics warnings, the welcome screen and the camera scan
+        //   report were still plain strings starting with a mark, so a wrapped
+        //   line ran back under the bullet and one item read as two. Every list
+        //   in the app now goes through Bullets; no literal "•" remains.
+        //
+        //   AND ONE WARNING WAS TWO STATEMENTS. "The correction is smaller than
+        //   one click. The sight is as close as it can be set." is a
+        //   measurement and an instruction; run together the actionable half
+        //   was buried. They are separate bullets now.
+        //
+        //   BACK ON HOME. Home is the root of the stack, so back there closed
+        //   the app — an arrow that quits is a trap. It is hidden on Home
+        //   (INVISIBLE, so the bar keeps its spacing) and present everywhere
+        //   else, still routed through onBackPressedDispatcher.
+        //
+        //   COMPETITION RULES. "Copy & edit" and "Delete" were flat text
+        //   buttons beside a filled "Use this", which read as links rather than
+        //   the actions they are. All three now use the same dense action style.
+        //
+        // 1.23.2 — refinement: the conditions read as a table. Quantity, value,
+        //          unit and source now sit in fixed columns in a monospaced
+        //          face — the same treatment the scoring screen gives its
+        //          correction figures, and for the same reason: a column of
+        //          numbers is read by comparing digits in the same place, which
+        //          only works when they line up. Wind gust and direction get
+        //          their own rows rather than trailing the wind speed.
+        //
+        // 1.23.1 — correction: the weather reading did not survive a screen
+        //          change, and the fault was one line of construction.
+        //
+        //          Entering the Ballistics tab re-reads the phone sensors, and
+        //          that path REBUILT the reading with the Reading(...)
+        //          constructor instead of copying it. The constructor call
+        //          listed only temperature, pressure, humidity and altitude, so
+        //          every field it did not mention — wind speed, gust, direction
+        //          and their source — reverted to its default. That is why a
+        //          wind read from Open-Meteo on one screen became "wind not
+        //          measured" on the next. It now COPIES, so anything the phone
+        //          did not measure survives untouched.
+        //
+        //          The altitude disagreed for a related reason: it was
+        //          recomputed from the PHONE\'s pressure even when another
+        //          source\'s pressure was kept, so the figure no longer matched
+        //          the pressure beside it. ASL is now derived only when the
+        //          phone\'s pressure is actually adopted.
+        //
+        //          And an automatic refresh no longer competes with a
+        //          deliberate one: on entering a screen the phone fills only
+        //          what no source has supplied at all, while choosing "Phone
+        //          sensors" explicitly still overrides everything but a meter.
+        //
+        //          Also: the two Weather Information notes are justified like
+        //          the rest of the screen; the bridge entry reads "Kestrel 5700
+        //          Elite" rather than "Via Kestrel…", the colon already saying
+        //          it; and the capture field is labelled "Shot break (s) — auto"
+        //          with the hint "blank = from the sound", since it is a manual
+        //          fallback for an instant the app normally finds itself.
+        //
         // 1.23.0 — feature: a Back button on every screen that carries the tab
         //          bar, at the FAR LEFT, mirroring Exit at the far right.
         //
@@ -3451,8 +3514,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 40
-        versionName = "1.23.0"
+        versionCode = 43
+        versionName = "1.24.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

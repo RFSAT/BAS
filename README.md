@@ -153,6 +153,12 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.24.0** — corrections. Every bullet list now hangs its wrapped lines under the text rather than the mark (ballistics warnings, welcome screen and camera scan report joined the scoring warnings in using the `Bullets` helper); the "smaller than one click" warning is split into its two statements; Back is hidden on Home, where it would otherwise close the app; and Competition rules' "Copy & edit" and "Delete" are proper buttons like "Use this".
+
+**1.23.2** — refinement. Conditions are shown as an aligned table — quantity, value, unit and source in fixed monospaced columns, matching the scoring screen's correction figures — on both the Ballistics view and in Settings, with gust and direction on their own rows.
+
+**1.23.1** — correction. Weather readings now survive a screen change: the phone-sensor refresh rebuilt the reading from scratch, dropping wind (and recomputing ASL from the wrong pressure); it now copies, and only derives ASL when the phone's pressure is actually used. An automatic refresh fills gaps only, while choosing "Phone sensors" explicitly still overrides. Weather notes justified, "Via" dropped from the bridge label, and "Shot break" labelled as the automatic-by-default fallback it is.
+
 **1.23.0** — feature. A Back button at the far left of the bottom bar on every screen that carries it, mirroring Exit at the far right. It routes through `onBackPressedDispatcher`, so it behaves exactly like the system back gesture and screens that handle back themselves keep their own behaviour. Both edge buttons narrowed to 44dp so the five tabs keep their labels.
 
 **1.22.3** — repackage. Same tree as 1.22.2 under a fresh versionCode (39), because Play rejects a code it has already accepted.

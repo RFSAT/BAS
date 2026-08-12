@@ -501,7 +501,7 @@
 
             <!-- ===== Environmental devices ===== -->
             <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Weather Information" />
-            <TextView style="@style/Sts.FieldLabel"
+            <TextView android:justificationMode="inter_word" style="@style/Sts.FieldLabel"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:text="Where temperature, pressure and humidity come from. Air conditions change the trajectory, so a real meter is worth having — but the phone alone is enough to start." />
             <Button android:id="@+id/btnWeatherTier"
@@ -527,11 +527,12 @@
             <TextView android:id="@+id/tvEnvSummary"
                 style="@style/Sts.FieldLabel"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:fontFamily="monospace"
                 android:text="" />
 
             <!-- ===== Rangefinder and distance ===== -->
             <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Rangefinder and distance" />
-            <TextView style="@style/Sts.FieldLabel"
+            <TextView android:justificationMode="inter_word" style="@style/Sts.FieldLabel"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:text="How the range to the target is obtained. Leica, Vortex and SIG BDX-X units can be bridged through a Kestrel 5700 Elite; others connect directly. Entering it by hand always works." />
             <Button android:id="@+id/btnRangefinderModel"
