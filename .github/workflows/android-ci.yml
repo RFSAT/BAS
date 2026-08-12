@@ -58,6 +58,13 @@ jobs:
       # Cheap semantic checks first: they need no toolchain and they name the
       # file and line, where the same mistakes reach the compiler as errors
       # reported somewhere else entirely.
+      # The translation corpus is generated from the layouts and the Kotlin
+      # literals, so a string added without regenerating it would simply never
+      # be translated. Regenerating here keeps the two in step; the checker
+      # runs after, on the same tree.
+      - name: Collect UI strings for translation
+        run: python3 tools/collect_ui_strings.py
+
       - name: Static checks
         run: python3 tools/kotlin_checks.py
 
