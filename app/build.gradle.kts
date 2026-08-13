@@ -46,6 +46,52 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.27.0 — ACCURACY. The solver now models what a point mass cannot,
+        //          and two defaults that were quietly costing accuracy are
+        //          fixed.
+        //
+        //          SPIN DRIFT. Every rifle profile has carried a twist rate
+        //          since the app was written and nothing ever read it. A
+        //          stable bullet slides toward its twist — about 22 cm at
+        //          1000 m for a 175 gr .308 — and it is systematic, so it
+        //          moves the whole group and no amount of shooting averages
+        //          it out. Miller stability, Litz drift. Bullet length is
+        //          estimated from weight and calibre (within 0.02 in on the
+        //          bullets it was checked against) and can be overridden.
+        //
+        //          CORIOLIS. Horizontal from latitude, which the app already
+        //          stores for weather. Vertical from firing azimuth, which
+        //          it does not: east shoots high, west low, north and south
+        //          cancel. Without a bearing the vertical term is OMITTED
+        //          rather than guessed, and past 600 m the omission is said
+        //          out loud.
+        //
+        //          CANT. Tilting the rifle swings dialled elevation out of
+        //          the vertical: 5 degrees at 600 m with 3 mrad up is 16 cm
+        //          sideways. Scales with elevation held, not with distance,
+        //          which is why it bites at long range and on air rifles.
+        //
+        //          DEFAULTS, both found while implementing the above:
+        //          * ENFORCE_MIN_CONFIDENCE had been false since v13, with a
+        //            comment on it saying to restore it before shipping. A
+        //            wind fit under 5% confidence — statistically nothing —
+        //            was being dialled as if measured. Now true.
+        //          * BulletProfile.adjustedForTemperature existed but only
+        //            the capture screen called it, so the firing solution
+        //            ignored powder temperature entirely. Now applied — to
+        //            the shot, NOT to the zero, which was set in the past at
+        //            the load's reference temperature and must keep its
+        //            original launch angle or the correction cancels itself.
+        //          * The ammunition catalogue asserted a temperature
+        //            coefficient of zero for every load. Now 1 fps/degF for
+        //            propellant loads, unchanged for pellets.
+        //
+        //          USABILITY: Range mode shows an instrument chip, where a
+        //          link that is connected but SILENT reads differently from
+        //          one that is working — the failure that otherwise presents
+        //          as a confident, stale number. And every shot deletion is
+        //          now undoable from the notification that reports it.
+        //
         // 1.26.3 — correction to the PACKAGING, not to the app. Identical
         //          sources to 1.26.2; only the identity and the tooling move.
         //
@@ -3671,8 +3717,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 49
-        versionName = "1.26.3"
+        versionCode = 50
+        versionName = "1.27.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

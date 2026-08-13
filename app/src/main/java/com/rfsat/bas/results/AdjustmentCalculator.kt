@@ -2,6 +2,7 @@ package com.rfsat.bas.results
 
 import com.rfsat.bas.ballistics.Atmosphere
 import com.rfsat.bas.ballistics.BallisticsEngine
+import com.rfsat.bas.ballistics.DriftCorrections
 import com.rfsat.bas.ballistics.Vec3
 import com.rfsat.bas.profiles.BulletProfile
 import com.rfsat.bas.profiles.RifleProfile
@@ -35,6 +36,22 @@ data class ScopeAdjustment(
     val valid: Boolean = true
 )
 
+/**
+ * What the app knows about where the rifle is and how it is being held —
+ * none of which the trajectory integrator can infer.
+ *
+ * Latitude comes from the position already stored for weather lookups, so
+ * for most shooters it costs nothing to know. Azimuth and cant have no
+ * source but the shooter. Each is NULLABLE ON PURPOSE: a missing value
+ * leaves the corresponding term out, which is honest, where a default of
+ * zero would quietly assert the equator and a level rifle.
+ */
+data class ShotGeometry(
+    val latitudeDeg: Double? = null,
+    val firingAzimuthDeg: Double? = null,
+    val cantDeg: Double = 0.0
+)
+
 object AdjustmentCalculator {
 
     private const val MRAD_TO_MOA = 3.43775 // 1 mrad = 3.43775 MOA
@@ -49,11 +66,12 @@ object AdjustmentCalculator {
     /** Below this the fit is statistically meaningless — using it would be
      *  worse than the zero-wind solution it replaces. */
     private const val MIN_USABLE_CONFIDENCE = 0.05
-    /** TESTING SWITCH (v13.0): while tuning the tracking pipeline the raw
-     *  low-confidence estimates are exactly the data of interest, so the
-     *  revert-to-zero behaviour hides the signal being debugged. Set back
-     *  to true before any release build — a <5% fit must not be dialled. */
-    private const val ENFORCE_MIN_CONFIDENCE = false
+    /** Was a TESTING SWITCH (v13.0), left false through every release since,
+     *  with a comment on it saying to turn it back on before shipping. It
+     *  meant a wind fit of under 5% confidence — statistically nothing —
+     *  was dialled as though it were a measurement. Now true, which is what
+     *  the comment always said it should be. */
+    private const val ENFORCE_MIN_CONFIDENCE = true
 
     /**
      * Computes the scope adjustment needed so the *next* shot lands on the
@@ -69,7 +87,8 @@ object AdjustmentCalculator {
         scope: ScopeProfile,
         atmosphere: Atmosphere,
         targetDistanceYd: Double,
-        windSamples: List<WindSample>
+        windSamples: List<WindSample>,
+        geometry: ShotGeometry = ShotGeometry()
     ): ScopeAdjustment {
         val warnings = mutableListOf<String>()
 
@@ -111,6 +130,21 @@ object AdjustmentCalculator {
 
         val targetDistanceM = targetDistanceYd * 0.9144
         val sightHeightM = effectiveSightHeightM(rifle, scope)
+
+        // Muzzle velocity at the temperature actually measured. BulletProfile
+        // has carried this correction since the temperature coefficient was
+        // added, but only the capture screen ever called it — so the firing
+        // solution, the one number a shooter dials, was computed at the
+        // load's reference temperature no matter what the Kestrel said.
+        //
+        // TWO bullets on purpose. The zero was established in the past, at
+        // the load's reference temperature, and the scope has not moved
+        // since; so the launch angle must be solved with the ORIGINAL muzzle
+        // velocity. Today's colder or hotter velocity applies only to the
+        // shot about to be fired. Solving both with the adjusted figure
+        // would re-zero the rifle in software every time the weather
+        // changed, and cancel most of the very effect being modelled.
+        val firedBullet = bullet.adjustedForTemperature(atmosphere.temperatureC)
         val zeroDistanceM = rifle.zeroDistanceM
 
         val pitch = BallisticsEngine.solveZeroPitch(bullet, atmosphere, zeroDistanceM, sightHeightM)
@@ -119,7 +153,7 @@ object AdjustmentCalculator {
         // NOTE: wind must be a NAMED argument — it is not the last parameter
         // of simulate() (sampleEveryS is), so a trailing lambda mis-binds.
         val traj = BallisticsEngine.simulate(
-            bullet, atmosphere, pitch, 0.0, targetDistanceM + 1.0,
+            firedBullet, atmosphere, pitch, 0.0, targetDistanceM + 1.0,
             wind = { _, _ -> uniformWind }
         )
         val atTarget = traj.lastOrNull { it.position.x <= targetDistanceM } ?: traj.last()
@@ -128,9 +162,58 @@ object AdjustmentCalculator {
             warnings.add("Simulated trajectory fell short of the target — check bullet profile / target distance.")
         }
 
+        // ---- corrections the point-mass integrator cannot produce ----
+        //
+        // Applied to the IMPACT POINT rather than to the correction, so they
+        // pass through the same miss-to-angle conversion as everything else
+        // and cannot disagree with it about signs or units.
+        val tofS = atTarget.timeS
+        val rangeAtImpactM = atTarget.position.x
+
+        val sg = DriftCorrections.gyroscopicStability(firedBullet, rifle, atmosphere)
+        val spinDriftM = DriftCorrections.spinDriftM(sg, tofS, rifle.rightHandTwist)
+
+        val coriolis = if (geometry.latitudeDeg != null)
+            DriftCorrections.coriolisM(
+                geometry.latitudeDeg, geometry.firingAzimuthDeg, rangeAtImpactM, tofS)
+        else DriftCorrections.Coriolis(0.0, 0.0)
+
+        val cant = DriftCorrections.cantErrorM(geometry.cantDeg, pitch, rangeAtImpactM)
+
         // Line of sight is level and starts sightHeightM above the bore.
-        val verticalMissM = atTarget.position.y - sightHeightM
-        val lateralMissM = atTarget.position.z
+        val verticalMissM = atTarget.position.y - sightHeightM + coriolis.verticalM + cant.verticalM
+        val lateralMissM = atTarget.position.z + spinDriftM + coriolis.lateralM + cant.lateralM
+
+        // Say so when a term is large enough to matter and the app had to
+        // leave it out. Silence about a missing input reads exactly like a
+        // correct answer.
+        if (sg > 0.0 && sg < 1.4 && tofS > 0.3) {
+            warnings.add(
+                "Gyroscopic stability is only ${fmt(sg)} for this bullet and twist — " +
+                "below about 1.4 the bullet is marginally stable, its drag is higher than " +
+                "the model assumes, and the drift figure is unreliable."
+            )
+        }
+        if (geometry.latitudeDeg == null && rangeAtImpactM > 600.0) {
+            warnings.add(
+                "Coriolis is not applied — the app has no position. Beyond 600 m this is " +
+                "worth several centimetres; set the range position in Settings."
+            )
+        } else if (geometry.latitudeDeg != null && geometry.firingAzimuthDeg == null &&
+                   rangeAtImpactM > 600.0) {
+            warnings.add(
+                "Firing direction unknown, so the vertical part of Coriolis is left out. " +
+                "It shoots high to the east and low to the west, and cancels north and south."
+            )
+        }
+        if (DriftCorrections.cantWorthReporting(geometry.cantDeg, pitch, rangeAtImpactM)) {
+            warnings.add(
+                "Rifle cant of ${fmt(geometry.cantDeg)}° is included: it moves this shot " +
+                "${fmt(abs(cant.lateralM) * 100.0)} cm " +
+                (if (cant.lateralM >= 0) "right" else "left") + " and " +
+                "${fmt(abs(cant.verticalM) * 100.0)} cm low. Levelling the rifle removes it."
+            )
+        }
 
         // Linear miss at range -> angular correction (opposite to the miss),
         // first in MOA, then into the scope's own unit.

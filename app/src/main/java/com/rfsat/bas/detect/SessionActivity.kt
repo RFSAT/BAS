@@ -553,6 +553,7 @@ class SessionActivity : BaseActivity() {
         binding.btnScoreNow.setOnClickListener { doScoreNow() }
         binding.btnUndoShot.setOnClickListener {
             ScoringSession.undoLast(); refreshShotList(); refreshStatus()
+            notifyUndoable("Last shot removed.") { refreshShotList(); refreshStatus() }
         }
         binding.btnImport.setOnClickListener {
             startActivity(Intent(this, ImportActivity::class.java))
@@ -568,7 +569,7 @@ class SessionActivity : BaseActivity() {
         binding.btnClearShots.setOnClickListener {
             ScoringSession.clearShots()
             refreshAfterClear()
-            notifyUser("All recorded shots cleared.")
+            notifyUndoable("All recorded shots cleared.") { refreshAfterClear() }
         }
         binding.btnResults.setOnClickListener {
             startActivity(Intent(this, ResultsActivity::class.java)); finish()

@@ -40,6 +40,11 @@ data class BulletProfile(
     val isPellet: Boolean = true,
     /** Powder is temperature sensitive: MV shifts roughly 0.5-1 m/s per degC
      *  for rimfire, more for some centrefire loads. 0.0 = correction off. */
+    /** Measured bullet length, inches. 0 = not measured; the stability
+     *  calculation then estimates it from weight and calibre. Worth setting
+     *  for monolithic copper, which is longer for its weight than the
+     *  estimator assumes and therefore less stable than it would report. */
+    val lengthIn: Double = 0.0,
     val mvTempCoeffMpsPerC: Double = 0.0,
     val mvRefTempC: Double = 15.0
 ) {

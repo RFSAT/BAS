@@ -52,10 +52,25 @@ object AmmoCatalog {
             dragCalibrationFactor = 1.0,
             isTracer = false,
             isPellet = pellet,
-            mvTempCoeffMpsPerC = 0.0,
+            // Zero here meant "propellant is unaffected by temperature",
+            // which is true of no smokeless powder ever made. A single
+            // catalogue figure cannot be right for a particular lot, but it
+            // is far closer than pretending the effect does not exist: at
+            // 1 fps/degF, a load zeroed at 15 C and fired at -5 C leaves the
+            // muzzle 11 m/s slow, which at 600 m is most of a ring low.
+            // A shooter who has chronographed their load across temperatures
+            // should set their own figure on the profile.
+            mvTempCoeffMpsPerC = if (pellet) 0.0 else TYPICAL_MV_TEMP_COEFF,
             mvRefTempC = 15.0
         )
     }
+
+    /** m/s per degree C, equal to 1.0 fps/degF — mid-range for modern
+     *  smokeless powders, which run from about 0.5 fps/degF for the
+     *  temperature-stable extruded types to over 2.0 for older ball powders.
+     *  Pellets are excluded: an airgun is not propellant-driven, and the
+     *  sign of the temperature effect on a PCP depends on its regulator. */
+    private const val TYPICAL_MV_TEMP_COEFF = 0.549
 
     private const val D22 = 0.224   // app-wide .22 convention (drop cal absorbs the heeled-bullet nuance)
     private const val D308 = 0.308

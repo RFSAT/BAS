@@ -153,6 +153,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.27.0** — accuracy. The firing solution now models spin drift (from the twist rate the app always collected and never used), Coriolis (horizontal from latitude; vertical from firing azimuth, omitted rather than guessed when unknown) and rifle cant. Two defaults fixed: a low-confidence wind fit is no longer dialled as though measured, and powder temperature now reaches the firing solution instead of only the capture screen. Range mode gained an instrument status chip that distinguishes a silent link from a working one, and shot deletions are undoable.
+
 **1.26.3** — packaging correction. Sources identical to 1.26.2; reissued under a new version because 1.26.2 was built twice with differing contents under one name. The release packager now verifies that baseline + delta reconstructs the shipped tree before writing it.
 
 **1.26.2** — compliance with Google Play's optimisation report. The deprecated `android:statusBarColor` is replaced by `colorPrimaryDark` (identical bar colour on Android 9–14, no deprecated attribute); every decode of an image whose size the app does not control now uses a bounds pass and `inSampleSize`; resource shrinking is enabled alongside R8.

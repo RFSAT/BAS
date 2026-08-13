@@ -312,6 +312,7 @@ WINDAGE — from the Kestrel
 WINDAGE — no Kestrel solution yet
 ELEVATION — from the Kestrel
 $n shots
+$n shots      $chip
 ${res.displayTotal}.
 ; else ->
 On centre
@@ -381,6 +382,7 @@ Ready
 A complete rig is already loaded, so you can shoot straight away.
 Step ${step + 1} of ${steps.size}
 Start using BAS
+Undone: $what.
 remote triggers capture
 None
 Simple crosshair
@@ -741,6 +743,7 @@ Subsonic
 Supersonic
 $manufacturer $product \u2014 $caliber ${weightGr.toInt()}gr $type, ${mvFps.toInt()} fps, BC %.3f
 $manufacturer $product ${weightGr.toInt()}gr $caliber
+propellant is unaffected by temperature
 Standard Velocity
 Mini-Mag
 Mini-Mag HP
@@ -1251,6 +1254,7 @@ the registration cleared — register the card again.
 Camera released. It will meter and focus by itself again.
 Exposure, white balance and focus locked at the centre of frame.
 This camera would not accept the lock; carry on without it.
+Last shot removed.
 Camera bound
 The camera could not be started: ${it.message}
 Without camera access the app can still score by hand on the Results screen.
@@ -1438,6 +1442,9 @@ plausible distance
 Connected — discovering…
 Rangefinder disconnected
 Listening — range a target
+Cam
+Kestrel ●  LRF ◐
+${k.label} ${symbol(l.state)}
 get me the conditions at the firing point
 No weather device found — switch it on, or choose another source.
 No position — set coordinates in Settings, or allow location.
@@ -1605,6 +1612,13 @@ and ${fmtMm(abs(moveX))} ${if (moveX > 0)
 } of where you aimed.
 ${fmtMm(abs(moveX))} ${if (moveX > 0)
 , elevationDirection =
+clearing ${state.shots.size} shots
+adding shot ${placed.index}
+deleting shot ${shot.index}
+deleting a shot
+deleting ${shots.size} shots
+moving shot ${old.index}
+removing the last shot
 yyyy-MM-dd HH:mm
 BAS Ballistics and Scoring — session report
 Date        : ${stamp.format(Date(state.startedAtMs.takeIf { it > 0 } ?: System.currentTimeMillis()))}
@@ -2092,6 +2106,10 @@ Confidence ${(windConf * 100).toInt()}% below threshold (${(MIN_USABLE_CONFIDENC
 practical shooting — verify it matches conditions at the range before dialling.
 Low confidence — use wind estimate with caution.
 Simulated trajectory fell short of the target — check bullet profile / target distance.
+the model assumes, and the drift figure is unreliable.
+worth several centimetres; set the range position in Settings.
+It shoots high to the east and low to the west, and cancels north and south.
+${fmt(abs(cant.verticalM) * 100.0)} cm low. Levelling the rifle removes it.
 (±${fmt(windageHalfTravelMoa / moaPerScopeUnit)} $unitLabel from centre) — hold off instead.
 (±${fmt(elevationHalfTravelMoa / moaPerScopeUnit)} $unitLabel from centre) — hold over instead.
 rifle|bullet|scope
@@ -2107,6 +2125,7 @@ Drag any shot to reposition it. It is rescored where you drop it.
 Move mode off.
 the last one
 highlighted. Delete then removes that one.
+Shot ${shot.index} deleted.
 Removed shot %d, worth %s, at %.1f, %.1f mm.
 Scoring area
 under Import and it will be kept for this view.
@@ -2132,7 +2151,7 @@ Nothing left to remove.
 Remove ${victims.size} mark(s) the AI service does not see?
 \n\n$outside lie outside the scoring rings.
 \n\nA shot it missed looks the same as one the app invented — check the plot first.
-Removed ${victims.size}. Undo by adding them back from the plot.
+Removed ${victims.size}.
 Remove unsupported marks
 Remove all ${victims.size}
 Remove only the $outside outside the rings

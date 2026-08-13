@@ -80,7 +80,14 @@ class RangeActivity : BaseActivity() {
                 }
             }
             val n = ScoringSession.state.shots.size
-            binding.tvRangeStatus.text = "$n shots"
+            // Instruments first: a stale link makes every other number on
+            // this screen suspect, so it must be readable at the same glance.
+            val chip = com.rfsat.bas.environment.LinkStatus.chip()
+            binding.tvRangeStatus.text = if (chip.isEmpty()) "$n shots" else "$n shots      $chip"
+            binding.tvRangeStatus.setTextColor(
+                if (com.rfsat.bas.environment.LinkStatus.anyStale()) 0xFFFF6B4A.toInt()
+                else binding.tvRangeScore.currentTextColor
+            )
             if (n != lastSpokenShots) {
                 lastSpokenShots = n
                 Speaker.say(this, "${res.displayTotal}. " + Corrections.scoringSpeech(corr))

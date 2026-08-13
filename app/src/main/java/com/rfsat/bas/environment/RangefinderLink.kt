@@ -145,11 +145,13 @@ object RangefinderLink {
         val cb = object : BluetoothGattCallback() {
             override fun onConnectionStateChange(g: BluetoothGatt, s: Int, newState: Int) {
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
+                    LinkStatus.set(LinkStatus.Kind.RANGEFINDER, LinkStatus.State.CONNECTING, "discovering")
                     handler.post { status("Connected — discovering…") }
                     g.discoverServices()
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                     runCatching { g.close() }
                     gatt = null
+                    LinkStatus.offline(LinkStatus.Kind.RANGEFINDER, "disconnected")
                     handler.post { status("Rangefinder disconnected") }
                 }
             }
@@ -161,6 +163,7 @@ object RangefinderLink {
                             BluetoothGattCharacteristic.PROPERTY_INDICATE) != 0) notifyQueue.add(ch)
                 }
                 Logger.i(TAG, "subscribing to ${notifyQueue.size} characteristic(s)")
+                LinkStatus.dataArrived(LinkStatus.Kind.RANGEFINDER, "listening")
                 handler.post { status("Listening — range a target") }
                 subscribeNext(g)
             }

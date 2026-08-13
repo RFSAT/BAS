@@ -223,7 +223,12 @@ object KestrelProvider {
         val cb = object : BluetoothGattCallback() {
             override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
                 Logger.i(TAG, "GATT state=$newState status=$status")
-                if (newState == BluetoothProfile.STATE_CONNECTED) gatt.discoverServices()
+                if (newState == BluetoothProfile.STATE_CONNECTED) {
+                    LinkStatus.set(LinkStatus.Kind.KESTREL, LinkStatus.State.CONNECTING, "discovering")
+                    gatt.discoverServices()
+                } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                    LinkStatus.offline(LinkStatus.Kind.KESTREL, "disconnected")
+                }
                 else if (newState == BluetoothProfile.STATE_DISCONNECTED) finish(gatt)
             }
 
@@ -251,7 +256,10 @@ object KestrelProvider {
             override fun onCharacteristicRead(gatt: BluetoothGatt, ch: BluetoothGattCharacteristic, status: Int) {
                 val v = ch.value ?: ByteArray(0)
                 Logger.i(TAG, "  read ${ch.uuid} = ${v.joinToString("") { "%02x".format(it) }}")
-                if (status == BluetoothGatt.GATT_SUCCESS && v.isNotEmpty()) parse(ch.uuid, v)
+                if (status == BluetoothGatt.GATT_SUCCESS && v.isNotEmpty()) {
+                    LinkStatus.dataArrived(LinkStatus.Kind.KESTREL)
+                    parse(ch.uuid, v)
+                }
                 readNext(gatt)
             }
 

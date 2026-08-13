@@ -102,6 +102,9 @@ object ScoringSession {
     // ------------------------------------------------------------------
 
     fun startNew(face: TargetFace, rules: RuleSet, distanceM: Double) {
+        // A new string is a deliberate break. Carrying undo across it would
+        // offer to restore the previous card's shots into this one.
+        undoStack.clear()
         state = State(
             faceId = face.id,
             rulesId = rules.id,
@@ -153,6 +156,7 @@ object ScoringSession {
     }
 
     fun clearShots() {
+        snapshot(if (state.shots.isEmpty()) "clearing" else "clearing ${state.shots.size} shots")
         state.shots = mutableListOf()
         state.endedAtMs = 0L
         persist()
@@ -166,6 +170,45 @@ object ScoringSession {
     //  Shots
     // ------------------------------------------------------------------
 
+    // ------------------------------------------------------------------
+    //  Undo
+    // ------------------------------------------------------------------
+    //
+    // Shot detection is a judgement about a photograph, so it is sometimes
+    // wrong, and the shooter's only recourse was to delete and re-shoot the
+    // analysis. Worse, deleting the wrong shot was unrecoverable: the score
+    // and every series boundary shift with it.
+    //
+    // Snapshots rather than inverse operations. Shot is immutable and a
+    // string is at most a few dozen of them, so copying the list costs
+    // nothing measurable and cannot get out of step with the operation it
+    // undoes — which an inverse-operation scheme absolutely can, because
+    // [reindex] means a deletion is not simply the removal of an element.
+    private val undoStack = ArrayDeque<Pair<String, List<Shot>>>()
+    private const val UNDO_DEPTH = 20
+
+    private fun snapshot(what: String) {
+        undoStack.addLast(what to state.shots.toList())
+        while (undoStack.size > UNDO_DEPTH) undoStack.removeFirst()
+    }
+
+    val canUndo: Boolean get() = undoStack.isNotEmpty()
+
+    /** What undoing would reverse, for a button label or a prompt. */
+    fun undoDescription(): String? = undoStack.lastOrNull()?.first
+
+    /**
+     * Restores the shots as they were before the last change, and returns
+     * what was undone. Returns null when there is nothing to undo.
+     */
+    fun undo(): String? {
+        val (what, shots) = undoStack.removeLastOrNull() ?: return null
+        state.shots = shots.toMutableList()
+        persist()
+        Logger.i("ScoringSession", "Undid: $what")
+        return what
+    }
+
     /** Appends a shot, assigning its index and series from the rule set. */
     fun addShot(shot: Shot, rules: RuleSet): Shot {
         val index = state.shots.count { !it.sighter } + 1
@@ -173,12 +216,14 @@ object ScoringSession {
             index = if (shot.sighter) 0 else index,
             series = if (shot.sighter) 0 else ScoringEngine.seriesFor(index, rules)
         )
+        snapshot("adding shot ${placed.index}")
         state.shots.add(placed)
         persist()
         return placed
     }
 
     fun removeShot(shot: Shot) {
+        snapshot("deleting shot ${shot.index}")
         state.shots.remove(shot)
         reindex()
         persist()
@@ -202,6 +247,7 @@ object ScoringSession {
      */
     fun removeShots(shots: List<Shot>) {
         if (shots.isEmpty()) return
+        snapshot(if (shots.size == 1) "deleting a shot" else "deleting ${shots.size} shots")
         state.shots.removeAll { candidate -> shots.any { it === candidate } }
         reindex()
         persist()
@@ -210,6 +256,7 @@ object ScoringSession {
     fun replaceShot(old: Shot, new: Shot) {
         val i = state.shots.indexOf(old)
         if (i >= 0) {
+            snapshot("moving shot ${old.index}")
             state.shots[i] = new
             persist()
         }
@@ -217,6 +264,7 @@ object ScoringSession {
 
     fun undoLast() {
         if (state.shots.isNotEmpty()) {
+            snapshot("removing the last shot")
             state.shots.removeAt(state.shots.size - 1)
             reindex()
             persist()

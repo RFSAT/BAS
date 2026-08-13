@@ -86,6 +86,7 @@ class ResultsActivity : BaseActivity() {
             ScoringSession.removeShot(shot)
             binding.plot.selectedShotIndex = null
             refresh()
+            notifyUndoable("Shot ${shot.index} deleted.") { refresh() }
             notifyUser("Removed shot %d, worth %s, at %.1f, %.1f mm."
                 .format(shot.index, shot.displayValue, shot.xMm, shot.yMm))
         }
@@ -317,7 +318,7 @@ class ResultsActivity : BaseActivity() {
         }
         if (com.rfsat.bas.ui.RangeSettings.skipConfirm()) {
             ScoringSession.removeShots(victims); refresh()
-            notifyUser("Removed ${victims.size}. Undo by adding them back from the plot.")
+            notifyUndoable("Removed ${victims.size}.") { refresh() }
             return
         }
         androidx.appcompat.app.AlertDialog.Builder(this)
@@ -326,7 +327,7 @@ class ResultsActivity : BaseActivity() {
             .setPositiveButton("Remove all ${victims.size}") { _, _ ->
                 ScoringSession.removeShots(victims)
                 refresh()
-                notifyUser("Removed ${victims.size}. Undo by adding them back from the plot.")
+                notifyUndoable("Removed ${victims.size}.") { refresh() }
             }
             .setNeutralButton(
                 if (outside > 0) "Remove only the $outside outside the rings" else "Cancel"
@@ -335,7 +336,7 @@ class ResultsActivity : BaseActivity() {
                     val out = victims.filter { Math.hypot(it.xMm, it.yMm) > outer }
                     ScoringSession.removeShots(out)
                     refresh()
-                    notifyUser("Removed $outside outside the scoring rings.")
+                    notifyUndoable("Removed $outside outside the scoring rings.") { refresh() }
                 }
             }
             .setNegativeButton("Keep them", null)
@@ -374,7 +375,7 @@ class ResultsActivity : BaseActivity() {
             return
         }
         if (com.rfsat.bas.ui.RangeSettings.skipConfirm()) {
-            ScoringSession.clearShots(); refresh(); notifyUser("Cleared.")
+            ScoringSession.clearShots(); refresh(); notifyUndoable("Cleared.") { refresh() }
             return
         }
         androidx.appcompat.app.AlertDialog.Builder(this)
@@ -424,6 +425,7 @@ class ResultsActivity : BaseActivity() {
             )
             .setPositiveButton("Delete") { _, _ ->
                 ScoringSession.removeShot(shot); refresh()
+                notifyUndoable("Shot ${shot.index} deleted.") { refresh() }
             }
             .setNeutralButton(if (shot.sighter) "Make it count" else "Mark as sighter") { _, _ ->
                 ScoringSession.replaceShot(shot, shot.copy(sighter = !shot.sighter))

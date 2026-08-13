@@ -35,6 +35,11 @@ data class RifleProfile(
      *  usually 1:10 to 1:12. Informational for scoring, but carried so a
      *  profile set is a complete description of the rig. */
     val twistRateInPerTurn: Double = 16.0,
+    /** Almost every rifle barrel made is right-hand twist, and spin drift
+     *  follows the twist — so this decides the SIGN of a correction that is
+     *  a quarter of a metre at 1000 m. Getting it wrong doubles the error
+     *  rather than removing it. */
+    val rightHandTwist: Boolean = true,
     /** Scope centreline over the bore, inches. Used to convert a scope
      *  correction into the right direction at very short range, where the
      *  bore and the line of sight have not yet converged. */
