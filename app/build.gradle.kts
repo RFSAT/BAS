@@ -46,6 +46,23 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.26.3 — correction to the PACKAGING, not to the app. Identical
+        //          sources to 1.26.2; only the identity and the tooling move.
+        //
+        //          1.26.2 was packaged twice with the same name and the same
+        //          versionCode and different contents, because the first
+        //          delta was built against the wrong baseline. Two archives
+        //          that share a name and disagree are worth less than no
+        //          archive, and a versionCode that has already been through a
+        //          build is spent. So this is a new number, and the rule it
+        //          restates is: a version identifies contents, and contents
+        //          that change get a new version even when the change is a
+        //          repackaging.
+        //
+        //          tools/package_release.py now refuses to write a delta it
+        //          cannot prove reconstructs the shipped tree, and every zip
+        //          declares its own version in RELEASE_MANIFEST.txt.
+        //
         // 1.26.2 — compliance: the three items from Play's pre-launch report.
         //
         //          (1) Deprecated edge-to-edge APIs. The app declared
@@ -3654,8 +3671,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 48
-        versionName = "1.26.2"
+        versionCode = 49
+        versionName = "1.26.3"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

@@ -153,6 +153,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.26.3** — packaging correction. Sources identical to 1.26.2; reissued under a new version because 1.26.2 was built twice with differing contents under one name. The release packager now verifies that baseline + delta reconstructs the shipped tree before writing it.
+
 **1.26.2** — compliance with Google Play's optimisation report. The deprecated `android:statusBarColor` is replaced by `colorPrimaryDark` (identical bar colour on Android 9–14, no deprecated attribute); every decode of an image whose size the app does not control now uses a bounds pass and `inSampleSize`; resource shrinking is enabled alongside R8.
 
 **1.26.1** — correction. The Sight→Scope sweep had reached catalogue data — entry names and the family strings SightType is derived from — which tests look up and saved profile sets store; the catalogues are restored verbatim. It had also replaced the word where it is correct (line of sight, iron sights, rear sight, sight radius, ATN X-Sight, "no adjustable sight"). "Scope" now appears only where it names the optic generically.
