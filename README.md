@@ -153,6 +153,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.26.1** — correction. The Sight→Scope sweep had reached catalogue data — entry names and the family strings SightType is derived from — which tests look up and saved profile sets store; the catalogues are restored verbatim. It had also replaced the word where it is correct (line of sight, iron sights, rear sight, sight radius, ATN X-Sight, "no adjustable sight"). "Scope" now appears only where it names the optic generically.
+
 **1.26.0** — corrections. Translation now reaches the text it was missing: strings written after a screen was translated, headings carrying a fold marker, and phrases assembled at runtime are all handled, and the corpus grew from 570 to ~2200 phrases. "Sight" is now "Scope" throughout (it translated as eyesight), "Analyze trail" is "Analyze", and buttons sharing a row hold to one line and autosize. Releases now ship as a full zip plus a delta zip with a DELETED_FILES.txt list.
 
 **1.25.1** — feature. Translation is now free: ML Kit runs it on the phone, with no API key and no per-character cost. A connection is needed once to fetch the language model (~30 MB); everything after that is offline. All 24 EU languages are supported on-device, Irish and Maltese included. The paid cloud provider remains as an option, and its key field only appears when it is selected.

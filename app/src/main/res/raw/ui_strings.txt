@@ -519,7 +519,6 @@ Centra
 Duplex diopter
 Morini
 CM162 rear sight
-Open scopes
 Pardini
 SP rear sight (25 m)
 SSP rear sight (25 m)
@@ -528,7 +527,7 @@ Micro T-2 (2 MOA)
 Holosun
 Generic
 Built-in iron sight
-No scope
+No sight
 All
 Rimfire trainer — Ruger / Federal / Vector
 Precision Rimfire .22LR

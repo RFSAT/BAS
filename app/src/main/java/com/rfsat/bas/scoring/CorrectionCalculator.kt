@@ -38,7 +38,7 @@ import kotlin.math.roundToInt
  * reports the direction the POINT OF IMPACT must move (unambiguous, physical)
  * AND the turret instruction derived from it, with the per-profile inversion
  * flags applied. When the scope has no clicks the turret instruction is
- * replaced by a physical rear-scope movement, or by an explanation of why one
+ * replaced by a physical rear-sight movement, or by an explanation of why one
  * cannot be given.
  */
 data class SightCorrection(
@@ -56,7 +56,7 @@ data class SightCorrection(
     val elevationClicks: Int,
     val windageDirection: String,   // "LEFT" / "RIGHT" / ""
     val elevationDirection: String, // "UP" / "DOWN" / ""
-    /** Physical rear-scope movement, mm, when the sight radius is known. */
+    /** Physical rear-sight movement, mm, when the sight radius is known. */
     val rearSightMoveXMm: Double = 0.0,
     val rearSightMoveYMm: Double = 0.0,
     val hasRearSightAdvice: Boolean = false,
@@ -208,7 +208,7 @@ object CorrectionCalculator {
                 // the only way to know what hold-off the next string needs —
                 // so the correction is reported as the offset it is, without
                 // an instruction that cannot be carried out.
-                warnings += "This setup has no adjustable scope, so no correction can be applied. " +
+                warnings += "This setup has no adjustable sight, so no correction can be applied. " +
                     "The figures below are how far the group sits from the point of aim, which is " +
                     "the hold-off to use next time."
             } else if (scope.sightRadiusMm > 0.0) {

@@ -46,6 +46,30 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.26.1 — correction: the Sight -> Scope sweep went through DATA, and
+        //          eight tests caught it.
+        //
+        //          A blanket word replacement does not know what a word is
+        //          doing. It renamed catalogue entries ("No sight" -> "No
+        //          scope", "CM162 rear sight") and the family strings the
+        //          SightType is derived from ("Open sights" -> "Open scopes"),
+        //          which are DATA, not chrome: the tests look entries up by
+        //          name, and a saved profile set stores that name — so the
+        //          rename would have stranded every shooter\'s saved optics as
+        //          well as failing the build. ScopeCatalog, RifleCatalog and
+        //          AmmoCatalog are restored verbatim.
+        //
+        //          It also took the word where it is the correct one: "line of
+        //          sight", "iron sights", "rear sight", "sight radius", the ATN
+        //          "X-Sight", and the warning "no adjustable sight" that a test
+        //          asserts on. All restored. "Scope" now appears only where it
+        //          names the optic generically — Optics and Scopes, Scope
+        //          height above bore, Telescopic scope — which is the case that
+        //          mistranslated as eyesight.
+        //
+        //          Verified by extracting every literal the tests assert on and
+        //          checking each against the sources: no regression remains.
+        //
         // 1.26.0 — corrections: the parts of the interface translation missed,
         //          and the vocabulary it was given.
         //
@@ -3602,8 +3626,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 46
-        versionName = "1.26.0"
+        versionCode = 47
+        versionName = "1.26.1"
     }
 
     // Resolved once, here, rather than re-read from the environment in two
