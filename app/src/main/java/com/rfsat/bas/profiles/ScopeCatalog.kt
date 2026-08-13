@@ -51,10 +51,10 @@ object ScopeCatalog {
             else -> "High (> 20\u00d7)"
         }
         // VTB's ClickUnit has three values; STS's has six, because match
-        // diopters and target-pistol sights are quoted in millimetres at a
+        // diopters and target-pistol scopes are quoted in millimetres at a
         // stated distance rather than as an angle. The ported branch is kept
         // and the STS units added, rather than an else, so that adding a
-        // seventh unit is a compile error here instead of a sight that
+        // seventh unit is a compile error here instead of a scope that
         // silently labels itself wrongly.
         val clickLabel: String get() = when (clickUnit) {
             ClickUnit.MRAD_TENTH -> "0.1 MRAD"
@@ -91,10 +91,10 @@ object ScopeCatalog {
             heightAboveBarrelIn = heightAboveBarrelIn,
             // WHAT KIND OF SIGHT THIS ACTUALLY IS.
             //
-            // Every VTB entry is a telescopic sight, and this line used to say
+            // Every VTB entry is a telescopic scope, and this line used to say
             // SCOPE for all of them — including the STS additions appended
             // below, which are diopters, target-pistol rear sights and red
-            // dots. Nothing depended on it until a sight arrived that cannot
+            // dots. Nothing depended on it until a scope arrived that cannot
             // be adjusted at all, at which point calling it a telescope would
             // have had the app offer turret clicks for a bare barrel.
             sightTypeName = sightType().name,
@@ -184,7 +184,7 @@ object ScopeCatalog {
     )
 
     /**
-     * Sights STS needs and VTB has no reason to carry: the match diopters and
+     * Scopes STS needs and VTB has no reason to carry: the match diopters and
      * target-pistol rear sights of 10 m and 50 m competition, and red dots.
      *
      * Kept in a separate list, appended to [entries] below, so the ported VTB
@@ -203,17 +203,17 @@ object ScopeCatalog {
         Entry("Centra", "Duplex diopter", 1.0, 1.0, 0.0, ClickUnit.MM_AT_REFERENCE,
             60.0, 60.0, 0.0, 1.2, family = "Diopter"),
         Entry("Morini", "CM162 rear sight", 1.0, 1.0, 0.0, ClickUnit.MM_AT_REFERENCE,
-            60.0, 60.0, 0.0, 0.6, family = "Open sights"),
+            60.0, 60.0, 0.0, 0.6, family = "Open scopes"),
         Entry("Pardini", "SP rear sight (25 m)", 1.0, 1.0, 0.0, ClickUnit.MM_AT_REFERENCE,
-            60.0, 60.0, 0.0, 0.6, family = "Open sights"),
+            60.0, 60.0, 0.0, 0.6, family = "Open scopes"),
         Entry("Walther", "SSP rear sight (25 m)", 1.0, 1.0, 0.0, ClickUnit.MM_AT_REFERENCE,
-            60.0, 60.0, 0.0, 0.6, family = "Open sights"),
+            60.0, 60.0, 0.0, 0.6, family = "Open scopes"),
         Entry("Aimpoint", "Micro T-2 (2 MOA)", 1.0, 1.0, 18.0, ClickUnit.MOA_HALF,
             50.0, 50.0, 0.0, 1.4, family = "Red dot"),
         Entry("Holosun", "507C", 1.0, 1.0, 16.0, ClickUnit.MOA_HALF,
             50.0, 50.0, 0.0, 0.9, family = "Red dot"),
 
-        // ---- sights that cannot be clicked ----
+        // ---- scopes that cannot be clicked ----
         //
         // Both carry no travel and no click, which is the point of them. The
         // SIGHT RADIUS is deliberately left unset rather than given a
@@ -224,7 +224,7 @@ object ScopeCatalog {
         // ruler's work and then exact.
         Entry("Generic", "Built-in iron sight", 1.0, 1.0, 0.0, ClickUnit.NONE,
             0.0, 0.0, 0.0, 0.9, family = "Iron sights"),
-        Entry("Generic", "No sight", 1.0, 1.0, 0.0, ClickUnit.NONE,
+        Entry("Generic", "No scope", 1.0, 1.0, 0.0, ClickUnit.NONE,
             0.0, 0.0, 0.0, 0.0, family = "None")
     )
 

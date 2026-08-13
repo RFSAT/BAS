@@ -102,7 +102,7 @@ object TracerWindEstimator {
             if (lag < MIN_LAG_S) continue
             val zObs = xM * tan(calibration.pixelAngleX(o.pixelX))
             // Predicted vertical angle: bullet height above the (level) line
-            // of sight, which sits sightHeightM above the bore origin.
+            // of scope, which sits sightHeightM above the bore origin.
             val yObs = xM * tan(calibration.pixelAngleY(o.pixelY))
             val yPredLos = yPredM - sightHeightM
             pts.add(Point(t, xM, lag, zObs, yObs - yPredLos, o.confidence))

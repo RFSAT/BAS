@@ -186,7 +186,7 @@ object BallisticsEngine {
 
     /**
      * Finds the launch pitch angle (radians, relative to the line of
-     * sight) that zeroes the bullet at [zeroDistanceM] given [sightHeightM]
+     * scope) that zeroes the bullet at [zeroDistanceM] given [sightHeightM]
      * above the bore, with no wind. Simple bisection — robust, and this
      * only runs once per profile change.
      */
@@ -266,7 +266,7 @@ object BallisticsEngine {
         fun dropAtZeroForPitch(pitch: Double): Double {
             val traj = simulate(bullet, atmosphere, pitch, 0.0, zeroDistanceM + 1.0)
             val atZero = traj.lastOrNull { it.position.x <= zeroDistanceM } ?: traj.last()
-            // line-of-sight sits sightHeightM above the bore at the muzzle and
+            // line-of-scope sits sightHeightM above the bore at the muzzle and
             // is level; bullet path is measured relative to bore, so subtract.
             return atZero.position.y - sightHeightM
         }
@@ -293,7 +293,7 @@ object BallisticsEngine {
 
     /**
      * Time-of-flight along the ZEROED trajectory: solves the launch pitch
-     * implied by the scope's zero distance and sight height, then integrates
+     * implied by the scope's zero distance and scope height, then integrates
      * with that pitch. The pitch effect on TOF is small at rimfire ranges,
      * but this keeps the capture-timing and settle-time estimates consistent
      * with the same zero calibration the correction solver uses.

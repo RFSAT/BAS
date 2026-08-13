@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- A target face in a picker list: a small drawing of the card beside its
-     name, because shooters recognise their target by sight long before they
+     name, because shooters recognise their target by scope long before they
      recognise its catalogue name. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"

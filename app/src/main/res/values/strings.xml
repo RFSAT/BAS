@@ -14,7 +14,7 @@
     <string name="about_app_description">BAS scores shooting on paper and steel from the phone camera or an external
         video feed, and computes ballistic corrections from the shot\'s vapour trail. Register the target face once, and every new hole is found, measured against the ring geometry of
         the selected competition target and scored under the rules of the selected match. The app reports the running
-        total, the group centre and dispersion, and the sight correction — in clicks for the scope or red dot in your
+        total, the group centre and dispersion, and the scope correction — in clicks for the scope or red dot in your
         active profile set — needed to move the group onto the point of aim.</string>
 
     <string name="about_disciplines">Built for long range: the shot\'s vapour trail is read for
@@ -41,7 +41,7 @@
     <!-- BAS: ballistics/capture flow (ported from VTB) -->
     <string name="record">Record</string>
     <string name="stop">Stop</string>
-    <string name="analyze_trail">Analyze trail</string>
+    <string name="analyze_trail">Analyze</string>
     <string name="import_video">Import video</string>
     <string name="mark_boresight">Mark boresight</string>
 </resources>

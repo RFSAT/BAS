@@ -6,7 +6,7 @@
      on a dark theme. Under this app's dark themes that resolves to black, and
      every spinner in the app rendered black text on a dark green background:
      the theme picker, the units picker, the rules and target pickers, the
-     firearm and sight and click-unit pickers, the log level. Invisible, and
+     firearm and scope and click-unit pickers, the log level. Invisible, and
      nothing in the app's own styles could override it because the colour
      comes from the platform's text appearance rather than from textColor.
 

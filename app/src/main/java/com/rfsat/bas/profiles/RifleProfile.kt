@@ -35,11 +35,11 @@ data class RifleProfile(
      *  usually 1:10 to 1:12. Informational for scoring, but carried so a
      *  profile set is a complete description of the rig. */
     val twistRateInPerTurn: Double = 16.0,
-    /** Sight centreline over the bore, inches. Used to convert a sight
+    /** Scope centreline over the bore, inches. Used to convert a scope
      *  correction into the right direction at very short range, where the
      *  bore and the line of sight have not yet converged. */
     val sightHeightIn: Double = 1.5,
-    /** Distance the sight was zeroed at, metres. */
+    /** Distance the scope was zeroed at, metres. */
     val zeroDistanceM: Double = 10.0,
     /** LEGACY (pre-VTB v9.0) zero distance in yards. Kept ONLY so Gson can
      *  read profiles exported by old builds of VTB/DBM; migrated to

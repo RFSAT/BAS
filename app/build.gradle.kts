@@ -46,6 +46,43 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.26.0 — corrections: the parts of the interface translation missed,
+        //          and the vocabulary it was given.
+        //
+        //   THREE REASONS TEXT STAYED IN ENGLISH, each needing its own fix.
+        //     1. Text written AFTER the screen was translated — a status line
+        //        rebuilt on refresh, a button relabelled with a shot count, the
+        //        conditions table, the Results figures. The pass ran once in
+        //        onResume and a boolean marked each view "done", so later text
+        //        was never looked at. The guard now records WHAT was written
+        //        and the pass runs on every layout, so anything that changes is
+        //        picked up. A view whose text already matches is skipped.
+        //     2. Decoration. A collapsed Settings heading reads "▸  Weather
+        //        Information", which is not the phrase in the corpus. Leading
+        //        marks are now stripped before the lookup and restored after.
+        //     3. Strings assembled at runtime — "Resume — 5 shot(s) recorded" —
+        //        which no fixed corpus can contain. Any cached phrase found
+        //        INSIDE such a string is now substituted, longest first.
+        //   The corpus itself also missed most of these, because it only read
+        //   layouts and dialog calls; it now collects every literal a screen can
+        //   display (log lines excluded), 570 phrases -> ~2200.
+        //
+        //   "SIGHT" IS NOW "SCOPE" throughout. Translated to Polish it came
+        //   back as eyesight, which is the wrong word entirely — an optic, not
+        //   a sense. Only user-facing words changed: SightType, sightHeightIn,
+        //   sightRadiusMm and the rest stay, because they are the persisted
+        //   data model and renaming them would strand every saved profile.
+        //
+        //   "Analyze trail" is simply "Analyze", and buttons that share a row
+        //   are held to one line and autosize their text — a translation is
+        //   routinely longer than its English, and a wrapped label was pushing
+        //   rows out of shape.
+        //
+        //   DELIVERY: tools/package_release.py now emits the full tree AND a
+        //   delta zip of new/modified files, with DELETED_FILES.txt listing
+        //   what to remove by hand — the web interface cannot infer a deletion
+        //   from an upload, and the tree is past the size the browser will take.
+        //
         // 1.25.1 — feature: translation now costs nothing. ML Kit translates ON
         //          THE PHONE — no API key, no per-character charge, and once a
         //          language model is fetched (about 30 MB, the one moment a
@@ -3565,8 +3602,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 45
-        versionName = "1.25.1"
+        versionCode = 46
+        versionName = "1.26.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

@@ -82,7 +82,7 @@ object Corrections {
     fun ballisticElevationCaption(a: ScopeAdjustment): String =
         if (!a.valid) "" else "ELEVATION — ${kotlin.math.abs(a.elevationClicks)} clk ${a.elevationDirection}"
 
-    /** The scoring correction as an angle in the sight's own unit, arrows
+    /** The scoring correction as an angle in the scope's own unit, arrows
      *  first, with the clicks kept for the caption. */
     fun scoringBig(c: SightCorrection, useMoa: Boolean): String {
         if (!c.valid) return "—"

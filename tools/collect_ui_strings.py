@@ -73,16 +73,21 @@ for root, _, files in os.walk(os.path.join(RES, "layout")):
                 add(m.group(1))
 
 # 3. Kotlin user-facing literals
-CALL = re.compile(
-    r'(?:notifyUser|setTitle|setMessage|setPositiveButton|setNegativeButton|'
-    r'setNeutralButton|say)\s*\(\s*"((?:[^"\\]|\\.)+)"')
-ASSIGN = re.compile(r'\.(?:text|hint)\s*=\s*"((?:[^"\\]|\\.)+)"')
+# Anything a screen can put in front of the shooter. Much of the interface is
+# assembled at runtime — a status line rebuilt on refresh, a row label in the
+# conditions table, a button relabelled with a count — and none of that appears
+# in a layout. Log lines are skipped: they are never shown and translating them
+# would only cost time.
+LITERAL = re.compile(r'"((?:[^"\\\n]|\\.){3,300})"')
+SKIP_LINE = re.compile(r'Logger\.[iwe]\(|const val TAG|import |package |"\s*\+\s*$')
 for root, _, files in os.walk(JAVA):
     for f in files:
         if not f.endswith(".kt"): continue
-        src = open(os.path.join(root, f), encoding="utf-8").read()
-        for rx in (CALL, ASSIGN):
-            for m in rx.finditer(src):
+        for line in open(os.path.join(root, f), encoding="utf-8"):
+            if SKIP_LINE.search(line): continue
+            # a line that only builds a URL, a UUID or a preference key is noise
+            if "http" in line or "UUID.fromString" in line: continue
+            for m in LITERAL.finditer(line):
                 add(m.group(1))
 
 os.makedirs(os.path.dirname(OUT), exist_ok=True)

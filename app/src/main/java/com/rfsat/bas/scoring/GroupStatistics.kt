@@ -9,14 +9,14 @@ import kotlin.math.sqrt
  * ============================================================================
  *
  * The score says how the shooter did. The group says why, and it is the half
- * that improves anything. A 94 with a tight group 8 mm low is a sight
+ * that improves anything. A 94 with a tight group 8 mm low is a scope
  * adjustment; a 94 scattered evenly around the centre is a technique problem.
  * Reporting only the total hides that distinction, so the app reports both.
  *
  * FIVE MEASURES, EACH ANSWERING A DIFFERENT QUESTION.
  *
  *   Mean point of impact — where the group is. This is the ONLY input to the
- *   sight correction, and the whole reason the rest of this file exists.
+ *   scope correction, and the whole reason the rest of this file exists.
  *
  *   Extreme spread — the largest centre-to-centre distance in the group. The
  *   number shooters quote, and the worst estimator in common use: it depends

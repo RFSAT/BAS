@@ -31,11 +31,11 @@ enum class ClickUnit(val label: String) {
     MM_AT_REFERENCE("mm at a reference distance"),
 
     /**
-     * The sight cannot be adjusted by counting anything.
+     * The scope cannot be adjusted by counting anything.
      *
      * A fixed factory iron sight, or no sight at all. This is NOT the same as
      * a missing click value: it is a positive statement that no click exists,
-     * and it is what stops the app inventing "0 clicks up" for a sight with
+     * and it is what stops the app inventing "0 clicks up" for a scope with
      * no turrets on it. The correction is then reported as the movement the
      * point of impact needs, and — where the sight radius is known — as how
      * far the rear sight must physically move.
@@ -46,19 +46,19 @@ enum class ClickUnit(val label: String) {
 /** What the shooter is actually aiming with. Decides which fields matter and
  *  what the correction advice should say. */
 enum class SightType(val label: String) {
-    SCOPE("Telescopic sight"),
+    SCOPE("Telescopic scope"),
     DIOPTER("Diopter / match iron sights"),
     OPEN_SIGHTS("Open iron sights"),
     RED_DOT("Red dot / reflex"),
 
-    /** A fixed sight the shooter cannot adjust, or none at all. The group is
+    /** A fixed scope the shooter cannot adjust, or none at all. The group is
      *  still worth measuring — it is the only way to know the hold-off — but
      *  no adjustment can be advised. */
-    NONE("No sight / fixed sight")
+    NONE("No scope / fixed scope")
 }
 
 /**
- * Sight description: the optical parameters relevant to the correction
+ * Scope description: the optical parameters relevant to the correction
  * calculation and to record-keeping. Class name and the original field set
  * are VTB/DBM-compatible; everything STS adds has a safe default so an
  * imported profile that lacks them still works.
@@ -72,7 +72,7 @@ data class ScopeProfile(
     val zoomMax: Double = 1.0,
     val objectiveDiameterMm: Double = 0.0,
     val focalLengthMm: Double = 0.0,
-    /** Sight optical centreline above the bore axis, inches. */
+    /** Scope optical centreline above the bore axis, inches. */
     val heightAboveBarrelIn: Double = 1.5,
     /** VTB: optical FOV in degrees at base magnification for digital scopes
      *  that record video. 0 = not a video scope. */
@@ -87,19 +87,19 @@ data class ScopeProfile(
     val clickMmAtReference: Double = 2.0,
     /** ...at this distance, in metres. */
     val clickReferenceDistanceM: Double = 10.0,
-    /** Some diopters and most target pistol sights reverse one axis relative
+    /** Some diopters and most target pistol scopes reverse one axis relative
      *  to the usual "turn towards the desired impact" convention. Set true
      *  and the app inverts the direction words it prints, so the advice
-     *  matches the marking actually engraved on the sight. */
+     *  matches the marking actually engraved on the scope. */
     val invertElevationDirection: Boolean = false,
     val invertWindageDirection: Boolean = false,
     /** Sight radius: the distance from the front sight to the rear sight, in
      *  millimetres. Only meaningful for iron sights, and only used to convert
      *  an angular correction into how far the rear sight must physically
-     *  move — which is the only actionable instruction for a sight that has
+     *  move — which is the only actionable instruction for a scope that has
      *  no clicks. 0 = unknown, and the app then reports the correction as an
      *  angle and as a distance on the target, and says why it cannot give a
-     *  sight movement. */
+     *  scope movement. */
     val sightRadiusMm: Double = 0.0
 ) {
     val sightType: SightType
@@ -134,8 +134,8 @@ data class ScopeProfile(
      *     subtends m/(1000 D) radians = m/D milliradians. (1 mrad puts 100 mm
      *     on the target at 100 m, which is the check.)
      *
-     * Returns 0 for a nonsensical profile — an unclicked open sight, or a
-     * reference distance of zero — and callers must treat 0 as "this sight
+     * Returns 0 for a nonsensical profile — an unclicked open scope, or a
+     * reference distance of zero — and callers must treat 0 as "this scope
      * has no clicks", reporting the correction as a distance on the target
      * instead of a click count. That is the honest output for open sights,
      * which are adjusted by drifting, not by counting.
@@ -154,14 +154,14 @@ data class ScopeProfile(
      * THE CLICK VALUE DECIDES, NOT THE KIND OF SIGHT.
      *
      * This used to read `clickMrad > 0 && sightType != OPEN_SIGHTS`, which
-     * says that no open sight has clicks. That is false of exactly the sights
+     * says that no open scope has clicks. That is false of exactly the scopes
      * this app is for: the Morini, Pardini and Walther target-pistol rear
-     * sights in the catalogue are open sights and every one of them is
+     * scopes in the catalogue are open sights and every one of them is
      * click-adjustable, to a published millimetre at a stated distance. The
      * rule went unnoticed only because catalogue picks were all being labelled
      * telescopic — see ScopeCatalog.toScopeProfile, fixed at the same time.
      *
-     * A sight with no clicks now says so with [ClickUnit.NONE].
+     * A scope with no clicks now says so with [ClickUnit.NONE].
      */
     val hasClicks: Boolean get() = clickUnit != ClickUnit.NONE && clickMrad > 0.0
 

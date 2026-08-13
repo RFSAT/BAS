@@ -46,7 +46,7 @@ class WelcomeActivity : BaseActivity() {
         "it into the clicks to dial on your turrets."
     private val BULLET_SCORING =
         "Scoring — it registers the target face, finds every hole, and reports the score, " +
-        "the group and the sight correction the group implies."
+        "the group and the scope correction the group implies."
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

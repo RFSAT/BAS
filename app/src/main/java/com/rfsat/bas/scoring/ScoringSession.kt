@@ -324,7 +324,7 @@ object ScoringSession {
             appendLine("Distance    : ${"%.0f".format(state.distanceM)} m")
             appendLine("Firearm     : ${profiles.getRifle().label()}")
             appendLine("Load        : ${profiles.getBullet().name}")
-            appendLine("Sight       : ${profiles.getScope().label()}")
+            appendLine("Scope       : ${profiles.getScope().label()}")
             if (!face.verified || !rules.verified) {
                 appendLine()
                 appendLine("NOTE: this session used target or rule figures that are the commonly")

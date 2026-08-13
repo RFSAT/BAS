@@ -19,10 +19,10 @@ import kotlin.math.roundToInt
  *      theta = offset_mm / (D * 1000)  radians  =  offset_mm / D  milliradians
  *
  * because a milliradian subtends one millimetre per metre — that identity is
- * the whole reason mil-based sights are pleasant to use. Convert to the
- * sight's own click through [ScopeProfile.clickMrad], and the click count is
+ * the whole reason mil-based scopes are pleasant to use. Convert to the
+ * scope's own click through [ScopeProfile.clickMrad], and the click count is
  * a division. The correction is the NEGATIVE of the offset: a group high and
- * right needs the sight moved down and left.
+ * right needs the scope moved down and left.
  *
  * WHAT THIS DELIBERATELY DOES NOT DO. It does not re-solve the trajectory.
  * The correction returned centres the group AT THE DISTANCE IT WAS SHOT, and
@@ -37,26 +37,26 @@ import kotlin.math.roundToInt
  * elevation drum frequently runs the opposite way to a scope's. So the class
  * reports the direction the POINT OF IMPACT must move (unambiguous, physical)
  * AND the turret instruction derived from it, with the per-profile inversion
- * flags applied. When the sight has no clicks the turret instruction is
- * replaced by a physical rear-sight movement, or by an explanation of why one
+ * flags applied. When the scope has no clicks the turret instruction is
+ * replaced by a physical rear-scope movement, or by an explanation of why one
  * cannot be given.
  */
 data class SightCorrection(
     /** How far the point of impact must move, mm on the target, +right/+up. */
     val moveImpactXMm: Double,
     val moveImpactYMm: Double,
-    /** The same, as an angle in the sight's natural terms. */
+    /** The same, as an angle in the scope's natural terms. */
     val windageMrad: Double,
     val elevationMrad: Double,
     val windageMoa: Double,
     val elevationMoa: Double,
     /** Click counts, already signed away and expressed with a direction word.
-     *  0 when the sight has no clicks. */
+     *  0 when the scope has no clicks. */
     val windageClicks: Int,
     val elevationClicks: Int,
     val windageDirection: String,   // "LEFT" / "RIGHT" / ""
     val elevationDirection: String, // "UP" / "DOWN" / ""
-    /** Physical rear-sight movement, mm, when the sight radius is known. */
+    /** Physical rear-scope movement, mm, when the sight radius is known. */
     val rearSightMoveXMm: Double = 0.0,
     val rearSightMoveYMm: Double = 0.0,
     val hasRearSightAdvice: Boolean = false,
@@ -66,7 +66,7 @@ data class SightCorrection(
      * True when [instruction] asks for something to be DONE.
      *
      * Exists because the Results screen contradicted itself: the box said
-     * "No adjustment — the sight is already centred" while the line directly
+     * "No adjustment — the scope is already centred" while the line directly
      * beneath it said "Move the point of impact 1.4 mm up and 0.3 mm right".
      * Both were computed correctly and they described the same state — a
      * residual smaller than one click — but nothing told the second line that
@@ -100,9 +100,9 @@ object CorrectionCalculator {
 
     /**
      * @param group        statistics over the shots to correct from
-     * @param scope        the sight in the active profile set
+     * @param scope        the scope in the active profile set
      * @param distanceM    distance the group was shot at
-     * @param zeroDistanceM the sight's current zero, for the warning only
+     * @param zeroDistanceM the scope's current zero, for the warning only
      * @param poaXMm,poaYMm the point of aim in target-plane mm. Normally the
      *        scoring centre (0,0), but not always: a shooter holding off for
      *        wind, or aiming at a separate aiming mark on a group card, has a
@@ -145,13 +145,13 @@ object CorrectionCalculator {
         if (group.mpiUncertaintyMm > 0 && offsetMag < SIGNIFICANCE_FACTOR * group.mpiUncertaintyMm) {
             warnings += "The group centre is ${fmtMm(offsetMag)} from the point of aim, which is inside " +
                 "its own uncertainty of ${fmtMm(group.mpiUncertaintyMm)}. There is no measurable zero " +
-                "error here — leave the sight alone."
+                "error here — leave the scope alone."
         }
 
         // ---- zero distance ----
         if (zeroDistanceM > 0.0 && abs(zeroDistanceM - distanceM) > 0.5) {
             warnings += "This correction centres the group at ${fmtM(distanceM)}, but the profile records " +
-                "the sight as zeroed at ${fmtM(zeroDistanceM)}. Applying it re-zeros the rifle for " +
+                "the scope as zeroed at ${fmtM(zeroDistanceM)}. Applying it re-zeros the rifle for " +
                 "${fmtM(distanceM)} — note the click count so you can put it back."
         }
 
@@ -160,12 +160,12 @@ object CorrectionCalculator {
         val neededWindMoa = abs(windageMrad) * MOA_PER_MRAD
         if (scope.maxElevationTravelMoa > 0 && neededElevMoa > scope.maxElevationTravelMoa / 2.0) {
             warnings += "The elevation correction is ${"%.1f".format(neededElevMoa)} MOA, more than half " +
-                "the sight's total travel. Check the mount and the base before assuming the turret can " +
+                "the scope's total travel. Check the mount and the base before assuming the turret can " +
                 "take it."
         }
         if (scope.maxWindageTravelMoa > 0 && neededWindMoa > scope.maxWindageTravelMoa / 2.0) {
             warnings += "The windage correction is ${"%.1f".format(neededWindMoa)} MOA, more than half the " +
-                "sight's total travel."
+                "scope's total travel."
         }
 
         // ---- clicks ----
@@ -181,7 +181,7 @@ object CorrectionCalculator {
 
             // Direction the TURRET must be turned. The physical requirement is
             // "move the impact this way"; the inversion flags let a profile
-            // describe a sight whose engraving disagrees with the usual
+            // describe a scope whose engraving disagrees with the usual
             // convention, so the printed instruction matches the drum the
             // shooter is actually looking at.
             val windRight = windageMrad > 0
@@ -194,7 +194,7 @@ object CorrectionCalculator {
                 // the other what to do about it. Run together they read as a
                 // single long sentence and the actionable half gets lost.
                 warnings += "The correction is smaller than one click."
-                warnings += "The sight is as close as it can be set."
+                warnings += "The scope is as close as it can be set."
             }
         }
 
@@ -208,11 +208,11 @@ object CorrectionCalculator {
                 // the only way to know what hold-off the next string needs —
                 // so the correction is reported as the offset it is, without
                 // an instruction that cannot be carried out.
-                warnings += "This setup has no adjustable sight, so no correction can be applied. " +
+                warnings += "This setup has no adjustable scope, so no correction can be applied. " +
                     "The figures below are how far the group sits from the point of aim, which is " +
                     "the hold-off to use next time."
             } else if (scope.sightRadiusMm > 0.0) {
-                // Similar triangles: moving the rear sight by r over a sight
+                // Similar triangles: moving the rear sight by r over a scope
                 // radius R swings the line of sight by r/R radians, which puts
                 // the impact r/R * D metres downrange. So the rear sight must
                 // move by (offset / D) * R, in the SAME direction as the
@@ -221,7 +221,7 @@ object CorrectionCalculator {
                 rearY = moveY / (distanceM * 1000.0) * scope.sightRadiusMm
                 hasRear = true
             } else {
-                warnings += "This sight has no click value and no sight radius recorded, so the app cannot " +
+                warnings += "This scope has no click value and no sight radius recorded, so the app cannot " +
                     "say how far to move it. Measure the distance from the front sight to the rear sight " +
                     "and enter it as the sight radius in Settings, and the movement will be given in " +
                     "millimetres."
@@ -266,7 +266,7 @@ object CorrectionCalculator {
         rearX: Double, rearY: Double, hasRear: Boolean
     ): String {
         if (scope.hasClicks) {
-            if (windClicks == 0 && elevClicks == 0) return "No adjustment — the sight is already centred."
+            if (windClicks == 0 && elevClicks == 0) return "No adjustment — the scope is already centred."
             val parts = mutableListOf<String>()
             if (elevClicks != 0) parts += "$elevClicks click${plural(elevClicks)} $elevDir"
             if (windClicks != 0) parts += "$windClicks click${plural(windClicks)} $windDir"
@@ -279,15 +279,15 @@ object CorrectionCalculator {
             if (parts.isEmpty()) return "No adjustment needed."
             return parts.joinToString(", ") +
                 (if (scope.sightType == SightType.OPEN_SIGHTS)
-                    " — or move the FRONT sight the same amount the other way." else "")
+                    " — or move the FRONT scope the same amount the other way." else "")
         }
         if (scope.sightType == SightType.NONE) {
             if (abs(moveX) < 0.05 && abs(moveY) < 0.05) return "The group is on the point of aim."
-            // moveX/moveY are where the IMPACT must go. With no sight the
+            // moveX/moveY are where the IMPACT must go. With no scope the
             // only way to move it is to aim there, so the hold-off runs the
             // SAME way, not the opposite: shots landing high need a lower
             // aim, and moveY is already negative in that case.
-            return "No sight to adjust. Aim ${fmtMm(abs(moveY))} ${if (moveY > 0) "higher" else "lower"} " +
+            return "No scope to adjust. Aim ${fmtMm(abs(moveY))} ${if (moveY > 0) "higher" else "lower"} " +
                 "and ${fmtMm(abs(moveX))} ${if (moveX > 0) "right" else "left"} of where you aimed."
         }
         return "Move the point of impact ${fmtMm(abs(moveY))} ${if (moveY > 0) "up" else "down"} and " +

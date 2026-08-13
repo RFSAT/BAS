@@ -84,10 +84,14 @@ object Translator {
     fun setLanguage(c: Context, lang: Language) {
         prefs(c).edit().putString("code", lang.code).apply()
         TranslationStore.load(c, lang.code)
+        onCacheChanged()
         epoch++
     }
 
-    fun init(c: Context) = TranslationStore.load(c, language(c).code)
+    fun init(c: Context) {
+        TranslationStore.load(c, language(c).code)
+        onCacheChanged()
+    }
 
     /** A cached translation, or the original. Never blocks and never calls out:
      *  a screen must render whether or not anything has been translated. */
@@ -110,20 +114,81 @@ object Translator {
     private fun walk(v: View) {
         if (v is ViewGroup) for (i in 0 until v.childCount) walk(v.getChildAt(i))
         if (v is TextView) {
-            if (v.getTag(TAG_DONE) == true) return
+            // The guard remembers WHAT was written, not merely that something
+            // was. Text set after the screen was first translated — a button
+            // relabelled with a shot count, a status line rebuilt on refresh —
+            // then differs from the tag and gets translated too. A boolean
+            // "already done" flag missed every one of those.
             val src = v.text?.toString()
-            if (!src.isNullOrBlank() && translatable(src)) {
-                TranslationStore.get(src)?.let { v.text = it }
+            if (!src.isNullOrBlank() && v.getTag(TAG_APPLIED) != src) {
+                convert(src)?.let { out ->
+                    v.text = out
+                    v.setTag(TAG_APPLIED, out)
+                }
             }
             val hint = v.hint?.toString()
-            if (!hint.isNullOrBlank() && translatable(hint)) {
-                TranslationStore.get(hint)?.let { v.hint = it }
+            if (!hint.isNullOrBlank() && v.getTag(TAG_HINT) != hint) {
+                convert(hint)?.let { out ->
+                    v.hint = out
+                    v.setTag(TAG_HINT, out)
+                }
             }
-            v.setTag(TAG_DONE, true)
         }
     }
 
-    private const val TAG_DONE = 0x7f5a0001
+    private const val TAG_APPLIED = 0x7f5a0001
+    private const val TAG_HINT = 0x7f5a0002
+
+    /** Longest first, so "Optics and Scopes" wins over "Scopes". */
+    private var substitutable: List<String> = emptyList()
+    private val converted = HashMap<String, String>()
+
+    fun onCacheChanged() {
+        substitutable = TranslationStore.keys().filter { it.length >= 8 }.sortedByDescending { it.length }
+        converted.clear()
+    }
+
+    /**
+     * Translate one piece of on-screen text. Three passes, because the text an
+     * app shows is not always a whole phrase from the corpus:
+     *
+     *  1. the exact string — the common case;
+     *  2. the string minus decoration a screen added itself (the "▸ " a
+     *     collapsed Settings heading carries, a trailing colon) — the heading
+     *     "▸  Weather Information" is not in the corpus, "Weather Information"
+     *     is;
+     *  3. failing both, any cached phrase appearing INSIDE the text is
+     *     substituted — which is what catches strings assembled at runtime,
+     *     like "Resume — 5 shot(s) recorded", where only part is fixed.
+     */
+    private fun convert(src: String): String? {
+        if (!translatable(src)) return null
+        converted[src]?.let { return it }
+
+        TranslationStore.get(src)?.let { converted[src] = it; return it }
+
+        val lead = src.takeWhile { !it.isLetterOrDigit() }
+        val core = src.removePrefix(lead)
+        if (core.isNotEmpty()) {
+            TranslationStore.get(core)?.let {
+                val out = lead + it
+                converted[src] = out
+                return out
+            }
+        }
+
+        var out = src
+        var hit = false
+        for (key in substitutable) {
+            if (out.contains(key)) {
+                TranslationStore.get(key)?.let { out = out.replace(key, it); hit = true }
+            }
+        }
+        if (!hit) return null
+        converted[src] = out
+        return out
+    }
+
 
     /** Numbers, tables and bare identifiers are not language. */
     private fun translatable(s: String): Boolean {
@@ -187,6 +252,7 @@ object Translator {
             }
             closeOnDevice()
             TranslationStore.save(context, lang.code)
+            onCacheChanged()
             if (done == 0) {
                 onDone(false, "Nothing could be translated — check the key and the connection. The Log has the detail.")
             } else {

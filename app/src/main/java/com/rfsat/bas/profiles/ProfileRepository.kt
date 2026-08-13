@@ -5,7 +5,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.rfsat.bas.log.Logger
 
-/** A named firearm + load + sight combination. Same shape as VTB/DBM. */
+/** A named firearm + load + scope combination. Same shape as VTB/DBM. */
 data class ProfileSet(
     val name: String,
     val rifle: RifleProfile,
@@ -88,7 +88,7 @@ class ProfileRepository(context: Context) {
             return ScopeProfile.DEFAULT
         }
         // An imported VTB/DBM scope has no sightTypeName. Every VTB scope was
-        // a telescopic sight, so that is the correct backfill.
+        // a telescopic scope, so that is the correct backfill.
         @Suppress("SENSELESS_COMPARISON")
         if (parsed.sightTypeName == null || parsed.sightTypeName.isBlank()) {
             val fixed = parsed.copy(sightTypeName = SightType.SCOPE.name)
@@ -101,7 +101,7 @@ class ProfileRepository(context: Context) {
         if (parsed.clickUnit == ClickUnit.MM_AT_REFERENCE && parsed.clickReferenceDistanceM <= 0.0) {
             val fixed = parsed.copy(clickReferenceDistanceM = 10.0)
             saveScopeInternal(fixed)
-            Logger.w("ProfileRepository", "Sight '${parsed.name}' had a zero click reference distance; set to 10 m")
+            Logger.w("ProfileRepository", "Scope '${parsed.name}' had a zero click reference distance; set to 10 m")
             return fixed
         }
         return parsed
@@ -185,7 +185,7 @@ class ProfileRepository(context: Context) {
         fun ammo(mfr: String, product: String) =
             AmmoCatalog.all.firstOrNull { it.manufacturer == mfr && it.product == product }?.toBulletProfile()
 
-        fun sight(brand: String, model: String) =
+        fun scope(brand: String, model: String) =
             ScopeCatalog.all.firstOrNull { it.brand == brand && it.model == model }?.toScopeProfile()
 
         val seeds = listOfNotNull(
@@ -194,31 +194,31 @@ class ProfileRepository(context: Context) {
             build("Rimfire trainer — Ruger / Federal / Vector",
                 rifle("Ruger", "Precision Rimfire .22LR"),
                 ammo("Federal", "Champion"),
-                sight("Vector Optics", "Continental 5-30x56")),
+                scope("Vector Optics", "Continental 5-30x56")),
             build("10 m Air Rifle — Anschütz",
                 rifle("Anschütz", "9015 Air Rifle"),
                 ammo("JSB", "Exact Diabolo 4.50"),
-                sight("Anschütz", "6834 diopter")),
+                scope("Anschütz", "6834 diopter")),
             build("10 m Air Pistol — Steyr",
                 rifle("Steyr", "LP50 Air Pistol"),
                 ammo("RWS", "R10 Match Pistol"),
-                sight("Morini", "CM162 rear sight")),
+                scope("Morini", "CM162 rear sight")),
             build("50 m Smallbore — Anschütz 1913",
                 rifle("Anschütz", "1913 Super Match .22LR"),
                 ammo("Lapua", "Center-X"),
-                sight("Anschütz", "7002/20 diopter (50 m)")),
+                scope("Anschütz", "7002/20 diopter (50 m)")),
             build("25 m Pistol — Pardini SP",
                 rifle("Pardini", "SP Rapid Fire Pistol .22LR"),
                 ammo("Eley", "Pistol Match"),
-                sight("Pardini", "SP rear sight (25 m)")),
+                scope("Pardini", "SP rear sight (25 m)")),
             build(".308 F-TR — Savage 12",
                 rifle("Savage", "12 F/TR .308 Win"),
                 ammo("Federal", "Gold Medal 175 SMK"),
-                sight("Vector Optics", "Continental 5-30x56")),
+                scope("Vector Optics", "Continental 5-30x56")),
             build(".223 Service Rifle — AR-15",
                 rifle("Generic", "AR-15 20in 1:7 .223 Rem"),
                 ammo("Federal", "Gold Medal 77 SMK"),
-                sight("Vector Optics", "Continental 3-18x50"))
+                scope("Vector Optics", "Continental 3-18x50"))
         )
         if (seeds.isEmpty()) return
 

@@ -48,7 +48,7 @@ object RifleCatalog {
                 // The TYPE as well as the model, so a service pistol does not
                 // have to carry the word "pistol" in its name to be classed
                 // as one. "Glock 17 Gen5" would otherwise have come out a
-                // centrefire rifle, and with it the wrong default sight
+                // centrefire rifle, and with it the wrong default scope
                 // height and zero.
                 type.contains("pistol", true) -> FirearmType.CENTREFIRE_PISTOL
                 model.contains("pistol", true) -> FirearmType.CENTREFIRE_PISTOL
@@ -154,7 +154,7 @@ object RifleCatalog {
      *
      * The Glock line is listed by model number without a generation, because
      * the barrel and its twist do not change between generations — only the
-     * frame, the trigger and the sights do, and none of those are in this
+     * frame, the trigger and the scopes do, and none of those are in this
      * table.
      */
     private val pistols9mm: List<Entry> = listOf(

@@ -14,7 +14,7 @@ package com.rfsat.bas.profiles
  *   - the SCORING GAUGE radius, which decides marginal ring calls, is set by
  *     the projectile diameter (via the rule set's gauge, not the bullet
  *     itself — see RuleSet.gaugeDiameterMm);
- *   - the sight correction at a distance OTHER than the zero distance needs
+ *   - the scope correction at a distance OTHER than the zero distance needs
  *     the drop difference between the two, which needs the load.
  *
  * At 10 m with a pellet, the second term is negligible and the correction is

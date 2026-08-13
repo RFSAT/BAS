@@ -37,6 +37,7 @@ open class BaseActivity : AppCompatActivity() {
                 return
             }
             com.rfsat.bas.i18n.Translator.apply(window?.decorView)
+            attachLayoutTranslation()
         }
         runCatching { applyImeInsets() }
         runCatching {
@@ -259,6 +260,66 @@ open class BaseActivity : AppCompatActivity() {
         val next = idx + if (dx < 0) 1 else -1 // finger left => next tab
         if (next in tabOrder.indices) openTab(tabOrder[next])
     }
+
+    private var layoutTranslationAttached = false
+
+    /**
+     * Screens rewrite their own text constantly — a status line on refresh, a
+     * button relabelled with a shot count, a panel rebuilt after a reading. A
+     * single pass in onResume therefore translates the screen as it was, not as
+     * it becomes. Re-running on each layout pass catches all of it; the work is
+     * negligible because a view whose text already matches what was written is
+     * skipped.
+     *
+     * The same pass fits button text, since a translation is routinely longer
+     * than the English it replaces.
+     */
+    private fun attachLayoutTranslation() {
+        if (layoutTranslationAttached) return
+        val root = window?.decorView ?: return
+        layoutTranslationAttached = true
+        root.viewTreeObserver.addOnGlobalLayoutListener {
+            runCatching {
+                com.rfsat.bas.i18n.Translator.apply(root)
+                fitButtonRows(root)
+            }
+        }
+    }
+
+    /**
+     * Buttons sitting side by side in a row share the width between them, so a
+     * longer translation wraps to a second line and the row grows. Rather than
+     * let that happen, each such button is held to one line and allowed to
+     * shrink its text to fit — the same autosizing the glance screen uses.
+     * Applied only to buttons that actually share a horizontal row, since a
+     * full-width button has room to wrap and reads better if it does.
+     */
+    private fun fitButtonRows(v: android.view.View) {
+        if (v is android.view.ViewGroup) {
+            val row = v is android.widget.LinearLayout &&
+                v.orientation == android.widget.LinearLayout.HORIZONTAL
+            var buttons = 0
+            if (row) for (i in 0 until v.childCount) if (v.getChildAt(i) is android.widget.Button) buttons++
+            if (row && buttons >= 2) {
+                for (i in 0 until v.childCount) {
+                    val b = v.getChildAt(i) as? android.widget.Button ?: continue
+                    if (b.getTag(TAG_FITTED) == true) continue
+                    b.maxLines = 1
+                    b.ellipsize = null
+                    runCatching {
+                        androidx.core.widget.TextViewCompat
+                            .setAutoSizeTextTypeUniformWithConfiguration(
+                                b, 9, (b.textSize / resources.displayMetrics.scaledDensity).toInt()
+                                    .coerceAtLeast(10), 1, android.util.TypedValue.COMPLEX_UNIT_SP)
+                    }
+                    b.setTag(TAG_FITTED, true)
+                }
+            }
+            for (i in 0 until v.childCount) fitButtonRows(v.getChildAt(i))
+        }
+    }
+
+    private val TAG_FITTED = 0x7f5a0003
 
     /** A hardware key (volume, camera, media, headset, enter) fired while the
      *  "remote triggers capture" option is on. Screens override to act; return

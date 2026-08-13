@@ -404,7 +404,7 @@
             <EditText android:id="@+id/etTwist" android:layout_width="match_parent"
                 android:layout_height="wrap_content" android:inputType="numberDecimal" android:autofillHints="" />
 
-            <TextView style="@style/Sts.FieldLabel" android:text="Sight height above bore (in)" />
+            <TextView style="@style/Sts.FieldLabel" android:text="Scope height above bore (in)" />
             <EditText android:id="@+id/etSightHeight" android:layout_width="match_parent"
                 android:layout_height="wrap_content" android:inputType="numberDecimal" android:autofillHints="" />
 
@@ -442,8 +442,8 @@
             <TextView android:id="@+id/tvPowerFactor" style="@style/Sts.Value"
                 android:layout_marginTop="6dp" android:textSize="12sp" />
 
-            <!-- ===== Sight ===== -->
-            <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Optics and Sights" />
+            <!-- ===== Scope ===== -->
+            <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Optics and Scopes" />
             <Button android:id="@+id/btnScopeCatalog"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 style="@style/Sts.ActionButton"
@@ -453,7 +453,7 @@
             <EditText android:id="@+id/etScopeName" android:layout_width="match_parent"
                 android:layout_height="wrap_content" android:inputType="text" android:autofillHints="" />
 
-            <TextView style="@style/Sts.FieldLabel" android:text="Sight type" />
+            <TextView style="@style/Sts.FieldLabel" android:text="Scope type" />
             <Spinner android:id="@+id/spSightType"
                 android:layout_width="match_parent" android:layout_height="wrap_content" />
 

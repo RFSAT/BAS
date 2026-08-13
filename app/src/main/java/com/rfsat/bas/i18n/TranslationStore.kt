@@ -48,6 +48,7 @@ object TranslationStore {
     fun get(source: String): String? = map[source]
     fun put(source: String, translated: String) { map[source] = translated }
     fun size(): Int = map.size
+    fun keys(): List<String> = map.keys.toList()
     fun has(source: String): Boolean = map.containsKey(source)
     fun clear() { map.clear() }
 }

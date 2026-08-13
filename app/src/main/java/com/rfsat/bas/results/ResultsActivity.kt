@@ -681,7 +681,7 @@ class ResultsActivity : BaseActivity() {
         //
         // THE DETAIL LINE MUST AGREE WITH THE BOX ABOVE IT. It used to say
         // "Move the point of impact 1.4 mm up" underneath a box reading "No
-        // adjustment — the sight is already centred", which is the screen
+        // adjustment — the scope is already centred", which is the screen
         // arguing with itself in front of the shooter. When the calculator
         // has concluded there is nothing to do, the line says what the
         // residual is and why it is being left alone.
@@ -704,7 +704,7 @@ class ResultsActivity : BaseActivity() {
                 "The group centre is on the point of aim."
             else -> {
                 val template = "The group centre is %.1f mm %s and %.1f mm %s of the point of " +
-                    "aim — less than this sight can be adjusted by, so it is left alone."
+                    "aim — less than this scope can be adjusted by, so it is left alone."
                 template.format(
                     Math.abs(corr.moveImpactYMm),
                     if (corr.moveImpactYMm > 0) "below" else "above",

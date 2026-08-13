@@ -12,7 +12,7 @@ import kotlin.math.min
 /**
  * A small drawing of a target face, for the picker lists.
  *
- * WHY. A shooter knows their card by sight and often not by name: "ISSF
+ * WHY. A shooter knows their card by scope and often not by name: "ISSF
  * 25/50 m Precision Pistol" and "ISSF 10 m Air Pistol" are both black
  * circles with rings, and choosing the wrong one has been the single most
  * expensive mistake in this app's history — it silently rescales everything.

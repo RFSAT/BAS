@@ -50,7 +50,7 @@ class CrosshairView @JvmOverloads constructor(
         set(value) { field = value; invalidate() }
 
     /** Which reticle is drawn. Independent of [guide], which draws the
-     *  selected face's rings and is a measurement aid rather than a sight. */
+     *  selected face's rings and is a measurement aid rather than a scope. */
     var reticle: Reticle = Reticle.CROSS
         set(value) { field = value; invalidate() }
 

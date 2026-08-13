@@ -123,7 +123,7 @@ object ReticleDrawer {
 
     /** A holdover "tree": a central cross, then windage bars stepping down,
      *  widening, with tick marks and a holdover NUMBER in MOA or MRAD. This is
-     *  a lining-up guide, not a calibrated sight — the numbers illustrate the
+     *  a lining-up guide, not a calibrated scope — the numbers illustrate the
      *  scale, they are not tied to the load. */
     private fun drawTree(
         canvas: Canvas, cx: Float, cy: Float, r: Float,

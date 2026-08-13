@@ -25,7 +25,7 @@ data class ScoreBucket(
  *
  * A total tells you what happened. The distribution tells you what KIND of
  * shooting produced it, and the two can differ sharply: 95 out of 100 as ten
- * 9s and 10s is a shooter who needs a sight correction, while the same 95 as
+ * 9s and 10s is a shooter who needs a scope correction, while the same 95 as
  * eight 10s and two 7s is a shooter throwing the occasional flyer. The first
  * is fixed by turning a turret, the second by working on the shot process,
  * and the total alone cannot tell them apart.

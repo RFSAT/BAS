@@ -127,7 +127,7 @@ class ProfileActivity : BaseActivity() {
             t.contains("profile set") -> R.drawable.ic_sec_profiles
             t.contains("firearm") -> R.drawable.ic_sec_firearm
             t.contains("ammunition") -> R.drawable.ic_sec_ammo
-            t.contains("optics") || t.contains("sight") -> R.drawable.ic_sec_optics
+            t.contains("optics") || t.contains("scope") -> R.drawable.ic_sec_optics
             t.contains("rangefinder") || t.contains("distance") -> R.drawable.ic_sec_range
             t.contains("weather") -> R.drawable.ic_sec_weather
             t.contains("target") -> R.drawable.ic_sec_targets
@@ -193,7 +193,10 @@ class ProfileActivity : BaseActivity() {
 
             fun render(open: Boolean) {
                 panel.visibility = if (open) android.view.View.VISIBLE else android.view.View.GONE
-                tv?.text = (if (open) "▾  " else "▸  ") + title
+                // The marker is decoration; the TITLE is what gets translated,
+                // so the cached phrase still matches.
+                tv?.text = (if (open) "▾  " else "▸  ") +
+                    (com.rfsat.bas.i18n.Translator.t(title) ?: title)
             }
             renderers[title] = ::render
             header.isClickable = true
@@ -201,7 +204,7 @@ class ProfileActivity : BaseActivity() {
                 val open = panel.visibility != android.view.View.VISIBLE
                 render(open)
                 if (title.contains("Profile sets", true))
-                    for (linked in listOf("Firearm", "Ammunition", "Optics and Sights"))
+                    for (linked in listOf("Firearm", "Ammunition", "Optics and Scopes"))
                         renderers.keys.firstOrNull { it.contains(linked, true) }
                             ?.let { renderers[it]?.invoke(open) }
             }
@@ -797,8 +800,8 @@ class ProfileActivity : BaseActivity() {
     private fun updateClickSummary() {
         val s = buildScopeFromFields()
         binding.tvClickSummary.text = if (!s.hasClicks) {
-            "This sight is recorded as having no usable clicks, so corrections will be given as a " +
-                "physical sight movement (if a sight radius is set) or as a distance on the target."
+            "This scope is recorded as having no usable clicks, so corrections will be given as a " +
+                "physical scope movement (if a sight radius is set) or as a distance on the target."
         } else {
             "One click = %.4f MRAD = %.4f MOA. At 10 m that moves the impact %.2f mm; at 50 m, %.1f mm; at 100 m, %.1f mm."
                 .format(
@@ -890,7 +893,7 @@ class ProfileActivity : BaseActivity() {
             setSingleLine()
         }
         AlertDialog.Builder(this)
-            .setTitle("Save the current firearm, load and sight as a set")
+            .setTitle("Save the current firearm, load and scope as a set")
             .setView(input)
             .setPositiveButton("Save") { _, _ ->
                 val name = input.text.toString().trim()
@@ -920,13 +923,13 @@ class ProfileActivity : BaseActivity() {
     /**
      * The three catalogue pickers, with VTB's filters.
      *
-     * A flat list of 41 firearms, 68 loads or 51 sights is unusable on a
+     * A flat list of 41 firearms, 68 loads or 51 scopes is unusable on a
      * phone — which is what these were before, a bare setItems() dialog. VTB
      * solved it with filter spinners above a results list and a live count,
      * and the same layouts are reused here so the two apps behave
      * identically: brand and type for a firearm; manufacturer, calibre,
      * velocity class, weight and bullet type for a load; brand, click value,
-     * magnification class and family for a sight.
+     * magnification class and family for a scope.
      */
     /** BLE discovery for a laser rangefinder (FIRE4000). The protocol is not
      *  published, so this enumerates the device and listens: range a target
@@ -1394,14 +1397,14 @@ class ProfileActivity : BaseActivity() {
                 spFamily.selectedItem?.toString() ?: ScopeCatalog.ALL
             )
             list.adapter = WrappingNameAdapter(this, shown.map { it.label() })
-            tvCount.text = "${shown.size} of ${ScopeCatalog.all.size} sights"
+            tvCount.text = "${shown.size} of ${ScopeCatalog.all.size} scopes"
         }
         val onFilter = onSelected { refilter() }
         listOf(spBrand, spClick, spMag, spFamily).forEach { it.onItemSelectedListener = onFilter }
         refilter()
 
         val dialog = AlertDialog.Builder(this)
-            .setTitle("Sight catalogue")
+            .setTitle("Scope catalogue")
             .setView(view)
             .setNegativeButton("Cancel", null)
             .create()
