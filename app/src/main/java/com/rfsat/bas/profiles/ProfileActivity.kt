@@ -66,9 +66,11 @@ class ProfileActivity : BaseActivity() {
             contentResolver.openInputStream(uri)?.use { input ->
                 java.io.FileOutputStream(dest).use { out -> input.copyTo(out) }
             }
-            val bmp = android.graphics.BitmapFactory.decodeFile(dest.absolutePath)
-                ?: throw IllegalStateException("not an image this device can read")
-            bmp.recycle()
+            // Bounds-only probe. This decoded the whole bitmap and recycled
+            // it immediately: the full allocation was paid for a yes/no.
+            if (!com.rfsat.bas.detect.ImageLoader.isDecodable(dest.absolutePath)) {
+                throw IllegalStateException("not an image this device can read")
+            }
             ScaleSettings.setReticleFile(this, dest.absolutePath)
             ScaleSettings.setReticle(this, com.rfsat.bas.ui.Reticle.CUSTOM)
             true

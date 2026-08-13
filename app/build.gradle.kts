@@ -46,6 +46,34 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.26.2 — compliance: the three items from Play's pre-launch report.
+        //
+        //          (1) Deprecated edge-to-edge APIs. The app declared
+        //          android:statusBarColor, the XML form of the deprecated
+        //          Window.setStatusBarColor; it is now colorPrimaryDark,
+        //          which the AppCompat parent hands to the window itself, so
+        //          the bar looks the same on Android 9-14 and the app no
+        //          longer names a deprecated attribute. Play's other trace,
+        //          in the Material date picker, is inside a component this
+        //          app never opens.
+        //
+        //          (2) BitmapFactory without downsampling. Every decode of an
+        //          image of UNKNOWN size now goes through a bounds pass and
+        //          inSampleSize: the custom reticle on both camera screens,
+        //          the card photograph restored across sessions, and the JPEG
+        //          off the sensor — the last capped exactly as the gallery
+        //          path already was, so a photograph detects the same
+        //          whichever way it arrived. The reticle validity check no
+        //          longer decodes a bitmap at all; a bounds pass answers it.
+        //          Reticles keep ARGB_8888, since RGB_565 would fill a
+        //          transparent PNG with black.
+        //
+        //          (3) Resource shrinking, now enabled. R8 was already on.
+        //
+        //          NOT changed: the MJPEG frame decoder. Downsampling there
+        //          would cost vapor-trail sensitivity, which is the whole
+        //          job, and Play did not report it.
+        //
         // 1.26.1 — correction: the Sight -> Scope sweep went through DATA, and
         //          eight tests caught it.
         //
@@ -3626,8 +3654,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 47
-        versionName = "1.26.1"
+        versionCode = 48
+        versionName = "1.26.2"
     }
 
     // Resolved once, here, rather than re-read from the environment in two
@@ -3671,6 +3699,22 @@ android {
             // JSON key — no crash, no build error, just vanished profiles,
             // targets and sessions.
             isMinifyEnabled = true
+
+            // Resource shrinking ON (Play's optimisation report asked for
+            // it). It drops drawables, layouts and strings that no kept code
+            // references — chiefly the parts of Material and CameraX this app
+            // never opens.
+            //
+            // SAFE HERE for one specific reason: the shrinker decides what to
+            // keep by reading R.* references out of the code, so it is blind
+            // to a resource fetched by NAME at runtime. This app has no
+            // Resources.getIdentifier call anywhere, and the one resource
+            // loaded as data rather than as chrome — R.raw.ui_strings, the
+            // translation corpus — is referenced through R like any other. If
+            // a getIdentifier call is ever added, the resource it names must
+            // be listed in res/raw/keep.xml or it will vanish in release
+            // builds ONLY, which is the worst kind of bug to hunt.
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
 
             // CameraX ships native code (libimage_processing_util_jni.so).

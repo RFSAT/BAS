@@ -1381,7 +1381,11 @@ class SessionActivity : BaseActivity() {
                     val bmp = runCatching {
                         val buf = image.planes[0].buffer
                         val bytes = ByteArray(buf.remaining()).also { buf.get(it) }
-                        android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                        // Capped exactly as the gallery-import path is, so a
+                        // photograph detects the same whichever way it
+                        // arrived -- and a future 108 MP sensor cannot turn
+                        // this callback into an OutOfMemoryError.
+                        ImageLoader.decodeBytesSampled(bytes)
                     }.getOrNull()
                     val rotated = runCatching {
                         val deg = image.imageInfo.rotationDegrees
@@ -1578,9 +1582,9 @@ class SessionActivity : BaseActivity() {
         binding.crosshair.customReticle =
             if (ScaleSettings.reticle() == com.rfsat.bas.ui.Reticle.CUSTOM &&
                 ScaleSettings.reticleFile().isNotEmpty()
-            ) runCatching {
-                android.graphics.BitmapFactory.decodeFile(ScaleSettings.reticleFile())
-            }.getOrNull() else null
+            ) ImageLoader.decodeFileSampled(
+                ScaleSettings.reticleFile(), ImageLoader.OVERLAY_MAX_DIMENSION
+            ) else null
         binding.crosshair.preserveNightVision =
             com.rfsat.bas.ui.ThemeManager.mode() == com.rfsat.bas.ui.ThemeMode.NIGHT_RED
         binding.crosshair.sizeFraction = ScaleSettings.aimGuideSize()

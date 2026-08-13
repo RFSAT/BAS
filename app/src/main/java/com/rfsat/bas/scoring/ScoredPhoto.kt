@@ -2,7 +2,6 @@ package com.rfsat.bas.scoring
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import com.rfsat.bas.log.Logger
 import java.io.File
 import java.io.FileOutputStream
@@ -112,7 +111,7 @@ object ScoredPhoto {
         val vMin = p.getFloat(KEY_V_MIN, 0f).toDouble()
         val vMax = p.getFloat(KEY_V_MAX, 0f).toDouble()
         if (uMax - uMin <= 0.0 || vMax - vMin <= 0.0) return false
-        val bmp = runCatching { BitmapFactory.decodeFile(f.absolutePath) }.getOrNull() ?: return false
+        val bmp = com.rfsat.bas.detect.ImageLoader.decodeFileSampled(f.absolutePath) ?: return false
         bitmap = bmp
         uMinMm = uMin; uMaxMm = uMax; vMinMm = vMin; vMaxMm = vMax
         Logger.i("ScoredPhoto", "restored the photograph from the previous session")

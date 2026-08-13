@@ -621,7 +621,10 @@ class CaptureActivity : BaseActivity() {
             binding.crosshair.customReticle =
                 if (com.rfsat.bas.detect.ScaleSettings.reticle() == com.rfsat.bas.ui.Reticle.CUSTOM &&
                     com.rfsat.bas.detect.ScaleSettings.reticleFile().isNotEmpty())
-                    android.graphics.BitmapFactory.decodeFile(com.rfsat.bas.detect.ScaleSettings.reticleFile())
+                    com.rfsat.bas.detect.ImageLoader.decodeFileSampled(
+                        com.rfsat.bas.detect.ScaleSettings.reticleFile(),
+                        com.rfsat.bas.detect.ImageLoader.OVERLAY_MAX_DIMENSION
+                    )
                 else null
         }
     }

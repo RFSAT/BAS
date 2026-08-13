@@ -1,13 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Base: attributes shared by all four modes -->
-    <style name="Theme.BAS.Base" parent="Theme.MaterialComponents.NoActionBar">
-        <item name="android:statusBarColor">@color/dark_bg</item>
-    </style>
+    <!-- NO android:statusBarColor here. That attribute is the declarative
+         form of Window.setStatusBarColor, deprecated in Android 15 and
+         reported by Play; from targetSdk 35 the platform draws the bars
+         transparent over the content and ignores it anyway. The colour the
+         bar had on Android 9-14 is preserved instead through
+         colorPrimaryDark, which the AppCompat parent theme feeds to the
+         window itself — the same pixels, without this app declaring a
+         deprecated attribute. -->
+    <style name="Theme.BAS.Base" parent="Theme.MaterialComponents.NoActionBar" />
 
     <!-- Dark: the default. Dark pixels draw less power on OLED and suit
          low light on the firing point. -->
     <style name="Theme.BAS.Dark" parent="Theme.BAS.Base">
+        <item name="colorPrimaryDark">@color/dark_bg</item>
         <item name="basReticleColor">@color/reticle_dark</item>
         <item name="android:windowBackground">@color/dark_bg</item>
         <item name="colorSurface">@color/dark_surface</item>
@@ -43,6 +50,7 @@
 
     <!-- Night Green: monochrome green on black -->
     <style name="Theme.BAS.NightGreen" parent="Theme.BAS.Base">
+        <item name="colorPrimaryDark">@color/ngreen_bg</item>
         <item name="basReticleColor">@color/reticle_ngreen</item>
         <item name="android:windowBackground">@color/ngreen_bg</item>
         <item name="colorSurface">@color/ngreen_surface</item>
@@ -62,6 +70,7 @@
 
     <!-- Night Red: monochrome red on black — preserves night vision best -->
     <style name="Theme.BAS.NightRed" parent="Theme.BAS.Base">
+        <item name="colorPrimaryDark">@color/nred_bg</item>
         <item name="basReticleColor">@color/reticle_nred</item>
         <item name="android:windowBackground">@color/nred_bg</item>
         <item name="colorSurface">@color/nred_surface</item>
