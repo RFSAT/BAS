@@ -144,7 +144,9 @@ object AdjustmentCalculator {
         // shot about to be fired. Solving both with the adjusted figure
         // would re-zero the rifle in software every time the weather
         // changed, and cancel most of the very effect being modelled.
-        val firedBullet = bullet.adjustedForTemperature(atmosphere.temperatureC)
+        val firedBullet = bullet
+            .adjustedForTemperature(atmosphere.temperatureC)
+            .adjustedForBarrel(rifle.barrelLengthIn)
         val zeroDistanceM = rifle.zeroDistanceM
 
         val pitch = BallisticsEngine.solveZeroPitch(bullet, atmosphere, zeroDistanceM, sightHeightM)

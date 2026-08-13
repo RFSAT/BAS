@@ -45,6 +45,9 @@ data class BulletProfile(
      *  for monolithic copper, which is longer for its weight than the
      *  estimator assumes and therefore less stable than it would report. */
     val lengthIn: Double = 0.0,
+    /** Barrel length the catalogue velocity was measured in, inches. The
+     *  velocity above means nothing without it. */
+    val testBarrelIn: Double = 24.0,
     val mvTempCoeffMpsPerC: Double = 0.0,
     val mvRefTempC: Double = 15.0
 ) {
@@ -73,6 +76,25 @@ data class BulletProfile(
         if (mvTempCoeffMpsPerC == 0.0) return this
         val newMps = muzzleVelocityMps + mvTempCoeffMpsPerC * (ambientC - mvRefTempC)
         return copy(muzzleVelocityFps = (newMps / 0.3048).coerceAtLeast(1.0))
+    }
+
+    /**
+     * Copy with the muzzle velocity corrected from the test barrel to the
+     * barrel actually fitted. Roughly 25 fps per inch on a centrefire — so
+     * a 20 in barrel firing a load clocked in a 24 in test barrel starts
+     * about 100 fps slower than the box says, every shot, for ever.
+     */
+    fun adjustedForBarrel(actualBarrelIn: Double): BulletProfile {
+        val corrected = com.rfsat.bas.ballistics.MuzzleVelocity.forBarrel(
+            catalogFps = muzzleVelocityFps,
+            testBarrelIn = testBarrelIn,
+            actualBarrelIn = actualBarrelIn,
+            rimfire = com.rfsat.bas.ballistics.MuzzleVelocity.looksRimfire(
+                caliberDiameterIn, muzzleVelocityFps),
+            pellet = isPellet
+        )
+        return if (corrected == muzzleVelocityFps) this
+               else copy(muzzleVelocityFps = corrected)
     }
 
     /** Intent-revealing alias for the legacy isPellet key. */

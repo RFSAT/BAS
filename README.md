@@ -153,6 +153,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.28.0** — truing. Catalogue muzzle velocities are corrected from the test barrel to the barrel actually fitted (~25 fps/inch centrefire; rimfire reverses above ~16 in). Groups already recorded can be fitted back into the profile — velocity from inside 500 m, drag beyond it, never both at one distance — with fits outside physical limits flagged as a distance or zero error rather than accepted.
+
 **1.27.0** — accuracy. The firing solution now models spin drift (from the twist rate the app always collected and never used), Coriolis (horizontal from latitude; vertical from firing azimuth, omitted rather than guessed when unknown) and rifle cant. Two defaults fixed: a low-confidence wind fit is no longer dialled as though measured, and powder temperature now reaches the firing solution instead of only the capture screen. Range mode gained an instrument status chip that distinguishes a silent link from a working one, and shot deletions are undoable.
 
 **1.26.3** — packaging correction. Sources identical to 1.26.2; reissued under a new version because 1.26.2 was built twice with differing contents under one name. The release packager now verifies that baseline + delta reconstructs the shipped tree before writing it.

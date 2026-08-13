@@ -995,6 +995,20 @@ target '${t.name}'
 rule set '${r.name}'
 Restored $sets profile set(s), $targets custom target(s) and $rules custom rule set(s).
 These could not be restored: ${problems.joinToString(
+Nothing to fit — no usable observations.
+Truing needs at least one measured group at a known distance.
+muzzle velocity %.0f fps (%+.0f)
+The velocity fit did not settle; treat it as indicative.
+Fitted velocity is %.0f fps from the catalogue figure — that is more than a barrel
+difference explains. Check the zero distance and sight height before trusting it.
+and only drag was fitted. A near group makes both numbers meaningful.
+drag %.3f of the reference curve
+The drag fit did not settle; treat it as indicative.
+Fitted drag is %.2f of the standard curve, which is outside what a real bullet does.
+Something else is wrong — most often the distance or the zero.
+Velocity alone cannot be extrapolated past the distance it was fitted at.
+Nothing fitted.
+Fitted
 decay rate
 15 km drop
 hit the ground

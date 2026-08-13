@@ -46,6 +46,42 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.28.0 — TRUING, and the muzzle velocity it starts from.
+        //
+        //          BARREL LENGTH. A catalogue velocity is measured in a test
+        //          barrel and the app took it literally regardless of what
+        //          the rifle profile said. About 25 fps per inch on a
+        //          centrefire, so a 20 in barrel firing a load clocked in a
+        //          24 in test barrel starts 100 fps slower than the box
+        //          claims — every shot, for ever. Rimfire gets its own rule
+        //          because it REVERSES above about 16 in: applying the
+        //          centrefire rule to a long .22 barrel gets the sign wrong,
+        //          not merely the size.
+        //
+        //          TRUING fits the trajectory to groups already recorded.
+        //          Velocity from groups inside 500 m, drag beyond it, in
+        //          that order and never both from one distance — velocity
+        //          and drag both bend the drop curve, so fitting both at a
+        //          single range is underdetermined and would return a large
+        //          velocity error cancelled by an absurd BC. They separate
+        //          only by shape against distance: velocity dominates near,
+        //          accumulated drag dominates far.
+        //
+        //          Drag is trued through dragCalibrationFactor rather than by
+        //          rewriting the BC, so the catalogue figure the shooter
+        //          recognises stays on screen and the correction reads as
+        //          "12% more drag than the reference curve".
+        //
+        //          Golden-section search, not Newton or secant: the
+        //          trajectory is integrated numerically, so its derivative is
+        //          only available as a difference of two noisy simulations
+        //          and a derivative-based solver chases that noise. Golden
+        //          section cannot diverge; the worst case is a wide bracket,
+        //          which is reported rather than hidden. A fit that lands
+        //          outside what a real barrel or a real bullet does is
+        //          flagged as a distance or zero error instead of being
+        //          quietly accepted.
+        //
         // 1.27.0 — ACCURACY. The solver now models what a point mass cannot,
         //          and two defaults that were quietly costing accuracy are
         //          fixed.
@@ -3717,8 +3753,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 50
-        versionName = "1.27.0"
+        versionCode = 51
+        versionName = "1.28.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two
