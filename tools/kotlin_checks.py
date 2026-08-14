@@ -377,9 +377,23 @@ for f in files:
     _src = open(f).read()
     _pkg = _file_pkg[f]
     _imported = {imp.rsplit(".", 1)[-1] for imp in _re9.findall(r'^import ([\w.]+)', _src, _re9.M)}
+    # Block comments have to be TRACKED, not pattern-matched line by line.
+    # The old test skipped lines starting with "*", which covers the middle of
+    # a KDoc but not its first line — "/** Mirrors StringLabels.remember" was
+    # read as code and reported as a missing import. A gate that fires on
+    # prose teaches people to work around it, which costs more than the gate
+    # was ever worth.
+    _in_block = False
     for i, l in enumerate(_src.splitlines()):
         ls = l.lstrip()
-        if ls.startswith("//") or ls.startswith("*") or ls.startswith("package ") or ls.startswith("import "):
+        _opened = _in_block
+        if "/*" in l and "*/" not in l.split("/*", 1)[1]:
+            _in_block = True
+        if "*/" in l:
+            _in_block = False
+        if _opened or ls.startswith("/*") or ls.startswith("*"):
+            continue
+        if ls.startswith("//") or ls.startswith("package ") or ls.startswith("import "):
             continue
         for m in _re9.finditer(r'(?<![.\w])([A-Z]\w+)\.', l):
             name = m.group(1)

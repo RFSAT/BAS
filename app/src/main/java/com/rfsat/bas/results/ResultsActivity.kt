@@ -151,6 +151,16 @@ class ResultsActivity : BaseActivity() {
         )
         binding.etNotes.setText(ScoringSession.state.notes)
 
+        binding.btnNotePreset.setOnClickListener {
+            com.rfsat.bas.ui.StringLabels.choose(this) { label ->
+                // Prepended, not replacing: the note may already hold
+                // conditions worth keeping, and a label is an addition to it.
+                val existing = binding.etNotes.text.toString().trim()
+                binding.etNotes.setText(
+                    if (existing.isEmpty()) label else "$label — $existing")
+                com.rfsat.bas.scoring.ScoringSession.setNotes(binding.etNotes.text.toString())
+            }
+        }
         setupBottomNav(R.id.nav_results)
         binding.btnTabBallistics.setOnClickListener {
             startActivity(Intent(this, BallisticsResultsActivity::class.java)); finish()
@@ -168,7 +178,13 @@ class ResultsActivity : BaseActivity() {
     override fun onPause() {
         super.onPause()
         binding.etTime.text.toString().toDoubleOrNull()?.let { ScoringSession.setStageSeconds(it) }
-        ScoringSession.setNotes(binding.etNotes.text.toString())
+        val note = binding.etNotes.text.toString()
+        ScoringSession.setNotes(note)
+        // The first few words of a hand-typed note become a future preset:
+        // the labels that matter differ by discipline, so the list has to be
+        // learned rather than declared.
+        note.substringBefore("—").trim().takeIf { it.isNotEmpty() && it.length <= 24 }
+            ?.let { com.rfsat.bas.ui.StringLabels.remember(this, it) }
     }
 
     /**

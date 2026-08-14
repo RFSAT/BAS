@@ -46,6 +46,46 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.31.0 — the last two from the usability queue, both for the
+        //          Also: the cross-package gate was reading KDoc as code. It
+        //          skipped lines starting with "*", which covers the middle
+        //          of a doc comment but not its first line, so a class named
+        //          in prose was reported as a missing import. It now tracks
+        //          block comments properly — verified both ways, that it no
+        //          longer fires on the comment and still fires on a real
+        //          unqualified reference.
+        //          shooter who is lying down and cannot move.
+        //
+        //          MIRRORED CONTROLS. Each row of buttons can be reversed, so
+        //          the first one falls under the hand that is free. Prone
+        //          behind a bipod, reaching across the screen costs the
+        //          position, not merely a moment, and which side is right
+        //          depends on which shoulder the rifle is on.
+        //
+        //          Reversing the CHILDREN, not setting an RTL layout
+        //          direction: RTL would mirror the text inside the buttons
+        //          and every label around them, which is a far larger change
+        //          and would read as a broken app to everyone who did not ask
+        //          for it. Rows are tagged once reversed so repeated layout
+        //          passes cannot flip them back, and the toggle recreates the
+        //          screen rather than trying to un-flip what is already
+        //          drawn — one line, and it cannot leave half a screen
+        //          reversed.
+        //
+        //          STRING LABELS. Typing on a phone while lying behind a
+        //          rifle is genuinely awkward: the keyboard covers the screen
+        //          and the hand that would hold the phone is on the stock. So
+        //          the recurring four words are now a tap.
+        //
+        //          The list LEARNS. Whatever is typed by hand is offered next
+        //          time, most recent first, because the labels that matter at
+        //          a 10 m air rifle match are not the ones that matter on a
+        //          1000 m F-class relay and no built-in list could serve
+        //          both. A label used twice rises rather than appearing
+        //          twice, and the label is prepended to the note rather than
+        //          replacing it — the note may already hold conditions worth
+        //          keeping.
+        //
         // 1.30.0 — the next three from the usability queue.
         //
         //          A FILTER over Settings, which is the longest screen in the
@@ -3841,8 +3881,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 54
-        versionName = "1.30.0"
+        versionCode = 55
+        versionName = "1.31.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

@@ -124,6 +124,9 @@ Target faces
 Target faces…
 Competition rules
 Competition rules…
+Reach
+Put the buttons on the other side
+Reverses each row of buttons, so the first one falls under the hand that is free. Prone behind a bipod, reaching across the screen means breaking position.
 Rifle orientation
 Coriolis needs to know where you are and which way you are pointing. Position comes from the weather settings; the direction is read from the phone's compass while it is aimed at the target.
 The phone is mounted on the rifle
@@ -165,6 +168,7 @@ Series
 Worth knowing
 Stage time (practical disciplines)
 Notes
+Add a label
 Shots
 Second opinion
 Share report
@@ -440,6 +444,17 @@ ${face.id}@$sizePx
 $faceId@
 thing — qualifiers
 $head\n$tail
+Sighters
+Match
+Practice
+Zeroing
+Load development
+Cold bore
+String 1
+String 2
+String 3
+Label this string
+Cancel
 Nothing
 Rings of the selected target
 Rings and crosshair
@@ -594,6 +609,7 @@ Other\u2026
 not an image this device can read
 That image could not be used: ${it.message}
 its colours are not changed by the theme.
+already mirrored
 Settings failed to load: ${it.message}
 BAS ${com.rfsat.bas.BuildConfig.VERSION_NAME} (build ${com.rfsat.bas.BuildConfig.VERSION_CODE}, ${com.rfsat.bas.BuildConfig.BUILD_TYPE})
 Elsewhere
@@ -622,7 +638,6 @@ Other ${p.label} model
 It must be able to read images and to answer against a schema.
 Use
 ${p.label} will use $v.
-Cancel
 ${target.label} API key
 the log.
 Nothing entered.
@@ -786,7 +801,6 @@ Quiet-22
 Suppressor
 Blazer
 Gold Medal Target
-Match
 American Eagle HP
 Remington
 Thunderbolt
@@ -2051,7 +2065,6 @@ Built-in rule sets cannot be deleted — copy one instead.
 No rule set selected.
 ${r.name}\n${r.summary()}
 in series of ${r.shotsPerSeries}
-Sighters
 Scoring gauge
 ${r.gaugeDiameterMm} mm
 Value scale
@@ -2181,6 +2194,7 @@ hidden so the holes themselves stay visible.
 Showing the target template.
 BAS session report
 BAS shots CSV
+$label — $existing
 Could not render the results: ${it.message}
 Shot ${shot.index}: ${shot.displayValue}
 %d measured on the photograph and placed

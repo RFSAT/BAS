@@ -613,6 +613,14 @@
                 android:text="Competition rules…" />
 
             <!-- ===== Other options ===== -->
+            <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Reach" />
+
+            <CheckBox android:id="@+id/cbMirrorControls" style="@style/Sts.CheckBox"
+                android:text="Put the buttons on the other side" />
+
+            <TextView style="@style/Sts.FieldLabel"
+                android:text="Reverses each row of buttons, so the first one falls under the hand that is free. Prone behind a bipod, reaching across the screen means breaking position." />
+
             <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Rifle orientation" />
 
             <TextView style="@style/Sts.FieldLabel"

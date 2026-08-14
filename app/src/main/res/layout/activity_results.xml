@@ -164,6 +164,10 @@
                 android:autofillHints="" />
 
             <TextView style="@style/Sts.SectionHeading" android:text="Notes" />
+            <Button android:id="@+id/btnNotePreset" android:text="Add a label"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textSize="12sp" />
+
             <EditText android:id="@+id/etNotes"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:inputType="textMultiLine"

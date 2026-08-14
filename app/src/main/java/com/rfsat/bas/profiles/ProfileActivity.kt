@@ -94,6 +94,15 @@ class ProfileActivity : BaseActivity() {
         setContentView(binding.root)
         setupSettingsFilter()
         setupOrientationControls()
+        binding.cbMirrorControls.isChecked = controlsMirrored()
+        binding.cbMirrorControls.setOnCheckedChangeListener { _, checked ->
+            setControlsMirrored(checked)
+            // Rebuilt rather than mirrored in place: the rows already on
+            // screen carry the "already mirrored" tag, so flipping them again
+            // would need the tag cleared everywhere. Recreating the screen is
+            // one line and cannot leave half of it reversed.
+            recreate()
+        }
         repo = ProfileRepository(this)
 
         runCatching { initScreen() }.onFailure {

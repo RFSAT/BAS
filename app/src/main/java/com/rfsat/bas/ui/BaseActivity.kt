@@ -330,6 +330,10 @@ open class BaseActivity : AppCompatActivity() {
         root.viewTreeObserver.addOnGlobalLayoutListener {
             runCatching {
                 com.rfsat.bas.i18n.Translator.apply(root)
+                // Mirror BEFORE fitting: fitting measures the buttons, and
+                // measuring them in the order they will actually be shown is
+                // the only order whose widths mean anything.
+                if (controlsMirrored()) mirrorButtonRows(root)
                 fitButtonRows(root)
             }
         }
@@ -343,6 +347,49 @@ open class BaseActivity : AppCompatActivity() {
      * Applied only to buttons that actually share a horizontal row, since a
      * full-width button has room to wrap and reads better if it does.
      */
+    /**
+     * Reverses the order of the buttons in every row, so the primary action
+     * sits under the hand that is free.
+     *
+     * Prone behind a bipod one hand is committed to the rifle, and the
+     * buttons are all on one side of the screen; reaching across means
+     * breaking position, which for a prone shooter costs the position itself,
+     * not merely a moment. Which side is right depends on which shoulder the
+     * shooter is on, so it is a setting rather than a guess.
+     *
+     * Reversing the CHILDREN rather than setting an RTL layout direction:
+     * RTL would mirror the text inside the buttons and every label around
+     * them too, which is a different and much larger change that would make
+     * the app look broken to a right-handed shooter. This moves the buttons
+     * and nothing else.
+     *
+     * Uses the same row test as [fitButtonRows] — a horizontal LinearLayout
+     * holding two or more Buttons — so the two agree by construction about
+     * what a row is, and tagged so repeated layout passes cannot reverse a
+     * row twice and put it back.
+     */
+    private fun mirrorButtonRows(v: android.view.View) {
+        if (v !is android.view.ViewGroup) return
+        val row = v is android.widget.LinearLayout &&
+            v.orientation == android.widget.LinearLayout.HORIZONTAL
+        var buttons = 0
+        if (row) for (i in 0 until v.childCount) if (v.getChildAt(i) is android.widget.Button) buttons++
+        if (row && buttons >= 2 && v.getTag(TAG_MIRRORED) != true) {
+            val children = (0 until v.childCount).map { v.getChildAt(it) }
+            v.removeAllViews()
+            for (c in children.reversed()) v.addView(c)
+            v.setTag(TAG_MIRRORED, true)
+        }
+        for (i in 0 until v.childCount) mirrorButtonRows(v.getChildAt(i))
+    }
+
+    fun controlsMirrored(): Boolean =
+        getSharedPreferences(PREFS, MODE_PRIVATE).getBoolean("controls_mirrored", false)
+
+    fun setControlsMirrored(on: Boolean) {
+        getSharedPreferences(PREFS, MODE_PRIVATE).edit().putBoolean("controls_mirrored", on).apply()
+    }
+
     private fun fitButtonRows(v: android.view.View) {
         if (v is android.view.ViewGroup) {
             val row = v is android.widget.LinearLayout &&
@@ -369,6 +416,7 @@ open class BaseActivity : AppCompatActivity() {
     }
 
     private val TAG_FITTED = 0x7f5a0003
+    private val TAG_MIRRORED = 0x7f5a0004
 
     /** A hardware key (volume, camera, media, headset, enter) fired while the
      *  "remote triggers capture" option is on. Screens override to act; return
