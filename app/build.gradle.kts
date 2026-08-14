@@ -46,6 +46,39 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.30.0 — the next three from the usability queue.
+        //
+        //          A FILTER over Settings, which is the longest screen in the
+        //          app by a wide margin. It filters the VIEW TREE rather than
+        //          a list of setting names, because there is no such list —
+        //          the screen is a hand-written layout — and because reading
+        //          the labels as they are currently DISPLAYED means the
+        //          filter searches whatever language the interface is in,
+        //          with nothing extra to translate. A section heading and
+        //          everything under it survive or vanish together, so a
+        //          match never strands a checkbox with no heading to say
+        //          what it belongs to.
+        //
+        //          RIFLE ORIENTATION controls. 1.29.0 shipped the storage and
+        //          the solver wiring for the rail-mounted flag and the manual
+        //          cant, and no screen to set either — so both stayed at
+        //          their defaults for everyone, permanently, which is the
+        //          same "built but not connected" mistake twice in a row.
+        //          The cant box disables itself when the phone is on the
+        //          rail, since a stale editable number invites the belief
+        //          that it is being used.
+        //
+        //          COLOUR. The last shot was distinguished from the rest of
+        //          the group by colour alone, red against orange — one of
+        //          the exact pairs that red-green colour blindness collapses,
+        //          and one that collapses for EVERYONE under the night-red
+        //          theme, which is deliberately monochrome. So the cue for
+        //          "this is the shot you just fired" vanished on the screen
+        //          where that is the main question. It is now blue against
+        //          red, which survives every common form of colour blindness,
+        //          AND carries a second wider ring — a shape, so the meaning
+        //          no longer rests on colour at all.
+        //
         // 1.29.1 — correction: `this` inside a coroutine builder.
         //
         //          The two new calls on the capture screen sat inside a
@@ -3808,8 +3841,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 53
-        versionName = "1.29.1"
+        versionCode = 54
+        versionName = "1.30.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

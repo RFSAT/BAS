@@ -124,6 +124,11 @@ Target faces
 Target faces…
 Competition rules
 Competition rules…
+Rifle orientation
+Coriolis needs to know where you are and which way you are pointing. Position comes from the weather settings; the direction is read from the phone's compass while it is aimed at the target.
+The phone is mounted on the rifle
+Tick this only if the phone is clamped to the rail, so its tilt is the rifle's tilt. Otherwise enter the cant you hold by hand below.
+Cant, degrees (right-hand tilt positive)
 Other options
 Camera defaults…
 Run first-time setup again…
@@ -133,6 +138,7 @@ Backup and reset
 Export a backup of everything
 Restore from a backup
 Reset to defaults
+Filter settings
 Enter your chronographed average. A second measurement at a different temperature (≥3°C apart) also solves the MV temperature coefficient.
 Measured MV (fps)
 Temp (°C)
@@ -325,6 +331,7 @@ Typical error left over: %.0f mm
 Fitted
 Keep it
 Discard
+this is the shot you just fired
 A-head
 No shots recorded yet.
 this ring exists and took nothing
@@ -762,6 +769,7 @@ Using your own image. Choose “My own image…” again to replace it.
 No image loaded yet.
 Nothing is drawn over the picture.
 Drawn in the theme colour, at the guide size set on the Session tab.
+Nothing matches \u201C$rawQuery\u201D.
 JSB Exact 4.50 mm 8.44gr
 track the projectile in flight
 Subsonic

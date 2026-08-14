@@ -4,12 +4,36 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
+    <EditText
+        android:id="@+id/etSettingsFilter"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="14dp"
+        android:layout_marginEnd="14dp"
+        android:layout_marginTop="8dp"
+        android:hint="Filter settings"
+        android:inputType="text"
+        android:imeOptions="actionSearch"
+        android:maxLines="1"
+        android:textSize="15sp" />
+
+    <TextView
+        android:id="@+id/tvFilterEmpty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="14dp"
+        android:layout_marginEnd="14dp"
+        android:paddingTop="12dp"
+        android:textSize="14sp"
+        android:visibility="gone" />
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
 
         <LinearLayout
+            android:id="@+id/settingsList"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -589,6 +613,22 @@
                 android:text="Competition rules…" />
 
             <!-- ===== Other options ===== -->
+            <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Rifle orientation" />
+
+            <TextView style="@style/Sts.FieldLabel"
+                android:text="Coriolis needs to know where you are and which way you are pointing. Position comes from the weather settings; the direction is read from the phone\'s compass while it is aimed at the target." />
+
+            <CheckBox android:id="@+id/cbRailMounted" style="@style/Sts.CheckBox"
+                android:text="The phone is mounted on the rifle" />
+
+            <TextView style="@style/Sts.FieldLabel"
+                android:text="Tick this only if the phone is clamped to the rail, so its tilt is the rifle\'s tilt. Otherwise enter the cant you hold by hand below." />
+
+            <TextView style="@style/Sts.FieldLabel" android:text="Cant, degrees (right-hand tilt positive)" />
+            <EditText android:id="@+id/etManualCant"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:inputType="numberSigned|numberDecimal" android:maxLines="1" />
+
             <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Other options" />
             <Button android:id="@+id/btnCameraDefaults"
                 android:layout_width="match_parent" android:layout_height="wrap_content"

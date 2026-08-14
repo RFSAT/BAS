@@ -48,7 +48,12 @@
     <color name="plot_ink">#1A1A1A</color>
     <color name="plot_black_area">#111111</color>
     <color name="plot_shot">#D32F2F</color>
-    <color name="plot_shot_last">#FF9800</color>
+    <!-- Blue rather than orange, against the red of the rest of the group.
+         Red/orange is a pair that protanopia and deuteranopia collapse;
+         red/blue survives every common form of colour blindness. The wider
+         ring drawn around the last shot carries the same information again
+         as a shape, so the meaning does not rest on either colour. -->
+    <color name="plot_shot_last">#1E88E5</color>
     <color name="plot_group">#1565C0</color>
     <color name="plot_poa">#00897B</color>
 

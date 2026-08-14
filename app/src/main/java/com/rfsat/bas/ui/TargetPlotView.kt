@@ -451,6 +451,19 @@ class TargetPlotView @JvmOverloads constructor(
             }
             canvas.drawCircle(x, y, rPx, ring)
             canvas.drawCircle(x, y, rPx, shotEdge)
+            // The LAST shot gets a second, wider ring — a SHAPE difference,
+            // not another colour.
+            //
+            // It was distinguished by colour alone: red for the group, orange
+            // for the newest. Red against orange is one of the two pairs that
+            // red-green colour blindness collapses, which is about 8% of male
+            // shooters — and it collapses for everyone under the night-red
+            // theme, where the display is deliberately monochrome. In both
+            // cases the cue for "this is the shot you just fired" silently
+            // disappeared, on the screen where that is the main question.
+            if (shot === last) {
+                canvas.drawCircle(x, y, rPx * 1.6f, ring)
+            }
             // A straight cross, gapped at the middle so the centre of the
             // hole is never hidden by the thing pointing at it.
             val arm = rPx * 1.15f

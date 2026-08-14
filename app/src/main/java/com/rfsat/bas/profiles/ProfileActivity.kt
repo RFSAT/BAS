@@ -92,6 +92,8 @@ class ProfileActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityProfileBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        setupSettingsFilter()
+        setupOrientationControls()
         repo = ProfileRepository(this)
 
         runCatching { initScreen() }.onFailure {
@@ -1698,4 +1700,109 @@ class ProfileActivity : BaseActivity() {
         binding.spTheme, binding.spUnits, binding.spSets,
         binding.spFirearmType, binding.spSightType, binding.spClickUnit
     )
+
+    // ------------------------------------------------------------------
+    //  Filtering
+    // ------------------------------------------------------------------
+
+    /**
+     * A search box over the settings column.
+     *
+     * This screen is the longest in the app by a wide margin, and reading it
+     * end to end to change one toggle is the most repeated friction in daily
+     * use. Filtering happens over the VIEW TREE rather than over a list of
+     * known settings, for two reasons: there is no such list — the screen is
+     * a hand-written layout — and reading the labels as they are currently
+     * DISPLAYED means the filter searches whatever language the interface is
+     * in, with no separate translation of search terms.
+     *
+     * The column is flat, with section headings marked by android:tag =
+     * "section", so a heading and everything after it up to the next heading
+     * form one group. A group survives if the query appears anywhere in it,
+     * heading included — so "wind" keeps the whole weather section, and
+     * typing the name of a single checkbox keeps its heading for context
+     * rather than stranding the control with no idea what it belongs to.
+     */
+    private fun setupSettingsFilter() {
+        binding.etSettingsFilter.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+            override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+            override fun afterTextChanged(s: android.text.Editable?) {
+                runCatching { applySettingsFilter(s?.toString().orEmpty()) }
+            }
+        })
+    }
+
+    /** Every string this view shows, including its children. */
+    private fun visibleTextOf(v: android.view.View): String = when (v) {
+        is android.view.ViewGroup -> (0 until v.childCount)
+            .joinToString(" ") { visibleTextOf(v.getChildAt(it)) }
+        is android.widget.TextView -> v.text?.toString().orEmpty()
+        else -> ""
+    }
+
+    private fun applySettingsFilter(rawQuery: String) {
+        val list = binding.settingsList
+        val query = rawQuery.trim().lowercase()
+
+        // Groups: a heading and everything up to the next heading.
+        val groups = mutableListOf<MutableList<android.view.View>>()
+        for (i in 0 until list.childCount) {
+            val child = list.getChildAt(i)
+            if (child.tag == "section" || groups.isEmpty()) groups.add(mutableListOf())
+            groups.last().add(child)
+        }
+
+        if (query.isEmpty()) {
+            for (g in groups) for (v in g) v.visibility = android.view.View.VISIBLE
+            binding.tvFilterEmpty.visibility = android.view.View.GONE
+            return
+        }
+
+        var shown = 0
+        for (g in groups) {
+            val hay = g.joinToString(" ") { visibleTextOf(it) }.lowercase()
+            val keep = hay.contains(query)
+            if (keep) shown++
+            for (v in g) v.visibility =
+                if (keep) android.view.View.VISIBLE else android.view.View.GONE
+        }
+        binding.tvFilterEmpty.text = "Nothing matches \u201C$rawQuery\u201D."
+        binding.tvFilterEmpty.visibility =
+            if (shown == 0) android.view.View.VISIBLE else android.view.View.GONE
+    }
+
+    // ------------------------------------------------------------------
+    //  Rifle orientation
+    // ------------------------------------------------------------------
+
+    /**
+     * The controls Coriolis and cant need. Added here because 1.29.0 shipped
+     * the storage and the solver wiring for both and no way to set either —
+     * so the rail-mounted flag was false and the cant zero for everyone, for
+     * ever, with no screen that said so.
+     */
+    private fun setupOrientationControls() {
+        val so = com.rfsat.bas.environment.ShotOrientation
+        binding.cbRailMounted.isChecked = so.railMounted(this)
+        binding.cbRailMounted.setOnCheckedChangeListener { _, checked ->
+            so.setRailMounted(this, checked)
+            // The manual figure is meaningless while the phone supplies it,
+            // and leaving a stale number in an editable box invites the
+            // belief that it is being used.
+            binding.etManualCant.isEnabled = !checked
+        }
+        binding.etManualCant.isEnabled = !so.railMounted(this)
+        val cant = so.manualCantDeg(this)
+        binding.etManualCant.setText(if (cant == 0.0) "" else "%.1f".format(cant))
+        binding.etManualCant.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+            override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+            override fun afterTextChanged(s: android.text.Editable?) {
+                val v = s?.toString()?.trim()?.toDoubleOrNull() ?: 0.0
+                // Anything past this is not cant, it is a dropped rifle.
+                so.setManualCantDeg(this@ProfileActivity, v.coerceIn(-45.0, 45.0))
+            }
+        })
+    }
 }
