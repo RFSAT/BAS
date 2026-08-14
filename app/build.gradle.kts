@@ -46,6 +46,21 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.29.1 — correction: `this` inside a coroutine builder.
+        //
+        //          The two new calls on the capture screen sat inside a
+        //          launch block, where `this` is the CoroutineScope and not
+        //          the Activity, so a Context argument got a scope. The line
+        //          three above them already read this@CaptureActivity, which
+        //          is what makes this so easy to reintroduce: the call was
+        //          pasted in from a screen where bare `this` was correct.
+        //
+        //          A static gate now rejects a bare `this` used as a whole
+        //          argument inside launch/async/withContext, and was checked
+        //          against the failing code before being trusted — a gate
+        //          that has never been seen to fire is a gate nobody knows
+        //          the polarity of.
+        //
         // 1.29.0 — the two engines built in 1.27.0 and 1.28.0 are now
         //          CONNECTED. Both were shipped complete and inert.
         //
@@ -3793,8 +3808,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 52
-        versionName = "1.29.0"
+        versionCode = 53
+        versionName = "1.29.1"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

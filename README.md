@@ -153,6 +153,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.29.1** — correction. A bare `this` inside a coroutine builder on the capture screen resolved to the CoroutineScope rather than the Activity; a new static gate rejects that form.
+
 **1.29.0** — the accuracy work is now connected. Coriolis and cant receive real data (latitude from the stored weather position, heading from the compass while the phone is aimed at the target, cant only when the shooter states the phone is rail-mounted). Truing gained its screen, storing results as a per-rifle-and-load overlay that leaves the ammunition catalogue untouched.
 
 **1.28.0** — truing. Catalogue muzzle velocities are corrected from the test barrel to the barrel actually fitted (~25 fps/inch centrefire; rimfire reverses above ~16 in). Groups already recorded can be fitted back into the profile — velocity from inside 500 m, drag beyond it, never both at one distance — with fits outside physical limits flagged as a distance or zero error rather than accepted.

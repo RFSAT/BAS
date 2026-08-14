@@ -418,5 +418,42 @@ for _vf in sorted(_g10.glob(os.path.join(_VALUES, "*.xml"))):
                     f"— write \\{_ch} (aapt2 rejects it)")
                 break
 
+
+# ---------------------------------------------------------------- gate 11
+#
+# `this` passed as an argument inside a coroutine builder.
+#
+# launch/async/withContext take a CoroutineScope RECEIVER, so inside them
+# `this` stops being the Activity and becomes the scope. Passing it where a
+# Context is wanted fails to compile and reads perfectly:
+#
+#     lifecycleScope.launch {
+#         Something.needsContext(this)      // CoroutineScope, not Activity
+#     }
+#
+# The fix is always this@TheActivity — and the surrounding code usually
+# already uses that form a few lines up, which is exactly what makes this
+# easy to reintroduce by pasting a call in from somewhere else. It cost a
+# CI round trip in 1.29.0.
+#
+# Only a bare `this` standing as a whole argument is flagged; `this@X` and
+# `this.foo` are the correct forms and are left alone.
+_coro_open = re.compile(r'\b(?:launch|async)\s*(?:\([^)]*\))?\s*\{|\bwithContext\s*\([^)]*\)\s*\{')
+_bare_this = re.compile(r'[(,]\s*this\s*[,)]')
+for _f in [x for x in files if (os.sep + "test" + os.sep) not in x]:
+    _depth = 0
+    for _n, _line in enumerate(open(_f, encoding="utf-8", errors="ignore").read().split("\n"), 1):
+        _code = _line.split("//")[0]
+        if _depth > 0:
+            if _bare_this.search(_code):
+                problems.append(f"{os.path.basename(_f)}:{_n}  `this` inside a coroutine "
+                                f"builder is the CoroutineScope — use this@ClassName")
+            _depth += _code.count("{") - _code.count("}")
+            if _depth < 0:
+                _depth = 0
+            continue
+        if _coro_open.search(_code):
+            _depth = max(1, 1 + _code.count("{") - _code.count("}") - 1)
+
 print(("PROBLEMS:\n  "+"\n  ".join(problems)) if problems else "No problems found.")
 sys.exit(1 if problems else 0)
