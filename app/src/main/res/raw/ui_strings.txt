@@ -146,6 +146,7 @@ Impact
 Apply wind estimate to other profile
 Speak: off
 History
+Truing
 Add
 Move
 Whole card
@@ -300,6 +301,30 @@ $message\n${Log.getStackTraceString(t)}
 vertical=${
 .format(fitY.wind)} m/s (q=${
 .format(fitY.quality)})
+${rifle.name}
+${bullet.name}
+No groups recorded yet.
+Shoot a group of at least three at a known distance, score it, then
+come back here and record it. Velocity is fitted from groups inside
+${Truing_SPLIT} m and drag from groups beyond it, so two distances —
+one near, one far — tell the app far more than four at one distance.
+Recorded groups:
+%5.0f m   %+6.0f mm   %d shots
+Not fitted yet.
+Fitted: ${overlay.summary}
+catalogue %.0f fps  ->  %.0f fps
+drag %.3f of the reference curve
+typical error left over: %.0f mm
+This applies to this rifle with this load only. The ammunition
+entry itself is unchanged.
+Record this group
+at a known distance.
+Recorded %d shots at %.0f m.
+Fit now
+Typical error left over: %.0f mm
+Fitted
+Keep it
+Discard
 A-head
 No shots recorded yet.
 this ring exists and took nothing
@@ -829,6 +854,7 @@ Syntech Training Match TSJ FN
 Syntech Action Pistol TSJ FN
 HST JHP
 ${it.weightGr.toInt()} gr
+${rifle.name}|${bullet.name}
 Air rifle
 Air pistol
 Rimfire rifle
@@ -1002,13 +1028,11 @@ The velocity fit did not settle; treat it as indicative.
 Fitted velocity is %.0f fps from the catalogue figure — that is more than a barrel
 difference explains. Check the zero distance and sight height before trusting it.
 and only drag was fitted. A near group makes both numbers meaningful.
-drag %.3f of the reference curve
 The drag fit did not settle; treat it as indicative.
 Fitted drag is %.2f of the standard curve, which is outside what a real bullet does.
 Something else is wrong — most often the distance or the zero.
 Velocity alone cannot be extrapolated past the distance it was fitted at.
 Nothing fitted.
-Fitted
 decay rate
 15 km drop
 hit the ground
@@ -1446,6 +1470,7 @@ SIG KILO (BDX / BDX-X)
 Leica Geovid Pro / CRF .COM
 Vortex Fury HD 5000 AB / Razor HD 4000 GB
 Any Bluetooth rangefinder
+geometry lat=${g.latitudeDeg} az=${g.firingAzimuthDeg} cant=${g.cantDeg}
 Connected — reading profiles…
 No gun profiles exposed — open the Kestrel's ballistics screen and try again (all blocks read as zeros; the Log has the detail).
 Found ${found.size} profile(s) on the meter.
@@ -2250,6 +2275,7 @@ Compute
 apply wind to other profile
 ${rifle.name}|${bullet.name}|${scope.name}
 measured wind. Wind is gusty — re-measure if conditions may have changed.
+Truing is unavailable: ${it.message}
 The simulated trajectory for this set never reached
 %.0f %s — check its muzzle velocity, BC and zero.
 (%.2f ${adj.scopeUnitLabel})\n

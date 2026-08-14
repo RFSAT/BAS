@@ -108,4 +108,15 @@ class TruingTest {
             listOf(Truing.DropObservation(200.0, 3.0)))
         assertTrue(r.warnings.isNotEmpty())
     }
+
+    // ------------------------------------------------- overlay arithmetic
+
+    @Test
+    fun `an overlay must not let the barrel correction be applied twice`() {
+        // The overlay velocity was fitted THROUGH this barrel, so it already
+        // contains the barrel correction. Re-applying it would silently take
+        // another 100 fps off a figure that was already right.
+        val fitted = load.copy(muzzleVelocityFps = 2455.0, testBarrelIn = rifle.barrelLengthIn)
+        assertEquals(2455.0, fitted.adjustedForBarrel(rifle.barrelLengthIn).muzzleVelocityFps, 1e-9)
+    }
 }

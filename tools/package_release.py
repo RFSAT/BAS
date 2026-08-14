@@ -31,9 +31,9 @@ Two guards now make that impossible to repeat:
 """
 import hashlib, os, sys, zipfile
 
-def digest(data): return hashlib.sha256(data).hexdigest()
-
 MANIFEST = "RELEASE_MANIFEST.txt"
+
+def digest(data): return hashlib.sha256(data).hexdigest()
 
 def read_zip(path):
     """Map repo-relative path -> sha256, from a previously shipped zip."""
@@ -43,6 +43,7 @@ def read_zip(path):
         for n in z.namelist():
             if n.endswith("/"): continue
             rel = n.split("/", 1)[1] if "/" in n else n     # strip the BAS/ root
+            if rel == MANIFEST: continue
             out[rel] = digest(z.read(n))
     return out
 
@@ -59,10 +60,17 @@ def baseline_version(path):
     return None
 
 def read_tree(root, skip=(".git", "build", ".gradle")):
+    """The tree as it will be shipped.
+
+    RELEASE_MANIFEST.txt is excluded: it DESCRIBES the release, so a working
+    tree unpacked from a previous zip carries the old one, and including it
+    would both duplicate the entry and hash a file against its own successor.
+    """
     out = {}
     for dp, dirs, fs in os.walk(root):
         dirs[:] = [d for d in dirs if d not in skip]
         for f in fs:
+            if f == MANIFEST: continue
             full = os.path.join(dp, f)
             rel = os.path.relpath(full, root).replace(os.sep, "/")
             with open(full, "rb") as fh: out[rel] = (digest(fh.read()), full)

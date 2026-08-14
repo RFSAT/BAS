@@ -204,6 +204,9 @@
             <Button android:id="@+id/btnExportCsv" android:text="CSV"
                 android:textSize="12sp"
                 android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
+            <Button android:id="@+id/btnTruing" android:text="Truing"
+                android:textSize="12sp"
+                android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
         </LinearLayout>
 
         <!-- Chart takes every remaining pixel -->

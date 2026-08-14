@@ -26,6 +26,11 @@ open class BaseActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        // Heading and tilt for the solver. Registered app-wide rather than
+        // on the camera screens alone because the reading is timestamped and
+        // expires on its own — see ShotOrientation for why a stale heading
+        // is discarded rather than reused.
+        runCatching { com.rfsat.bas.environment.ShotOrientation.start(this) }
         runCatching {
             // A screen built under the previous language still holds that
             // text in its views; re-inflating is what restores the original
@@ -145,6 +150,11 @@ open class BaseActivity : AppCompatActivity() {
     /** Bars can transiently reappear (keyboard dismiss, edge swipe, dialog)
      *  — re-hide whenever the window regains focus so the app STAYS full
      *  screen, not merely starts that way. */
+    override fun onPause() {
+        super.onPause()
+        runCatching { com.rfsat.bas.environment.ShotOrientation.stop() }
+    }
+
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         if (hasFocus) runCatching { enterFullScreen() }

@@ -169,6 +169,7 @@ class BallisticsResultsActivity : BaseActivity() {
         binding.btnSpeak.setOnClickListener { toggleTts() }
         binding.btnHistory.setOnClickListener { showHistory() }
         binding.btnExportCsv.setOnClickListener { exportCsv() }
+        binding.btnTruing.setOnClickListener { openTruing() }
         maybeSpeakAdjustment()
     }
 
@@ -344,10 +345,12 @@ class BallisticsResultsActivity : BaseActivity() {
         }
         if (fp == AnalysisSession.profileFingerprint) return
         val re = AdjustmentCalculator.computeAdjustment(
-            bullet, rifle, scope,
+            com.rfsat.bas.profiles.TruingStore.applied(this, rifle, bullet),
+            rifle, scope,
             com.rfsat.bas.environment.EnvironmentManager.current.atmosphere,
             targetDistanceYd = AnalysisSession.targetDistanceYd,
-            windSamples = AnalysisSession.windSamples
+            windSamples = AnalysisSession.windSamples,
+            geometry = com.rfsat.bas.environment.ShotOrientation.geometry(this)
         )
         AnalysisSession.adjustment = re.copy(warnings = re.warnings +
             ("Recomputed for current profiles (${rifle.name} + ${bullet.name}) from the last " +
@@ -358,12 +361,40 @@ class BallisticsResultsActivity : BaseActivity() {
         com.rfsat.bas.log.Logger.i("Results", "Adjustment recomputed for changed profiles: $fp")
     }
 
+    /**
+     * Truing lives here, next to the results, because the observations it
+     * fits are exactly what this screen has just measured — a group at a
+     * known distance.
+     */
+    private fun openTruing() {
+        runCatching {
+            val repo = com.rfsat.bas.profiles.ProfileRepository(this)
+            val rifle = repo.getRifle()
+            val bullet = repo.getBullet()
+            val scope = repo.getScope()
+            // The solver's own definition, not a second one: a truing fit
+            // done against a different sight height than the solution uses
+            // would bake that discrepancy into the fitted velocity.
+            val sightHeightM = AdjustmentCalculator.effectiveSightHeightM(rifle, scope)
+            com.rfsat.bas.ui.TruingUi.show(this, rifle, bullet, sightHeightM) {
+                // Clearing the fingerprint is what makes the next pass
+                // recompute: maybeRecomputeForProfiles returns early while it
+                // matches, and a new overlay changes the answer without
+                // changing any profile.
+                AnalysisSession.profileFingerprint = ""
+                maybeRecomputeForProfiles()
+            }
+        }.onFailure { notifyUser("Truing is unavailable: ${it.message}") }
+    }
+
     private fun showTransferredAdjustment(set: com.rfsat.bas.profiles.ProfileSet, targetDistanceM: Double) {
         val adj = AdjustmentCalculator.computeAdjustment(
-            set.bullet, set.rifle, set.scope,
+            com.rfsat.bas.profiles.TruingStore.applied(this, set.rifle, set.bullet),
+            set.rifle, set.scope,
             com.rfsat.bas.environment.EnvironmentManager.current.atmosphere,
             targetDistanceYd = targetDistanceM / 0.9144,
-            windSamples = AnalysisSession.windSamples
+            windSamples = AnalysisSession.windSamples,
+            geometry = com.rfsat.bas.environment.ShotOrientation.geometry(this)
         )
         val um = UnitsManager
         val msg = StringBuilder()

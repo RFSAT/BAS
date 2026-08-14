@@ -1644,7 +1644,9 @@ class CaptureActivity : BaseActivity() {
                     } ?: windSamples
 
                 val adjustment = AdjustmentCalculator.computeAdjustment(
-                    bullet, activeRifle, scope, atmosphere, targetDistanceYd, anchored
+                    com.rfsat.bas.profiles.TruingStore.applied(this, activeRifle, bullet),
+                    activeRifle, scope, atmosphere, targetDistanceYd, anchored,
+                    geometry = com.rfsat.bas.environment.ShotOrientation.geometry(this)
                 )
                 Logger.i(TAG, "Adjustment: windage=${adjustment.windageDirection} ${adjustment.windageScopeUnits} ${adjustment.scopeUnitLabel}, " +
                     "elevation=${adjustment.elevationDirection} ${adjustment.elevationScopeUnits} ${adjustment.scopeUnitLabel}, " +

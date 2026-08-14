@@ -46,6 +46,46 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.29.0 — the two engines built in 1.27.0 and 1.28.0 are now
+        //          CONNECTED. Both were shipped complete and inert.
+        //
+        //          SHOT GEOMETRY. Coriolis and cant had been computing zero
+        //          since 1.27.0, because no caller passed the geometry
+        //          argument and its default is all-nulls. Latitude now comes
+        //          from the position already stored for weather; heading from
+        //          the phone's compass.
+        //
+        //          The heading is trustworthy for one specific reason: on the
+        //          capture and session screens the phone is AIMED AT THE
+        //          TARGET, because it is filming it, so its bearing is the
+        //          firing direction. That is also why the reading expires —
+        //          five minutes after the last sample it is discarded rather
+        //          than reused, since a phone that has been pocketed since is
+        //          no longer pointing anywhere.
+        //
+        //          CANT IS NOT TAKEN FROM THE PHONE by default. Only a phone
+        //          clamped to the rail shares the barrel's roll, and no app
+        //          can detect whether it is clamped. So it is a setting the
+        //          shooter states, off by default: a wrong cant is worse than
+        //          none, because it moves the correction sideways with
+        //          complete confidence.
+        //
+        //          TRUING OVERLAY, per rifle AND load, never written back
+        //          into the ammunition entry. A fit absorbs this barrel, this
+        //          lot and this shooter; none of that belongs in a catalogue
+        //          shared by every profile. Both figures are shown together
+        //          ("catalogue 2600 -> 2455") and the overlay can be thrown
+        //          away without losing anything.
+        //
+        //          One trap found while wiring it: the overlay velocity was
+        //          fitted THROUGH this barrel, so it already contains the
+        //          barrel-length correction — and the solver applies that
+        //          correction on every pass. An overlay therefore also sets
+        //          the test barrel to this barrel, which makes the second
+        //          application a no-op. Without that the app would have taken
+        //          100 fps off a velocity that was already right, and the
+        //          error would have looked exactly like a bad fit.
+        //
         // 1.28.0 — TRUING, and the muzzle velocity it starts from.
         //
         //          BARREL LENGTH. A catalogue velocity is measured in a test
@@ -3753,8 +3793,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 51
-        versionName = "1.28.0"
+        versionCode = 52
+        versionName = "1.29.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two
