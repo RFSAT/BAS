@@ -551,5 +551,34 @@ for _lf in glob.glob("app/src/main/res/layout/*.xml"):
                     f"android:{_attr} and style={_style or 'none'} does not supply one "
                     f"— this throws at inflation, not at build")
 
+
+# ---------------------------------------------------------------- gate 13
+#
+# AGP 9 and the standalone Kotlin Android plugin cannot both be applied.
+#
+# AGP 9 compiles Kotlin itself and registers the `kotlin` extension, so
+# applying org.jetbrains.kotlin.android on top fails at configuration time
+# with "Cannot add extension with name 'kotlin'". It is a one-line mistake to
+# make when copying a plugins block from any older project or tutorial, and
+# the error names the Kotlin plugin rather than the real cause.
+_agp_major = None
+_kotlin_plugin_at = []
+for _bf in ("build.gradle.kts", "app/build.gradle.kts"):
+    if not os.path.exists(_bf):
+        continue
+    for _n, _l in enumerate(open(_bf, encoding="utf-8").read().split("\n"), 1):
+        _code = _l.split("//")[0]
+        _m = re.search(r'com\.android\.application"\)\s*version\s*"(\d+)\.', _code)
+        if _m:
+            _agp_major = int(_m.group(1))
+        if re.search(r'id\("org\.jetbrains\.kotlin\.android"\)|kotlin\("android"\)', _code):
+            _kotlin_plugin_at.append(f"{_bf}:{_n}")
+if _agp_major is not None and _agp_major >= 9 and _kotlin_plugin_at:
+    for _where in _kotlin_plugin_at:
+        problems.append(
+            f"{_where}  AGP {_agp_major} has built-in Kotlin — applying "
+            f"org.jetbrains.kotlin.android as well fails with \"Cannot add extension "
+            f"with name 'kotlin'\"")
+
 print(("PROBLEMS:\n  "+"\n  ".join(problems)) if problems else "No problems found.")
 sys.exit(1 if problems else 0)

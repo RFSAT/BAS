@@ -1,6 +1,8 @@
 plugins {
+    // NO kotlin.android plugin. AGP 9 has built-in Kotlin and registers the
+    // `kotlin` extension itself; applying the standalone plugin on top fails
+    // with "Cannot add extension with name 'kotlin'".
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
 }
 
 android {
@@ -45,6 +47,36 @@ android {
         //          itself omitted it, and the status line says "no wind from
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
+        //
+        // 1.34.2 — built-in Kotlin, and Gradle pinned from evidence.
+        //
+        //          "Cannot add extension with name 'kotlin'". AGP 9 compiles
+        //          Kotlin ITSELF and registers that extension, so applying
+        //          org.jetbrains.kotlin.android on top is now a conflict
+        //          rather than a requirement. Removed from both build files,
+        //          per Google\'s migration guide, which I read this time
+        //          instead of guessing a third time — the two version guesses
+        //          before this cost a CI run each.
+        //
+        //          A consequence worth stating: THE KOTLIN VERSION IS NO
+        //          LONGER PINNED BY THIS PROJECT. It is whichever version AGP
+        //          9.0.0 embeds. That is the intended design — it is what
+        //          removes the AGP/KGP compatibility problem — but it does
+        //          mean a Kotlin upgrade now arrives with an AGP upgrade and
+        //          not separately.
+        //
+        //          The guide\'s other two steps do not apply here: this
+        //          project uses neither kapt nor the kotlin.sourceSets DSL.
+        //          The kotlinOptions migration was already done in 1.34.0.
+        //
+        //          GRADLE 9.7.0, pinned to the version the \'current\' build
+        //          actually resolved and compiled with rather than to a
+        //          guess. That run also proved AGP 9.0.0 itself resolves.
+        //
+        //          A gate now rejects AGP >= 9 together with the Kotlin
+        //          Android plugin, because the error names the Kotlin plugin
+        //          rather than the real cause and it is a one-line mistake to
+        //          make when copying a plugins block from any older project.
         //
         // 1.34.1 — correction: the Gradle pin was not a real version.
         //
@@ -3997,8 +4029,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 59
-        versionName = "1.34.1"
+        versionCode = 60
+        versionName = "1.34.2"
     }
 
     // Resolved once, here, rather than re-read from the environment in two
