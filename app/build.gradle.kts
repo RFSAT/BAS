@@ -46,6 +46,26 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.34.1 — correction: the Gradle pin was not a real version.
+        //
+        //          "Gradle version 9.0 does not exist". Gradle's naming is not
+        //          consistent across majors — 8.0 and 8.11.1 are both real
+        //          releases — so 9.0 and 9.0.0 were equally plausible and the
+        //          guess was wrong. Guessing again costs a second full CI run
+        //          to learn one string.
+        //
+        //          So the pin is 'current' FOR ONE BUILD. It resolves to the
+        //          latest stable release and cannot fail this way, and the
+        //          log prints the version it picked. That number then goes
+        //          back into the workflow as a pin: an unpinned toolchain
+        //          means a Gradle release can break this build on a day
+        //          nothing was changed, which is a failure with no suspect.
+        //
+        //          Note this failure came from the ACTION, before Gradle ran,
+        //          so it says nothing yet about whether AGP 9.0.0 resolves or
+        //          whether the compilerOptions migration is complete. Those
+        //          are still ahead.
+        //
         // 1.34.0 — AGP 9, the last item from Play's optimisation report.
         //
         //          Two changes that have to happen together, and one that did
@@ -3977,8 +3997,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 58
-        versionName = "1.34.0"
+        versionCode = 59
+        versionName = "1.34.1"
     }
 
     // Resolved once, here, rather than re-read from the environment in two
