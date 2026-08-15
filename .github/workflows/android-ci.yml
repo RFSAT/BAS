@@ -44,8 +44,11 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          # AGP 8.9.x (compileSdk 36) requires Gradle 8.11.1 or newer
-          gradle-version: '8.11.1'
+          # AGP 9.x requires Gradle 9. These two move together: AGP 9 on
+          # Gradle 8 fails at configuration time, and the previous pair
+          # (AGP 8.9.1 / Gradle 8.11.1) is the fallback if 9.x is not
+          # resolvable.
+          gradle-version: '9.0'
 
       - name: Decode keystore
         if: ${{ env.HAS_KEYSTORE == 'true' }}
