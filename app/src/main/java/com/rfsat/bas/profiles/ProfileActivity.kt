@@ -94,6 +94,8 @@ class ProfileActivity : BaseActivity() {
         setContentView(binding.root)
         setupSettingsFilter()
         setupOrientationControls()
+        binding.btnSnapshots.setOnClickListener { showSnapshots() }
+
         // Only offered when there is in fact something to recover, so it is
         // not a button that usually does nothing.
         val session = com.rfsat.bas.scoring.ScoringSession
@@ -1833,5 +1835,45 @@ class ProfileActivity : BaseActivity() {
                 so.setManualCantDeg(this@ProfileActivity, v.coerceIn(-45.0, 45.0))
             }
         })
+    }
+
+    /**
+     * The automatic pre-upgrade snapshots, newest first.
+     *
+     * Restoring one is destructive in the ordinary sense — it replaces what is
+     * there now — so it confirms, and the confirmation names the snapshot
+     * rather than asking an abstract "are you sure": the whole value of the
+     * list is choosing the right one.
+     */
+    private fun showSnapshots() {
+        val snaps = runCatching { com.rfsat.bas.backup.UpgradeSnapshot.list(this) }
+            .getOrDefault(emptyList())
+        if (snaps.isEmpty()) {
+            notifyUser(
+                "No snapshots yet. One is taken automatically the first time each new build " +
+                "runs, so the first will appear after the next update.")
+            return
+        }
+        val labels = snaps.map { com.rfsat.bas.backup.UpgradeSnapshot.describe(it) }
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Pre-upgrade snapshots")
+            .setItems(labels.toTypedArray()) { _, which ->
+                val chosen = snaps[which]
+                androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle("Restore ${labels[which]}?")
+                    .setMessage(
+                        "Everything currently stored — profiles, targets, rules and the saved " +
+                        "session — is replaced by what this snapshot holds. This cannot be undone.")
+                    .setPositiveButton("Restore") { _, _ ->
+                        val said = runCatching {
+                            com.rfsat.bas.backup.UpgradeSnapshot.restore(this, chosen)
+                        }.getOrElse { "The snapshot could not be read: ${it.message}" }
+                        notifyUser(said)
+                    }
+                    .setNegativeButton("Cancel", null)
+                    .show()
+            }
+            .setNegativeButton("Close", null)
+            .show()
     }
 }

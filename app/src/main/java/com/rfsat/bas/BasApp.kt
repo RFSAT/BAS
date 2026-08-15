@@ -43,6 +43,11 @@ class BasApp : Application() {
         val lastCrashed = crashPrefs.contains(KEY_STACK)
 
         runCatching { Logger.init(this) }
+
+        // BEFORE the repositories are seeded and before any session is
+        // restored: a snapshot taken after the new build has begun writing is
+        // a snapshot of the new build's opinion, not of what was there.
+        runCatching { com.rfsat.bas.backup.UpgradeSnapshot.maybeTake(this) }
         runCatching { ThemeManager.init(this) }
         runCatching { UnitsManager.init(this) }
         runCatching { com.rfsat.bas.ui.RangeSettings.init(this) }
@@ -63,6 +68,7 @@ class BasApp : Application() {
             // refuse to write until they have successfully read.
             runCatching { com.rfsat.bas.scoring.ScoringSession.enterSafeMode(this) }
             runCatching { com.rfsat.bas.results.AnalysisSession.enterSafeMode(this) }
+            runCatching { com.rfsat.bas.environment.EnvironmentManager.enterSafeMode(this) }
         } else {
             runCatching { com.rfsat.bas.scoring.ScoringSession.restore(this) }
             runCatching { com.rfsat.bas.results.AnalysisSession.restore(this) }

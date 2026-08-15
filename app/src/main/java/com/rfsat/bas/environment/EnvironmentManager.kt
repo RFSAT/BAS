@@ -45,10 +45,31 @@ object EnvironmentManager {
      * without temp/RH sensors those fields keep the restored value AND
      * source (the prev-preserving update semantics below).
      */
+    /**
+     * Third store with the hazard ScoringSession describes, closed here for
+     * the same reason. Safe mode skips this restore, which leaves [current]
+     * holding the DEFAULTS — 15 C, 1013 hPa, sources "default" — and the
+     * first persist() writes those over a real stored reading.
+     *
+     * No rescue slot, unlike the sessions, and the difference is the point:
+     * an environment reading is re-measured within a minute of the app being
+     * used, so refusing the bad write is a complete fix. A card that has been
+     * shot cannot be re-measured, which is why that one needs somewhere to
+     * put the payload it declines to open.
+     */
+    @Volatile
+    private var loaded = false
+
+    fun enterSafeMode(context: Context) {
+        appContext = context.applicationContext
+        loaded = false
+    }
+
     fun restore(context: Context) {
         appContext = context.applicationContext
         val p = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        if (!p.contains("pressPa")) return
+        if (!p.contains("pressPa")) { loaded = true; return }
+        loaded = true
         runCatching {
             current = Reading(
                 Atmosphere(
@@ -77,6 +98,11 @@ object EnvironmentManager {
 
     private fun persist() {
         val ctx = appContext ?: return
+        if (!loaded) {
+            Logger.w(TAG, "Refusing to save the environment: it was never restored, so this " +
+                "would write defaults over the last real reading")
+            return
+        }
         val r = current
         val e = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
             .putFloat("pressPa", r.atmosphere.seaLevelPressurePa.toFloat())

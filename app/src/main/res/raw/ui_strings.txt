@@ -140,6 +140,7 @@ Diagnostic log…
 Backup and reset
 Export a backup of everything
 Restore from a backup
+Snapshots taken before an upgrade
 Recover the session set aside after a crash
 Reset to defaults
 Filter settings
@@ -790,6 +791,12 @@ No image loaded yet.
 Nothing is drawn over the picture.
 Drawn in the theme colour, at the guide size set on the Session tab.
 Nothing matches \u201C$rawQuery\u201D.
+are you sure
+runs, so the first will appear after the next update.
+Pre-upgrade snapshots
+Restore ${labels[which]}?
+session — is replaced by what this snapshot holds. This cannot be undone.
+The snapshot could not be read: ${it.message}
 JSB Exact 4.50 mm 8.44gr
 track the projectile in flight
 Subsonic
@@ -1048,6 +1055,14 @@ target '${t.name}'
 rule set '${r.name}'
 Restored $sets profile set(s), $targets custom target(s) and $rules custom rule set(s).
 These could not be restored: ${problems.joinToString(
+upgrade-snapshots
+yyyyMMdd-HHmmss
+BAS-build$last-$stamp.json
+(${file.length()} bytes)
+before build 55, 14 Aug 16:20 (12 kB)
+build(\\d+)
+d MMM HH:mm
+before build $build, $when_ (${(file.length() + 512) / 1024} kB)
 Nothing to fit — no usable observations.
 Truing needs at least one measured group at a known distance.
 muzzle velocity %.0f fps (%+.0f)
@@ -1465,6 +1480,7 @@ Includes the Ruger-branded 5700AL-R. Pairs normally in Bluetooth settings.
 Kestrel DROP D3
 Advertising-only — it never appears in the paired list, so BAS scans for it.
 no bearing set, treat the reading as relative
+would write defaults over the last real reading
 0 m/s calm
 humidity=${current.humiditySource}
 not measured

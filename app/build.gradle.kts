@@ -46,6 +46,40 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.33.0 — finishing what 1.32.0 started, and a net under all of it.
+        //
+        //          THE THIRD STORE. EnvironmentManager had the same defect as
+        //          the two sessions: safe mode skips its restore, leaving the
+        //          defaults — 15 C, 1013 hPa, sources "default" — in memory,
+        //          and the first save wrote those over the last real reading.
+        //          A sweep of the whole tree found exactly three objects with
+        //          this shape and all three are now guarded.
+        //
+        //          No rescue slot for this one, and the difference is the
+        //          point: an environment reading is re-measured within a
+        //          minute of the app being used, so refusing the bad write is
+        //          a complete fix. A card that has been shot cannot be
+        //          re-measured.
+        //
+        //          PRE-UPGRADE SNAPSHOTS. The first time each new build runs,
+        //          everything is copied to a file before the new code has
+        //          touched anything; the last five are kept and Settings can
+        //          put one back.
+        //
+        //          This would NOT have saved the session lost in 1.31.0 — by
+        //          the time it was noticed it had already been overwritten —
+        //          and that is the argument for it rather than against. The
+        //          defects that destroy data are the ones nobody predicted,
+        //          so the protection cannot depend on predicting them.
+        //
+        //          Taken SYNCHRONOUSLY on the main thread, against the usual
+        //          advice. It runs once per version change and costs a few
+        //          milliseconds, and moving it to a background thread would
+        //          race the very writes it exists to precede. The new version
+        //          is recorded BEFORE the export runs, so an export that
+        //          throws costs one missing snapshot rather than crashing
+        //          every launch for ever.
+        //
         // 1.32.0 — the Settings crash, and the far worse thing it exposed.
         //
         //          THE CRASH. Two CheckBoxes added in 1.31.0 carried no
@@ -3912,8 +3946,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 56
-        versionName = "1.32.0"
+        versionCode = 57
+        versionName = "1.33.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

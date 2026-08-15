@@ -667,6 +667,10 @@
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 style="@style/Sts.ActionButton"
                 android:text="Restore from a backup" />
+            <Button android:id="@+id/btnSnapshots"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                style="@style/Sts.ActionButton"
+                android:text="Snapshots taken before an upgrade" />
             <Button android:id="@+id/btnRecoverSession"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 style="@style/Sts.ActionButton"
