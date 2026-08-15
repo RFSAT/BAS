@@ -48,6 +48,35 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.34.3 — the unit-test task, asked for rather than guessed.
+        //
+        //          Configuration now SUCCEEDS on AGP 9 — the plugin work is
+        //          done. What failed was the task name: AGP 9 does not create
+        //          testReleaseUnitTest, and neither the release notes nor the
+        //          built-in-Kotlin guide say what replaced it.
+        //
+        //          So the workflow no longer names a variant task at all. It
+        //          runs `:app:test`, Gradle\'s own lifecycle task, which AGP
+        //          wires every unit-test task into and which therefore does
+        //          not change between AGP majors. Before it, a
+        //          continue-on-error step prints `tasks --all` filtered to
+        //          test tasks, so the log SAYS what this toolchain provides.
+        //
+        //          That diagnostic is the actual lesson of this upgrade. Two
+        //          guesses at a version string cost a full CI run each; a
+        //          third at a task name would have cost a fourth. Asking the
+        //          build what it contains costs nothing and answers the
+        //          question permanently — the name can be pinned back to one
+        //          variant once the log has been read.
+        //
+        //          Cost accepted: if this toolchain creates unit tests for
+        //          more than one build type, all of them now run. Slower than
+        //          testing release alone, and the right trade for a build
+        //          that survives the next upgrade.
+        //
+        //          Also from the compatibility table: AGP 9.0 requires Gradle
+        //          9.1.0 or newer, so the 9.7.0 pin is comfortably valid.
+        //
         // 1.34.2 — built-in Kotlin, and Gradle pinned from evidence.
         //
         //          "Cannot add extension with name 'kotlin'". AGP 9 compiles
@@ -4029,8 +4058,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 60
-        versionName = "1.34.2"
+        versionCode = 61
+        versionName = "1.34.3"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

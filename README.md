@@ -153,6 +153,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.34.3** — CI runs `:app:test` rather than a variant-specific unit-test task, which AGP 9 no longer creates under the old name, and prints the test tasks the toolchain actually provides before running them.
+
 **1.34.2** — built-in Kotlin. AGP 9 compiles Kotlin itself, so the `org.jetbrains.kotlin.android` plugin is removed from both build files; the Kotlin version now comes from AGP. Gradle pinned to 9.7.0, the version CI resolved and built with.
 
 **1.34.1** — correction. The Gradle pin `9.0` is not a real release name; CI now resolves `current` for one build so the log can report the exact version to pin.
