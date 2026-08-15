@@ -153,6 +153,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.34.0** — toolchain. AGP 9.0.0 with Gradle 9 in CI, closing the last item from Google Play's optimisation report. `kotlinOptions` is replaced by the Kotlin plugin's `compilerOptions`, a migration that is valid on the previous toolchain too, so reverting the version numbers alone restores a known-good build.
+
 **1.33.0** — data safety, completed. The third store with the safe-mode write hazard (EnvironmentManager) is guarded, after a sweep confirmed there are exactly three. Every new build now takes an automatic snapshot of everything before it touches storage; the last five are kept and any can be restored from Settings.
 
 **1.32.0** — crash fix and data safety. Two checkboxes added in 1.31.0 had no layout dimensions and crashed Settings on inflation; a new gate resolves layout elements against their style chain. More seriously, safe mode after a crash skipped restoring the stored session but left it writable, so the next save overwrote it — both session stores now refuse to persist until they have read, and set the payload aside for recovery.

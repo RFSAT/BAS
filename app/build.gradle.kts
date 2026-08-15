@@ -46,6 +46,37 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.34.0 — AGP 9, the last item from Play's optimisation report.
+        //
+        //          Two changes that have to happen together, and one that did
+        //          not have to but should:
+        //
+        //          * AGP 8.9.1 -> 9.0.0, and Gradle 8.11.1 -> 9.0 in the CI
+        //            workflow. AGP 9 requires Gradle 9; run on Gradle 8 it
+        //            fails at configuration time.
+        //          * kotlinOptions {} is REMOVED in AGP 9. The replacement is
+        //            the Kotlin plugin's own compilerOptions, written here as
+        //            the typed JvmTarget.JVM_17 rather than the string "17" —
+        //            the string form accepted values the toolchain did not
+        //            have and produced class files nothing could load.
+        //
+        //          The migration is valid on 8.9.1 as well, which is
+        //          deliberate: it means the risky half is ONLY the two
+        //          version numbers, and reverting them returns to a
+        //          known-good toolchain without losing the migration.
+        //
+        //          Checked for the rest of AGP 9's removals and found none
+        //          already present: packagingOptions (this project has always
+        //          used `packaging`), enableJetifier, dexOptions, lintOptions,
+        //          adbOptions, aidl and renderscript. nonTransitiveRClass,
+        //          which AGP 9 makes mandatory, was already true.
+        //
+        //          THIS RELEASE IS UNVERIFIABLE WITHOUT CI, more so than
+        //          usual: no toolchain is available where it is packaged, so
+        //          the version numbers are the documented targets rather than
+        //          numbers that have been resolved. The root build file says
+        //          which half a failure implicates.
+        //
         // 1.33.0 — finishing what 1.32.0 started, and a net under all of it.
         //
         //          THE THIRD STORE. EnvironmentManager had the same defect as
@@ -3946,8 +3977,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 57
-        versionName = "1.33.0"
+        versionCode = 58
+        versionName = "1.34.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two
@@ -4030,9 +4061,14 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "17"
-    }
+    // kotlinOptions is GONE in AGP 9. This is the replacement, and it works
+    // on the current AGP 8.9.1 too — which is the point: it can be proved
+    // green before the version bump rather than at the same time as it.
+    //
+    // The typed JvmTarget.JVM_17 rather than the string "17": the string
+    // form silently accepted values the toolchain did not have, and produced
+    // class files nothing could load. The enum will not compile if it is
+    // wrong.
     buildFeatures {
         viewBinding = true
         buildConfig = true
@@ -4042,6 +4078,12 @@ android {
     }
     testOptions {
         unitTests.isReturnDefaultValues = true
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
     }
 }
 
