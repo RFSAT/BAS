@@ -73,15 +73,36 @@ jobs:
       - name: Static checks
         run: python3 tools/kotlin_checks.py
 
-      - name: Unit tests (release variant)
-        run: gradle testReleaseUnitTest --no-daemon
+      # What unit-test tasks does this toolchain actually create? Printed
+      # before they run, and never allowed to fail the build.
+      #
+      # AGP 9 did not create testReleaseUnitTest, and neither the release
+      # notes nor the migration guide say what replaced it. Rather than guess
+      # a task name — twice already this upgrade a guess has cost a full CI
+      # run — this asks Gradle and puts the answer in the log, where the next
+      # person to touch this file can read it instead of rediscovering it.
+      - name: List the test tasks this toolchain provides
+        continue-on-error: true
+        run: gradle :app:tasks --all --no-daemon | grep -i "test" || true
+
+      # `test` rather than a variant-specific task. It is Gradle's own
+      # lifecycle task, AGP wires every unit-test task into it, and it is
+      # therefore the one name that does not change between AGP majors.
+      #
+      # The cost is that if this toolchain creates unit tests for more than
+      # one build type, all of them run. That is slower than the previous
+      # release-only run and it is the right trade for a build that survives
+      # the next upgrade. Once the log above says what exists, this can be
+      # pinned back to a single variant.
+      - name: Unit tests
+        run: gradle :app:test --no-daemon
 
       - name: Upload test report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: unit-test-report
-          path: app/build/reports/tests/testReleaseUnitTest/
+          path: app/build/reports/tests/
           if-no-files-found: ignore
 
       # ANDROID_KEYSTORE_PATH is set only when the keystore was decoded. The
