@@ -14,6 +14,7 @@ import com.rfsat.bas.wind.WindSample
 object AnalysisSession {
     private const val PREFS = "vtb_last_analysis"
     private const val KEY = "payload"
+    private const val KEY_RESCUE = "payload_rescue"
     private val gson = Gson()
 
     var windSamples: List<WindSample> = emptyList()
@@ -52,7 +53,34 @@ object AnalysisSession {
     )
 
     /** Call after a successful analysis to survive app restarts. */
+    /** See ScoringSession.loaded — same hazard, same guard. Safe mode leaves
+     *  this object empty, and an empty analysis written back is a lost one. */
+    @Volatile
+    private var loaded = false
+
+    fun enterSafeMode(context: Context) {
+        loaded = false
+        runCatching {
+            val p = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            val stored = p.getString(KEY, null) ?: return@runCatching
+            p.edit().putString(KEY_RESCUE, stored).apply()
+        }
+    }
+
+    fun hasRescue(context: Context): Boolean =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).contains(KEY_RESCUE)
+
+    fun recoverRescue(context: Context): Boolean {
+        val p = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val json = p.getString(KEY_RESCUE, null) ?: return false
+        p.edit().putString(KEY, json).apply()
+        adjustment = null          // force restore() past its early return
+        restore(context)
+        return adjustment != null
+    }
+
     fun persist(context: Context) {
+        if (!loaded) return
         val adj = adjustment ?: return
         val json = gson.toJson(Payload(windSamples, adj, targetDistanceYd, baseFovDeg, cameraZoom, effectiveFovDeg, tracerMode, muzzleVelocityMps, profileFingerprint))
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
@@ -130,9 +158,10 @@ object AnalysisSession {
 
     /** Call once at app start; no-op if nothing stored or already loaded. */
     fun restore(context: Context) {
-        if (adjustment != null) return
+        if (adjustment != null) { loaded = true; return }
         val json = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .getString(KEY, null) ?: return
+            .getString(KEY, null) ?: run { loaded = true; return }
+        loaded = true
         // v19.1: the WHOLE restore is guarded, not just the parse. Gson
         // builds Kotlin data classes via Unsafe (no constructor), so fields
         // missing from stored JSON come back NULL even when the Kotlin type

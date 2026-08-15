@@ -56,6 +56,13 @@ class BasApp : Application() {
             runCatching {
                 Logger.w("BasApp", "Previous launch crashed — skipping stored-session restore (safe mode)")
             }
+            // Skipping the restore is the right call: the stored session may
+            // be what crashed. Leaving it WRITABLE was not — an unrestored
+            // session is empty, and the first save wrote that emptiness over
+            // the shooter's card. Both stores now set the payload aside and
+            // refuse to write until they have successfully read.
+            runCatching { com.rfsat.bas.scoring.ScoringSession.enterSafeMode(this) }
+            runCatching { com.rfsat.bas.results.AnalysisSession.enterSafeMode(this) }
         } else {
             runCatching { com.rfsat.bas.scoring.ScoringSession.restore(this) }
             runCatching { com.rfsat.bas.results.AnalysisSession.restore(this) }

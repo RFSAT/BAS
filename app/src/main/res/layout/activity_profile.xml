@@ -616,6 +616,7 @@
             <TextView style="@style/Sts.SectionHeading" android:tag="section" android:text="Reach" />
 
             <CheckBox android:id="@+id/cbMirrorControls" style="@style/Sts.CheckBox"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:text="Put the buttons on the other side" />
 
             <TextView style="@style/Sts.FieldLabel"
@@ -627,6 +628,7 @@
                 android:text="Coriolis needs to know where you are and which way you are pointing. Position comes from the weather settings; the direction is read from the phone\'s compass while it is aimed at the target." />
 
             <CheckBox android:id="@+id/cbRailMounted" style="@style/Sts.CheckBox"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:text="The phone is mounted on the rifle" />
 
             <TextView style="@style/Sts.FieldLabel"
@@ -665,6 +667,10 @@
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 style="@style/Sts.ActionButton"
                 android:text="Restore from a backup" />
+            <Button android:id="@+id/btnRecoverSession"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                style="@style/Sts.ActionButton"
+                android:text="Recover the session set aside after a crash" />
             <Button android:id="@+id/btnReset"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 style="@style/Sts.ActionButton"

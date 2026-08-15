@@ -33,6 +33,8 @@ object ScoringSession {
 
     private const val PREFS = "sts_session"
     private const val KEY_STATE = "state"
+    /** Where safe mode puts the session it declined to read. */
+    private const val KEY_STATE_RESCUE = "state_rescue"
 
     /** Everything that has to survive a process death, in one Gson-able lump. */
     data class State(
@@ -63,11 +65,68 @@ object ScoringSession {
 
     // ------------------------------------------------------------------
 
+    /**
+     * Has the stored session been read yet?
+     *
+     * THIS IS A DATA-SAFETY FLAG, not bookkeeping. Safe mode — the path taken
+     * after a crash — deliberately does not restore the stored session. That
+     * left this object holding a DEFAULT, EMPTY state that was
+     * indistinguishable from a real empty session, and the very next persist()
+     * wrote that emptiness over the shooter's stored card. Safe mode did not
+     * merely hide the session; it destroyed it at the first save.
+     *
+     * So persistence is refused until a restore has actually happened. An
+     * unloaded session can be read from and displayed; it cannot overwrite
+     * what is on disk.
+     */
+    @Volatile
+    private var loaded = false
+
+    /**
+     * Enters safe mode: the stored session is NOT read (that is the point —
+     * it may be what crashed the app), but it is copied aside first and
+     * writing is blocked, so the next launch can still have it.
+     */
+    fun enterSafeMode(context: Context) {
+        appContext = context.applicationContext
+        loaded = false
+        runCatching {
+            val p = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            val stored = p.getString(KEY_STATE, null) ?: return@runCatching
+            p.edit().putString(KEY_STATE_RESCUE, stored).apply()
+            Logger.w("ScoringSession",
+                "Safe mode: the stored session was left unread and copied to a rescue slot; " +
+                "writing is blocked until a successful restore")
+        }
+    }
+
+    /** True when a session was set aside by safe mode and can be recovered. */
+    fun hasRescue(context: Context): Boolean =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).contains(KEY_STATE_RESCUE)
+
+    /**
+     * Puts a session set aside by safe mode back. Returns the number of shots
+     * recovered, or -1 when there was nothing to recover.
+     */
+    fun recoverRescue(context: Context): Int {
+        val p = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val json = p.getString(KEY_STATE_RESCUE, null) ?: return -1
+        return runCatching {
+            p.edit().putString(KEY_STATE, json).apply()
+            restore(context)
+            state.shots.size
+        }.getOrElse {
+            Logger.e("ScoringSession", "The rescued session could not be read", it)
+            -1
+        }
+    }
+
     fun restore(context: Context) {
         appContext = context.applicationContext
         val json = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_STATE, null)
         if (json == null) {
             state = State()
+            loaded = true   // nothing stored, so nothing to protect
             return
         }
         state = runCatching { Gson().fromJson(json, State::class.java) }
@@ -81,11 +140,18 @@ object ScoringSession {
         if (state.shots == null) state.shots = mutableListOf()
         @Suppress("SENSELESS_COMPARISON")
         if (state.registrationCorners == null) state.registrationCorners = mutableListOf()
+        loaded = true
         Logger.i("ScoringSession", "Restored session with ${state.shots.size} shot(s)")
     }
 
     private fun persist() {
         val ctx = appContext ?: return
+        if (!loaded) {
+            Logger.w("ScoringSession",
+                "Refusing to save: this session was never restored, so saving it would " +
+                "overwrite the stored one with an empty card")
+            return
+        }
         runCatching {
             ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                 .edit().putString(KEY_STATE, Gson().toJson(state)).apply()

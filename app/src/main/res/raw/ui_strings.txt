@@ -140,6 +140,7 @@ Diagnostic log…
 Backup and reset
 Export a backup of everything
 Restore from a backup
+Recover the session set aside after a crash
 Reset to defaults
 Filter settings
 Enter your chronographed average. A second measurement at a different temperature (≥3°C apart) also solves the MV temperature coefficient.
@@ -609,6 +610,10 @@ Other\u2026
 not an image this device can read
 That image could not be used: ${it.message}
 its colours are not changed by the theme.
+Recovered $shots shot(s) and the last ballistic analysis.
+Recovered $shots shot(s).
+Recovered the last ballistic analysis.
+There was nothing left to recover.
 already mirrored
 Settings failed to load: ${it.message}
 BAS ${com.rfsat.bas.BuildConfig.VERSION_NAME} (build ${com.rfsat.bas.BuildConfig.VERSION_CODE}, ${com.rfsat.bas.BuildConfig.BUILD_TYPE})
@@ -1673,6 +1678,8 @@ and ${fmtMm(abs(moveX))} ${if (moveX > 0)
 } of where you aimed.
 ${fmtMm(abs(moveX))} ${if (moveX > 0)
 , elevationDirection =
+writing is blocked until a successful restore
+overwrite the stored one with an empty card
 clearing ${state.shots.size} shots
 adding shot ${placed.index}
 deleting shot ${shot.index}

@@ -94,6 +94,26 @@ class ProfileActivity : BaseActivity() {
         setContentView(binding.root)
         setupSettingsFilter()
         setupOrientationControls()
+        // Only offered when there is in fact something to recover, so it is
+        // not a button that usually does nothing.
+        val session = com.rfsat.bas.scoring.ScoringSession
+        val analysis = com.rfsat.bas.results.AnalysisSession
+        val recoverable = runCatching { session.hasRescue(this) || analysis.hasRescue(this) }
+            .getOrDefault(false)
+        binding.btnRecoverSession.visibility =
+            if (recoverable) android.view.View.VISIBLE else android.view.View.GONE
+        binding.btnRecoverSession.setOnClickListener {
+            val shots = runCatching { session.recoverRescue(this) }.getOrDefault(-1)
+            val gotAnalysis = runCatching { analysis.recoverRescue(this) }.getOrDefault(false)
+            val said = when {
+                shots >= 0 && gotAnalysis -> "Recovered $shots shot(s) and the last ballistic analysis."
+                shots >= 0 -> "Recovered $shots shot(s)."
+                gotAnalysis -> "Recovered the last ballistic analysis."
+                else -> "There was nothing left to recover."
+            }
+            notifyUser(said)
+        }
+
         binding.cbMirrorControls.isChecked = controlsMirrored()
         binding.cbMirrorControls.setOnCheckedChangeListener { _, checked ->
             setControlsMirrored(checked)

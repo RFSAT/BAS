@@ -46,6 +46,37 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.32.0 — the Settings crash, and the far worse thing it exposed.
+        //
+        //          THE CRASH. Two CheckBoxes added in 1.31.0 carried no
+        //          layout_width or layout_height, and Sts.CheckBox does not
+        //          supply them — unlike the styles beside it, which is why
+        //          copying the pattern from two lines away produced a view
+        //          that inflates nowhere. Android does not catch this at
+        //          build time; it throws during inflation, so Settings
+        //          crashed the first time it was opened on a device. A gate
+        //          now resolves every layout element against its style chain
+        //          (following explicit parent=, not just dotted names, and
+        //          exempting TableRow, whose dimensions the framework
+        //          ignores) and was checked against the failing file.
+        //
+        //          THE DATA LOSS, which was not a coincidence. After any
+        //          crash the app enters safe mode and deliberately does not
+        //          restore the stored session — correct, since the stored
+        //          session may be what crashed it. But it left that session
+        //          WRITABLE. An unrestored session is an empty one, and the
+        //          first save wrote that emptiness over the shooter's card.
+        //          So safe mode did not hide the results; it destroyed them,
+        //          and the Settings crash was simply what triggered it.
+        //
+        //          Both stores now refuse to persist until they have actually
+        //          read, and safe mode copies the payload it declines to open
+        //          into a rescue slot. Settings offers to put it back, and
+        //          only shows the button when there is something behind it.
+        //
+        //          A crash should cost the shooter the crash. It should never
+        //          cost them the card they just shot.
+        //
         // 1.31.0 — the last two from the usability queue, both for the
         //          Also: the cross-package gate was reading KDoc as code. It
         //          skipped lines starting with "*", which covers the middle
@@ -3881,8 +3912,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 55
-        versionName = "1.31.0"
+        versionCode = 56
+        versionName = "1.32.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

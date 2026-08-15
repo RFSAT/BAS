@@ -153,6 +153,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.32.0** — crash fix and data safety. Two checkboxes added in 1.31.0 had no layout dimensions and crashed Settings on inflation; a new gate resolves layout elements against their style chain. More seriously, safe mode after a crash skipped restoring the stored session but left it writable, so the next save overwrote it — both session stores now refuse to persist until they have read, and set the payload aside for recovery.
+
 **1.31.0** — usability. Button rows can be mirrored so the first control falls under the free hand. Strings can be labelled from a tap-list that learns whatever is typed by hand, rather than from the keyboard.
 
 **1.30.0** — usability. Settings gained a filter box that searches the interface in whatever language it is displaying. The rifle-orientation controls that 1.29.0's Coriolis and cant support needed now exist. The last shot on the plot is distinguished by shape as well as colour, and its colour pair no longer collapses under red-green colour blindness or the night-red theme.

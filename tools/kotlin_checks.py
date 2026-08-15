@@ -469,5 +469,87 @@ for _f in [x for x in files if (os.sep + "test" + os.sep) not in x]:
         if _coro_open.search(_code):
             _depth = max(1, 1 + _code.count("{") - _code.count("}") - 1)
 
+
+# ---------------------------------------------------------------- gate 12
+#
+# A view with no layout_width/layout_height that no style supplies.
+#
+# Android does not fail this at build time. It throws
+# UnsupportedOperationException DURING INFLATION, so the screen crashes the
+# first time it is opened on a device — which is exactly how it shipped in
+# 1.31.0: two CheckBoxes copied from a section whose style happened to set
+# the dimensions, pasted next to a style that did not.
+#
+# Styles are read from values/ first, so a view is only reported when
+# neither the tag nor its style provides the attribute. <merge>, <include>
+# and the root element are skipped: the root's dimensions come from whoever
+# inflates it.
+_style_dims = {}
+_style_parent = {}
+for _vf in glob.glob("app/src/main/res/values/*.xml"):
+    try:
+        _t = _ET10.parse(_vf).getroot()
+    except Exception:
+        continue
+    for _st in _t.findall("style"):
+        _name = _st.get("name", "")
+        _has = {i.get("name") for i in _st.findall("item")}
+        _style_dims[_name] = ("android:layout_width" in _has, "android:layout_height" in _has)
+        _style_parent[_name] = _st.get("parent", "")
+
+def _style_gives(style_attr, which):
+    """Does this style, or anything it inherits from, set the dimension?"""
+    if not style_attr:
+        return False
+    name = style_attr.replace("@style/", "")
+    seen = set()
+    while name and name not in seen:
+        seen.add(name)
+        w, h = _style_dims.get(name, (False, False))
+        if (w if which == "w" else h):
+            return True
+        # An explicit parent="..." WINS: Android uses it instead of the
+        # dotted-name convention, and Sts.SetupColon (parent Sts.SetupLabel)
+        # is exactly that case. Following only the dots reported half the
+        # existing layout as broken, which is how a gate loses its audience.
+        explicit = _style_parent.get(name, "")
+        if explicit:
+            name = explicit.replace("@style/", "")
+        else:
+            name = name.rsplit(".", 1)[0] if "." in name else ""
+    return False
+
+_ANDROID_NS = "{http://schemas.android.com/apk/res/android}"
+for _lf in glob.glob("app/src/main/res/layout/*.xml"):
+    try:
+        _tree = _ET10.parse(_lf)
+    except Exception:
+        continue
+    _root = _tree.getroot()
+    for _parent in _tree.iter():
+        for _el in list(_parent):
+            if _el.tag in ("merge", "include", "requestFocus") or not isinstance(_el.tag, str):
+                continue
+            # TableRow is a real exception, not an oversight: the framework
+            # forces its width to match_parent and its height to wrap_content
+            # and IGNORES anything declared, so omitting them is correct.
+            # A cell's width is likewise decided by the column, not by itself.
+            if _el.tag == "TableRow":
+                continue
+            _in_row = (_parent.tag == "TableRow")
+            _style = _el.get("style")
+            for _which, _attr in (("w", "layout_width"), ("h", "layout_height")):
+                if _el.get(_ANDROID_NS + _attr):
+                    continue
+                if _in_row and _which == "w":
+                    continue
+                if _style_gives(_style, _which):
+                    continue
+                problems.append(
+                    f"{os.path.basename(_lf)}  <{_el.tag} "
+                    f"{(_el.get(_ANDROID_NS + 'id') or '').replace('@+id/', '')}> has no "
+                    f"android:{_attr} and style={_style or 'none'} does not supply one "
+                    f"— this throws at inflation, not at build")
+
 print(("PROBLEMS:\n  "+"\n  ".join(problems)) if problems else "No problems found.")
 sys.exit(1 if problems else 0)
