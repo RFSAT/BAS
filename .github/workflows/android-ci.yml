@@ -45,10 +45,21 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           # AGP 9.x requires Gradle 9. These two move together: AGP 9 on
-          # Gradle 8 fails at configuration time, and the previous pair
-          # (AGP 8.9.1 / Gradle 8.11.1) is the fallback if 9.x is not
-          # resolvable.
-          gradle-version: '9.0'
+          # Gradle 8 fails at configuration time.
+          #
+          # 'current' rather than a pinned number, TEMPORARILY. The pin was
+          # '9.0', which the action rejected with "Gradle version 9.0 does not
+          # exist" — Gradle's own naming is inconsistent across majors ('8.0'
+          # and '8.11.1' are both real, so '9.0' and '9.0.0' are both
+          # plausible) and guessing again costs another full CI run to learn
+          # one string.
+          #
+          # 'current' resolves to the latest stable release, so it cannot fail
+          # this way, and the build log prints the version it chose. PIN THAT
+          # NUMBER: an unpinned toolchain means a Gradle release can break
+          # this build on a day nothing was changed, which is the worst kind
+          # of failure to diagnose.
+          gradle-version: 'current'
 
       - name: Decode keystore
         if: ${{ env.HAS_KEYSTORE == 'true' }}
