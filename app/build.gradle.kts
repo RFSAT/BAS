@@ -48,6 +48,51 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.35.0 — letting R8 actually work. READ THE VERIFICATION NOTE.
+        //
+        //          Play measured this build at 44% optimisation, 45%
+        //          obfuscation, 45% shrinking, and the cause was one line in
+        //          proguard-rules.pro: -keep class com.rfsat.bas.** { *; }.
+        //          Every class and every member of the whole app was kept.
+        //          R8 was running and forbidden to do anything.
+        //
+        //          That rule was safe by being blunt, but the real constraint
+        //          is far narrower. Persisted formats here are Gson
+        //          reflection over FIELD NAMES, so a renamed field silently
+        //          changes a stored JSON key. That applies to the fields of
+        //          the MODEL classes and to nothing else: class names may be
+        //          obfuscated freely, because Gson serialises fields and not
+        //          class names, and the detector, solver, camera code and
+        //          every screen may be optimised and renamed like any other.
+        //
+        //          The replacement keeps field names in the eight packages
+        //          that are actually persisted — derived by auditing every
+        //          fromJson/toJson/TypeToken call site, not by guessing which
+        //          package names sounded like data — plus enum constants
+        //          (their names go into the JSON and several are read back
+        //          with valueOf on a stored string) and the View constructors
+        //          that layout inflation calls by name.
+        //
+        //          A gate now re-runs that audit on every build: a type
+        //          persisted from a package with no keep rule fails the
+        //          build, because the alternative symptom is silent data loss
+        //          on upgrade, in release builds only.
+        //
+        //          VERIFICATION — CI CANNOT PROVE THIS ONE. Unit tests run on
+        //          unminified classes, and a release build that links is not
+        //          evidence that Gson still round-trips. It has to be checked
+        //          by installing this release OVER EXISTING DATA and
+        //          confirming profiles, targets, rules and a saved session
+        //          still load. The pre-upgrade snapshot from 1.33.0 is the
+        //          net if it does not.
+        //
+        //          Play\'s other note, a BitmapFactory call in h1.c.c, is not
+        //          this app: our classes were never obfuscated under the old
+        //          rule, so an obfuscated name could only be library code.
+        //          After this release that inference stops working — our
+        //          classes are obfuscated now too, and the mapping file
+        //          uploaded with the bundle is what resolves such a report.
+        //
         // 1.34.4 — the answer, pinned; and Node 20 before it is removed.
         //
         //          `tasks --all` on AGP 9.0.0 lists ONE unit-test task:
@@ -4086,8 +4131,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 62
-        versionName = "1.34.4"
+        versionCode = 63
+        versionName = "1.35.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

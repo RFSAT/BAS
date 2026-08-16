@@ -580,5 +580,53 @@ if _agp_major is not None and _agp_major >= 9 and _kotlin_plugin_at:
             f"org.jetbrains.kotlin.android as well fails with \"Cannot add extension "
             f"with name 'kotlin'\"")
 
+
+# ---------------------------------------------------------------- gate 14
+#
+# A Gson-persisted type whose package is not protected in proguard-rules.pro.
+#
+# R8 renames fields it is not told to keep. Gson stores FIELD NAMES, so a
+# renamed field silently changes a stored JSON key: the release build works
+# perfectly on a fresh install and loses every existing profile, target, rule
+# and session on an upgrade. There is no crash and no build error, it only
+# happens in release builds, and unit tests run unminified so they cannot see
+# it either.
+#
+# Which is why this is checked mechanically: the rules were derived by
+# auditing every fromJson/TypeToken call site, and that audit has to be
+# repeated every time someone persists a new type. Here it is repeated on
+# every build instead.
+_pg = "app/proguard-rules.pro"
+if os.path.exists(_pg):
+    _pgsrc = open(_pg, encoding="utf-8").read()
+    _protected = set(re.findall(r'-keepclassmembers class (com\.rfsat\.[\w.]+?)(?:\.\*\*)? *\{', _pgsrc))
+
+    def _is_protected(pkg):
+        return any(pkg == pr or pkg.startswith(pr + ".") or pr.startswith(pkg + ".")
+                   for pr in _protected)
+
+    _serialised = {}     # type name -> "file:line"
+    _gson_re = re.compile(r'fromJson[^;\n]*?\b(\w+)::class\.java'
+                          r'|getParameterized\([^)]*?\b(\w+)::class\.java\s*\)'
+                          r'|TypeToken<[^>]*?\b([A-Z]\w+)[>,]')
+    for _f in [x for x in files if (os.sep + "test" + os.sep) not in x]:
+        for _n, _l in enumerate(open(_f, encoding="utf-8", errors="ignore").read().split("\n"), 1):
+            _code = _l.split("//")[0]
+            for _m in _gson_re.finditer(_code):
+                _t = _m.group(1) or _m.group(2) or _m.group(3)
+                if _t and _t not in ("List", "Map", "MutableList", "MutableMap", "String"):
+                    _serialised.setdefault(_t, f"{os.path.basename(_f)}:{_n}")
+
+    for _t, _where in sorted(_serialised.items()):
+        _pkgs = _decl_pkgs.get(_t)
+        if not _pkgs:
+            continue          # declared outside this project (Gson's own, or a library)
+        for _pkg in _pkgs:
+            if _pkg.startswith("com.rfsat.") and not _is_protected(_pkg):
+                problems.append(
+                    f"{_where}  '{_t}' is persisted by Gson but {_pkg} has no "
+                    f"-keepclassmembers rule — R8 will rename its fields and every "
+                    f"stored copy will stop loading, in release builds only")
+
 print(("PROBLEMS:\n  "+"\n  ".join(problems)) if problems else "No problems found.")
 sys.exit(1 if problems else 0)

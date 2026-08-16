@@ -1,9 +1,55 @@
-# Every persisted format in this app (profiles, target faces, rule sets,
-# sessions, backups) is Gson reflection over FIELD NAMES. Renaming a field
-# changes a stored JSON key silently: no crash, no build error, just data
-# that stops loading. So the whole app package is kept verbatim.
--keep class com.rfsat.bas.** { *; }
--keepclassmembers class com.rfsat.bas.** { *; }
+# ---------------------------------------------------------------------------
+#  What R8 may and may not touch in this app
+#
+#  This used to be one line — -keep class com.rfsat.bas.** { *; } — which kept
+#  EVERY class and EVERY member of the entire app. It was safe by being blunt,
+#  and Play measured the result: 44% optimisation, 45% obfuscation, 45%
+#  shrinking. R8 was being paid for and not allowed to work.
+#
+#  The real constraint is narrower than that rule. Every persisted format here
+#  is Gson reflection over FIELD NAMES, so renaming a field silently changes a
+#  stored JSON key — no crash, no build error, just data that stops loading.
+#  But that constraint applies to FIELD NAMES IN THE MODEL CLASSES ONLY. Class
+#  names may be obfuscated freely (Gson serialises fields, not class names),
+#  and the detector, the solver, the camera code and every screen may be
+#  optimised and renamed like any other code.
+#
+#  The list below was derived by auditing every fromJson/toJson/TypeToken call
+#  site, not by guessing which packages sounded like data. Anything added to
+#  those packages inherits the protection; a NEW package that gets persisted
+#  must be added here, and the symptom of forgetting will be silent data loss
+#  in release builds only.
+#
+#  VERIFICATION: CI cannot prove this. Unit tests run on unminified classes,
+#  and a release build that links is not evidence that Gson still round-trips.
+#  It has to be checked by installing the release build over existing data and
+#  confirming profiles, targets, rules and a saved session all still load.
+# ---------------------------------------------------------------------------
+
+# Field names are the storage format for these packages.
+-keepclassmembers class com.rfsat.bas.profiles.** { <fields>; }
+-keepclassmembers class com.rfsat.bas.targets.** { <fields>; }
+-keepclassmembers class com.rfsat.bas.rules.** { <fields>; }
+-keepclassmembers class com.rfsat.bas.scoring.** { <fields>; }
+-keepclassmembers class com.rfsat.bas.results.** { <fields>; }
+-keepclassmembers class com.rfsat.bas.backup.** { <fields>; }
+-keepclassmembers class com.rfsat.bas.wind.** { <fields>; }
+-keepclassmembers class com.rfsat.bas.capture.CameraConfig { <fields>; }
+
+# Enum CONSTANT names are persisted twice over: Gson writes the name into the
+# JSON, and several settings are read back with valueOf() on a stored string
+# (SightType, FirearmType, AppMode, WeatherTier, Position, the translation
+# provider). An obfuscated enum constant breaks both.
+-keepclassmembers enum com.rfsat.bas.** { *; }
+
+# Custom views are instantiated BY NAME from the layout XML. AGP generates
+# keep rules for these from the merged resources, but stating it here means
+# the guarantee does not depend on that generation continuing to work.
+-keep class * extends android.view.View {
+    <init>(android.content.Context);
+    <init>(android.content.Context, android.util.AttributeSet);
+    <init>(android.content.Context, android.util.AttributeSet, int);
+}
 
 # Gson's own requirements
 -keepattributes Signature, *Annotation*, EnclosingMethod, InnerClasses
