@@ -48,6 +48,34 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.34.4 — the answer, pinned; and Node 20 before it is removed.
+        //
+        //          `tasks --all` on AGP 9.0.0 lists ONE unit-test task:
+        //          testDebugUnitTest. There is no release equivalent — AGP 9
+        //          creates unit-test components for the test build type only,
+        //          which is debug — so the release-variant run this project
+        //          used was not renamed, it stopped existing. CI is pinned to
+        //          the real name and the throwaway diagnostic step is gone,
+        //          with the command to re-derive it left in a comment.
+        //
+        //          This costs nothing for these tests, for the reason the
+        //          workflow already gave for the old arrangement: unit tests
+        //          run on the JVM against UNMINIFIED classes, since R8
+        //          applies to the packaged artefact and not to the test
+        //          classpath. Debug and release compile the same sources from
+        //          the same source set; there are no build-type-specific
+        //          sources here and nothing reads BuildConfig.DEBUG. The
+        //          release variant is still exercised for real, by building
+        //          the APK and the bundle.
+        //
+        //          NODE 20. GitHub forces Node 24 from June 2026 and removes
+        //          Node 20 from the runners in September, which is inside the
+        //          life of this app. checkout -> v6, setup-java -> v5,
+        //          upload-artifact -> v6, all of which run on Node 24.
+        //          gradle/actions/setup-gradle stays at v4: no newer major
+        //          was found, and inventing one is how the last three
+        //          failures started.
+        //
         // 1.34.3 — the unit-test task, asked for rather than guessed.
         //
         //          Configuration now SUCCEEDS on AGP 9 — the plugin work is
@@ -4058,8 +4086,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 61
-        versionName = "1.34.3"
+        versionCode = 62
+        versionName = "1.34.4"
     }
 
     // Resolved once, here, rather than re-read from the environment in two
