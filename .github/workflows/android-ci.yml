@@ -33,10 +33,10 @@ jobs:
       HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
@@ -56,10 +56,6 @@ jobs:
         if: ${{ env.HAS_KEYSTORE == 'true' }}
         run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$GITHUB_WORKSPACE/release.keystore"
 
-      # Against the release variant, so the debug variant is never assembled.
-      # Unit tests are not minified — R8 applies to the packaged artefact, not
-      # to the JVM test classpath — so this tests the same code the release
-      # ships without needing a debug build to do it.
       # Cheap semantic checks first: they need no toolchain and they name the
       # file and line, where the same mistakes reach the compiler as errors
       # reported somewhere else entirely.
@@ -73,36 +69,35 @@ jobs:
       - name: Static checks
         run: python3 tools/kotlin_checks.py
 
-      # What unit-test tasks does this toolchain actually create? Printed
-      # before they run, and never allowed to fail the build.
+      # ANSWERED, so no longer asked on every build. `gradle :app:tasks --all`
+      # on AGP 9.0.0 lists exactly ONE unit-test task:
       #
-      # AGP 9 did not create testReleaseUnitTest, and neither the release
-      # notes nor the migration guide say what replaced it. Rather than guess
-      # a task name — twice already this upgrade a guess has cost a full CI
-      # run — this asks Gradle and puts the answer in the log, where the next
-      # person to touch this file can read it instead of rediscovering it.
-      - name: List the test tasks this toolchain provides
-        continue-on-error: true
-        run: gradle :app:tasks --all --no-daemon | grep -i "test" || true
-
-      # `test` rather than a variant-specific task. It is Gradle's own
-      # lifecycle task, AGP wires every unit-test task into it, and it is
-      # therefore the one name that does not change between AGP majors.
+      #     test              - Run unit tests for all variants.
+      #     testDebugUnitTest - Run unit tests for the debug build.
       #
-      # The cost is that if this toolchain creates unit tests for more than
-      # one build type, all of them run. That is slower than the previous
-      # release-only run and it is the right trade for a build that survives
-      # the next upgrade. Once the log above says what exists, this can be
-      # pinned back to a single variant.
+      # There is no testReleaseUnitTest. AGP 9 creates unit-test components
+      # for the test build type only, which is debug by default — so the
+      # previous release-variant run was not renamed, it stopped existing.
+      #
+      # THAT COSTS NOTHING FOR THESE TESTS, for the reason this file already
+      # gave for the old arrangement: unit tests run on the JVM against
+      # UNMINIFIED classes, because R8 applies to the packaged artefact and
+      # not to the test classpath. Debug and release compile the same sources
+      # from the same source set; this project has no build-type-specific
+      # sources and reads no BuildConfig.DEBUG. The release variant is still
+      # fully exercised below, by building the APK and the bundle for real.
+      #
+      # To re-derive this after a toolchain change:
+      #     gradle :app:tasks --all --no-daemon | grep -i test
       - name: Unit tests
-        run: gradle :app:test --no-daemon
+        run: gradle :app:testDebugUnitTest --no-daemon
 
       - name: Upload test report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: unit-test-report
-          path: app/build/reports/tests/
+          path: app/build/reports/tests/testDebugUnitTest/
           if-no-files-found: ignore
 
       # ANDROID_KEYSTORE_PATH is set only when the keystore was decoded. The
@@ -122,14 +117,14 @@ jobs:
         run: rm -f "$GITHUB_WORKSPACE/release.keystore"
 
       - name: Release APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: bas-release-apk
           path: app/build/outputs/apk/release/*.apk
           if-no-files-found: error
 
       - name: Play bundle (AAB)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: bas-play-bundle-aab
           path: app/build/outputs/bundle/release/*.aab
@@ -140,7 +135,7 @@ jobs:
       # copy per build means an old release stays diagnosable after the next
       # one has overwritten what Play holds.
       - name: R8 mapping
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: bas-r8-mapping
           path: app/build/outputs/mapping/release/mapping.txt
