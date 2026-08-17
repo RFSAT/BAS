@@ -71,19 +71,20 @@ object CloudSettings {
             "gpt-4o-mini" to "GPT-4o mini — cheapest, fastest",
             "gpt-4o" to "GPT-4o — balanced (recommended)"
         ),
-        // Listed for completeness. Both are text models on the public API —
-        // see AiProvider.DEEPSEEK — so the app warns before using either on a
-        // photograph. "Other" accepts any identifier the account has.
+        // Unreachable while DEEPSEEK is not offered, kept correct so that
+        // re-enabling it does not also resurrect wrong identifiers. These are
+        // the models api-docs.deepseek.com lists; the ones shipped in 1.36.0
+        // were out of date.
         AiProvider.DEEPSEEK to listOf(
-            "deepseek-chat" to "deepseek-chat — general",
-            "deepseek-reasoner" to "deepseek-reasoner — slower, reasons first"
+            "deepseek-v4-flash" to "V4 Flash — faster, cheaper",
+            "deepseek-v4-pro" to "V4 Pro — more capable"
         )
     )
 
     val DEFAULT_MODEL: Map<AiProvider, String> = mapOf(
         AiProvider.ANTHROPIC to "claude-sonnet-5",
         AiProvider.OPENAI to "gpt-4o",
-        AiProvider.DEEPSEEK to "deepseek-chat"
+        AiProvider.DEEPSEEK to "deepseek-v4-flash"
     )
 
     private var prefs: SharedPreferences? = null
@@ -138,9 +139,12 @@ object CloudSettings {
 
     fun clearResetFlag() { keysWereReset = false }
 
+    // A stored choice is passed through offeredOr, so a provider that has
+    // since been withdrawn cannot leave a picker with nothing selected.
     private fun read(context: Context, key: String, fallback: AiProvider): AiProvider =
         store(context)?.getString(key, null)
             ?.let { n -> AiProvider.values().firstOrNull { it.name == n } }
+            ?.let { AiProvider.offeredOr(it) }
             ?: fallback
 
     /** The service being edited by the key and model controls in Settings.

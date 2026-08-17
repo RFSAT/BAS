@@ -279,7 +279,7 @@ class ProfileActivity : BaseActivity() {
             // EVERY service's key, not just the selected one. Each is stored
             // separately, and seeing only the current one made it look as
             // though setting a second key had replaced the first.
-            binding.tvCloudKeys.text = AiProvider.values().joinToString("\n") { p ->
+            binding.tvCloudKeys.text = AiProvider.OFFERED.joinToString("\n") { p ->
                 "${p.label}: ${CloudSettings.maskedKey(this, p)}"
             }
             binding.tvCloudKey.text =
@@ -290,13 +290,13 @@ class ProfileActivity : BaseActivity() {
 
         // ---- what scores a card on import: the app, or a named service ----
         val engineOptions = listOf(ScoringSource.EMBEDDED.label) +
-            AiProvider.values().map { it.pickerLabel }
+            AiProvider.OFFERED.map { it.pickerLabel }
         binding.spEngine.adapter = android.widget.ArrayAdapter(
             this, R.layout.spinner_item, engineOptions
         ).also { it.setDropDownViewResource(R.layout.spinner_dropdown_item) }
         binding.spEngine.setSelection(
             if (CloudSettings.engineChoice(this) == ScoringSource.EMBEDDED) 0
-            else 1 + AiProvider.values().indexOf(CloudSettings.importProvider(this))
+            else 1 + AiProvider.OFFERED.indexOf(CloudSettings.importProvider(this))
         )
         binding.spEngine.onItemSelectedListener = onSelectedIndex { i ->
             if (i == 0) {
@@ -304,7 +304,7 @@ class ProfileActivity : BaseActivity() {
                 notifyUser("Imports will be scored by the app's own algorithms.")
                 return@onSelectedIndex
             }
-            val p = AiProvider.values().getOrNull(i - 1) ?: return@onSelectedIndex
+            val p = AiProvider.OFFERED.getOrNull(i - 1) ?: return@onSelectedIndex
             CloudSettings.setImportProvider(this, p)
             CloudSettings.setEngine(this, ScoringSource.CLOUD)
             notifyUser(
@@ -335,12 +335,12 @@ class ProfileActivity : BaseActivity() {
         // Independent of the import choice on purpose: asking the other
         // service is exactly what makes a second opinion worth having.
         binding.spOpinion.adapter = android.widget.ArrayAdapter(
-            this, R.layout.spinner_item, AiProvider.values().map { it.pickerLabel }
+            this, R.layout.spinner_item, AiProvider.OFFERED.map { it.pickerLabel }
         ).also { it.setDropDownViewResource(R.layout.spinner_dropdown_item) }
         binding.spOpinion.setSelection(
-            AiProvider.values().indexOf(CloudSettings.opinionProvider(this)))
+            AiProvider.OFFERED.indexOf(CloudSettings.opinionProvider(this)))
         binding.spOpinion.onItemSelectedListener = onSelectedIndex { i ->
-            val p = AiProvider.values().getOrNull(i) ?: return@onSelectedIndex
+            val p = AiProvider.OFFERED.getOrNull(i) ?: return@onSelectedIndex
             CloudSettings.setOpinionProvider(this, p)
             refreshCloud()
             notifyUser(
@@ -424,12 +424,12 @@ class ProfileActivity : BaseActivity() {
         }
 
         binding.spProvider.adapter = android.widget.ArrayAdapter(
-            this, R.layout.spinner_item, AiProvider.values().map { it.pickerLabel }
+            this, R.layout.spinner_item, AiProvider.OFFERED.map { it.pickerLabel }
         ).also { it.setDropDownViewResource(R.layout.spinner_dropdown_item) }
         binding.spProvider.setSelection(
-            AiProvider.values().indexOf(CloudSettings.setupProvider(this)))
+            AiProvider.OFFERED.indexOf(CloudSettings.setupProvider(this)))
         binding.spProvider.onItemSelectedListener = onSelectedIndex { i ->
-            val chosen = AiProvider.values().getOrNull(i) ?: return@onSelectedIndex
+            val chosen = AiProvider.OFFERED.getOrNull(i) ?: return@onSelectedIndex
             CloudSettings.setSetupProvider(this, chosen)
             refreshModels()
             refreshCloud()
@@ -512,7 +512,7 @@ class ProfileActivity : BaseActivity() {
             // silently lose the other.
             val p = CloudSettings.setupProvider(this)
             CloudSettings.setApiKey(this, p, "")
-            if (AiProvider.values().none { CloudSettings.apiKey(this, it).isNotBlank() }) {
+            if (AiProvider.OFFERED.none { CloudSettings.apiKey(this, it).isNotBlank() }) {
                 CloudSettings.setEnabled(this, false)
             }
             refreshCloud()

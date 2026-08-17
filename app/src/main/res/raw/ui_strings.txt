@@ -1645,10 +1645,10 @@ gpt-4o-mini
 GPT-4o mini — cheapest, fastest
 gpt-4o
 GPT-4o — balanced (recommended)
-deepseek-chat
-deepseek-chat — general
-deepseek-reasoner
-deepseek-reasoner — slower, reasons first
+deepseek-v4-flash
+V4 Flash — faster, cheaper
+deepseek-v4-pro
+V4 Pro — more capable
 should not
 current key
 + p.name,

@@ -48,6 +48,42 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.37.0 - DeepSeek withdrawn from the pickers, on the strength of
+        //          its own API reference rather than an inference.
+        //
+        //          api-docs.deepseek.com, POST /chat/completions, says three
+        //          things that each rule this out on their own:
+        //
+        //            * a user message's `content` is a STRING. No content-part
+        //              list, so no image can be attached - and every question
+        //              this app asks is about a photograph.
+        //            * `response_format.type` is `text` or `json_object`.
+        //              There is no `json_schema`, so the schema-constrained
+        //              answering the parser depends on is not available.
+        //              (Tool calls do offer strict mode, which would be the
+        //              route in - if an image could be sent at all.)
+        //            * the token limit is `max_tokens`, not
+        //              `max_completion_tokens`.
+        //
+        //          The models are deepseek-v4-flash and deepseek-v4-pro. The
+        //          identifiers shipped in 1.36.0 - deepseek-chat and
+        //          deepseek-reasoner - were ALREADY out of date, which is the
+        //          sharpest argument against offering a service that nobody
+        //          here can test against.
+        //
+        //          The enum entry and the transport stay: the day DeepSeek
+        //          ships vision this is one word. AiProvider.OFFERED is what
+        //          the pickers read, and a stored choice naming a withdrawn
+        //          provider is mapped to an offered one, so no spinner can
+        //          come up with nothing selected. Model identifiers were
+        //          corrected on the way out rather than left wrong behind an
+        //          unreachable flag.
+        //
+        //          1.36.0 shipped an option that could not work. It was
+        //          labelled honestly and it still should not have been
+        //          offered - a label is not a substitute for the feature
+        //          working.
+        //
         // 1.36.0 - DeepSeek added to the AI-assisted services, with a caveat
         //          that matters more than the code.
         //
@@ -4166,8 +4202,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 64
-        versionName = "1.36.0"
+        versionCode = 65
+        versionName = "1.37.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two
