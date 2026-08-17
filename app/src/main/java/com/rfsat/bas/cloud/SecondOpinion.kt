@@ -159,6 +159,12 @@ object SecondOpinion {
             // the caller below, not here, so this stays a pure transport.
             AiProvider.DEEPSEEK ->
                 askOpenAiCompatible(provider, DEEPSEEK_ENDPOINT, apiKey, model, jpegBase64, scoreToo)
+            AiProvider.OPENROUTER ->
+                askOpenAiCompatible(provider, OPENROUTER_ENDPOINT, apiKey, model, jpegBase64, scoreToo)
+            AiProvider.XAI ->
+                askOpenAiCompatible(provider, XAI_ENDPOINT, apiKey, model, jpegBase64, scoreToo)
+            AiProvider.MISTRAL ->
+                askOpenAiCompatible(provider, MISTRAL_ENDPOINT, apiKey, model, jpegBase64, scoreToo)
         }
         return if (note.isEmpty() || outcome !is Result.Failed) outcome
                else Result.Failed(outcome.message + note)
@@ -251,8 +257,15 @@ object SecondOpinion {
     private const val OPENAI_ENDPOINT = "https://api.openai.com/v1/chat/completions"
 
     /** DeepSeek implements the OpenAI chat-completions API, path and all, so
-     *  the only difference is the host. */
+     *  the only difference is the host. (Not offered — see AiProvider.) */
     private const val DEEPSEEK_ENDPOINT = "https://api.deepseek.com/chat/completions"
+
+    // All three of these implement the same request and response as OpenAI,
+    // so they cost one line each rather than a transport apiece. That is the
+    // whole reason askOpenAiCompatible takes an endpoint.
+    private const val OPENROUTER_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions"
+    private const val XAI_ENDPOINT = "https://api.x.ai/v1/chat/completions"
+    private const val MISTRAL_ENDPOINT = "https://api.mistral.ai/v1/chat/completions"
 
     /**
      * OpenAI's Chat Completions, with the answer pinned by a JSON schema.
@@ -295,7 +308,7 @@ object SecondOpinion {
         val text = if (scoreToo) PROMPT + "\n\n" + SCORING_EXTRA else PROMPT
         val body = JSONObject().apply {
             put("model", model)
-            put("max_completion_tokens", MAX_TOKENS)
+            put(provider.tokenLimitField, MAX_TOKENS)
             put("response_format", JSONObject()
                 .put("type", "json_schema")
                 .put("json_schema", JSONObject()
@@ -325,6 +338,14 @@ object SecondOpinion {
                 doOutput = true
                 setRequestProperty("content-type", "application/json")
                 setRequestProperty("authorization", "Bearer $apiKey")
+                // OpenRouter uses these for attribution on its public
+                // leaderboards. Optional, harmless, and it is bad manners to
+                // route volume through someone's service anonymously when
+                // saying who you are costs two headers.
+                if (provider == AiProvider.OPENROUTER) {
+                    setRequestProperty("http-referer", "https://github.com/rfsat")
+                    setRequestProperty("x-title", "BAS — Ballistics and Scoring")
+                }
             }
             conn.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
             val code = conn.responseCode

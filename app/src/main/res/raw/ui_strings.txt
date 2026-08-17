@@ -1599,6 +1599,8 @@ x-api-key
 Ranges often have no signal — this needs a connection.
 data:image/jpeg;base64,$jpegBase64
 Bearer $apiKey
+x-title
+BAS — Ballistics and Scoring
 not a password for the service's chat website — the two are different things.
 This model may not accept the token limit the app sends; try another model.
 models listed for ${provider.label}.
@@ -1618,8 +1620,13 @@ on the account. $detail
 room. Try a smaller image or a different model.
 (stopped: $stop).
 , -1.0); val y = h.optDouble(
+OpenAI-compatible
 Claude (Anthropic)
 sk-ant-…
+openrouter.ai/keys
+xAI (Grok)
+xai-…
+Mistral
 cannot read a photograph
 $label — text only
 did you already find this one?
@@ -1645,6 +1652,17 @@ gpt-4o-mini
 GPT-4o mini — cheapest, fastest
 gpt-4o
 GPT-4o — balanced (recommended)
+-latest
+anthropic/claude-sonnet-5
+Claude Sonnet 5 — balanced
+openai/gpt-4o
+GPT-4o — widely available
+grok-2-vision-latest
+Grok 2 Vision — reads images
+pixtral-large-latest
+Pixtral Large — vision (recommended)
+mistral-medium-latest
+Mistral Medium — newer, vision
 deepseek-v4-flash
 V4 Flash — faster, cheaper
 deepseek-v4-pro

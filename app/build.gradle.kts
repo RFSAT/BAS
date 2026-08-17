@@ -48,6 +48,52 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.38.0 - three providers that can actually do the job:
+        //          OpenRouter, xAI (Grok) and Mistral.
+        //
+        //          All three implement the OpenAI chat-completions request and
+        //          response, so each costs one endpoint constant and one
+        //          branch rather than a transport of its own. That is what
+        //          askOpenAiCompatible was factored out for in 1.36.0, and it
+        //          is the reason this release is small.
+        //
+        //          OPENROUTER is the one worth having: a single key reaches
+        //          several hundred models from every vendor, including ones
+        //          this app will never integrate directly. Its catalogue is a
+        //          SUPERSET of what works here though - not every model behind
+        //          it reads images, and not every one honours a strict
+        //          json_schema - so the listed models are ones that do both.
+        //          It also gets attribution headers, because routing volume
+        //          through someone's service anonymously is bad manners when
+        //          saying who you are costs two headers.
+        //
+        //          "OpenAI-compatible" is compatible in SHAPE, not in every
+        //          field name. OpenAI renamed max_tokens to
+        //          max_completion_tokens and nobody else followed, so the
+        //          limit is now named per provider. Sending the wrong one is a
+        //          400 about an unknown parameter, which reads as a broken app
+        //          rather than a wrong spelling - the same class of detail
+        //          that made DeepSeek look supported when it was not.
+        //
+        //          MODEL IDENTIFIERS ARE THE FRAGILE PART. DeepSeek's were
+        //          stale the day they shipped. So the lists are short, prefer
+        //          "-latest" aliases that vendors repoint rather than retire,
+        //          and every picker keeps "Other" for typing what the account
+        //          actually has. A wrong identifier here fails as a 404 naming
+        //          the model: obvious, and fixable without an app update.
+        //
+        //          Tests pin the invariants that only fail remotely: every
+        //          OFFERED provider reads images, DeepSeek stays present but
+        //          withheld, a withdrawn choice falls back, and only OpenAI
+        //          uses the renamed token field.
+        //
+        //          UNVERIFIED AGAINST THE LIVE APIS. No key here, no network
+        //          to them. The shapes come from each vendor's published
+        //          reference; the first real request will be the shooter's.
+        //          Gemini follows once these three are shown to work, as
+        //          agreed - it needs its own transport, so it is not a
+        //          one-liner like these.
+        //
         // 1.37.0 - DeepSeek withdrawn from the pickers, on the strength of
         //          its own API reference rather than an inference.
         //
@@ -4202,8 +4248,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 65
-        versionName = "1.37.0"
+        versionCode = 66
+        versionName = "1.38.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

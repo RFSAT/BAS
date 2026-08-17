@@ -19,10 +19,44 @@ enum class AiProvider(
     val keyHint: String,
     val console: String,
     val readsImages: Boolean = true,
-    val selectable: Boolean = true
+    val selectable: Boolean = true,
+    /**
+     * Which name this service gives the reply-length limit.
+     *
+     * OpenAI renamed max_tokens to max_completion_tokens and the others did
+     * not follow, so "OpenAI-compatible" is compatible in shape and not in
+     * every field name. Sending the wrong one is a 400 that talks about an
+     * unknown parameter, which reads like a broken app rather than a wrong
+     * spelling — and it is precisely the kind of detail that made DeepSeek
+     * look supported when it was not.
+     */
+    val tokenLimitField: String = "max_tokens"
 ) {
     ANTHROPIC("Claude (Anthropic)", "sk-ant-…", "console.anthropic.com"),
-    OPENAI("OpenAI", "sk-…", "platform.openai.com"),
+    OPENAI("OpenAI", "sk-…", "platform.openai.com",
+        tokenLimitField = "max_completion_tokens"),
+
+    /**
+     * One key, most of the field. OpenRouter proxies the OpenAI
+     * chat-completions API to several hundred models from every major
+     * vendor, so a shooter who wants a second opinion from a model this app
+     * does not integrate directly can simply name it.
+     *
+     * The catch is that OpenRouter's catalogue is a superset of what this app
+     * can use: not every model behind it reads images, and not every one
+     * honours a strict json_schema. Choosing a text-only model there produces
+     * the same failure DeepSeek would have — which is why the models listed
+     * for it are ones that do both, and why "Other" carries a warning.
+     */
+    OPENROUTER("OpenRouter", "sk-or-v1-…", "openrouter.ai/keys"),
+
+    /** Grok. OpenAI-compatible down to the path, with vision models and
+     *  structured outputs. */
+    XAI("xAI (Grok)", "xai-…", "console.x.ai"),
+
+    /** Pixtral and its successors. Also OpenAI-shaped, and Mistral supports
+     *  json_schema with strict mode, which is what this app needs. */
+    MISTRAL("Mistral", "…", "console.mistral.ai"),
 
     /**
      * NOT OFFERED. Kept because the transport is correct and the day DeepSeek

@@ -71,6 +71,25 @@ object CloudSettings {
             "gpt-4o-mini" to "GPT-4o mini — cheapest, fastest",
             "gpt-4o" to "GPT-4o — balanced (recommended)"
         ),
+        // MODEL IDENTIFIERS GO STALE FASTER THAN ANYTHING ELSE HERE. The
+        // DeepSeek entry shipped in 1.36.0 was out of date the day it was
+        // written. So these lists are deliberately SHORT and prefer "-latest"
+        // style aliases, which the vendors repoint rather than retire, and
+        // every picker keeps an "Other" box for typing whatever the account
+        // actually has. A wrong identifier here is a 404 naming the model —
+        // annoying, obvious, and fixable without an app update.
+        AiProvider.OPENROUTER to listOf(
+            "anthropic/claude-sonnet-5" to "Claude Sonnet 5 — balanced",
+            "openai/gpt-4o" to "GPT-4o — widely available"
+        ),
+        AiProvider.XAI to listOf(
+            "grok-2-vision-latest" to "Grok 2 Vision — reads images"
+        ),
+        AiProvider.MISTRAL to listOf(
+            "pixtral-large-latest" to "Pixtral Large — vision (recommended)",
+            "mistral-medium-latest" to "Mistral Medium — newer, vision"
+        ),
+
         // Unreachable while DEEPSEEK is not offered, kept correct so that
         // re-enabling it does not also resurrect wrong identifiers. These are
         // the models api-docs.deepseek.com lists; the ones shipped in 1.36.0
@@ -84,7 +103,10 @@ object CloudSettings {
     val DEFAULT_MODEL: Map<AiProvider, String> = mapOf(
         AiProvider.ANTHROPIC to "claude-sonnet-5",
         AiProvider.OPENAI to "gpt-4o",
-        AiProvider.DEEPSEEK to "deepseek-v4-flash"
+        AiProvider.DEEPSEEK to "deepseek-v4-flash",
+        AiProvider.OPENROUTER to "anthropic/claude-sonnet-5",
+        AiProvider.XAI to "grok-2-vision-latest",
+        AiProvider.MISTRAL to "pixtral-large-latest"
     )
 
     private var prefs: SharedPreferences? = null
