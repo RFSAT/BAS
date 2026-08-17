@@ -139,4 +139,23 @@ class AiProviderTest {
             }
         }
     }
+
+    @Test
+    fun `OpenRouter is offered last`() {
+        // The pickers are built straight from OFFERED, so this order is the
+        // on-screen order. OpenRouter belongs at the bottom: it is a router,
+        // and every model it sells belongs to a vendor listed above it.
+        assertEquals(AiProvider.OPENROUTER, AiProvider.OFFERED.last())
+    }
+
+    @Test
+    fun `the direct services keep their order ahead of the router`() {
+        assertEquals(
+            listOf(
+                AiProvider.ANTHROPIC, AiProvider.OPENAI, AiProvider.XAI,
+                AiProvider.MISTRAL, AiProvider.GEMINI, AiProvider.OPENROUTER
+            ),
+            AiProvider.OFFERED
+        )
+    }
 }

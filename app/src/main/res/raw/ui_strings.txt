@@ -1635,12 +1635,12 @@ room. Try a smaller image or a different model.
 OpenAI-compatible
 Claude (Anthropic)
 sk-ant-…
-openrouter.ai/keys
 xAI (Grok)
 xai-…
 Mistral
 Google Gemini
 AIza…
+openrouter.ai/keys
 cannot read a photograph
 $label — text only
 answering this app needs — so a free model may fail where a paid one succeeds.

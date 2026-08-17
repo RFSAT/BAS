@@ -48,6 +48,25 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.40.3 - OpenRouter moved to the bottom of both service lists.
+        //
+        //          Both spinners are built straight from AiProvider.OFFERED,
+        //          which preserves declaration order, so this was a matter of
+        //          moving the enum entry - now noted at the top of the file,
+        //          because "declaration order is picker order" is not obvious
+        //          from either end and the next person to add a service will
+        //          otherwise insert it wherever it reads nicely.
+        //
+        //          Safe to reorder because nothing stores an ordinal: every
+        //          provider setting is written by name, and the spinners map
+        //          through OFFERED.indexOf. Checked before moving anything.
+        //
+        //          It belongs last for a reason worth keeping: OpenRouter is a
+        //          router, not a service of its own, and every model it sells
+        //          belongs to a vendor listed above it. Read top to bottom the
+        //          list is now direct services first, then the way to reach
+        //          anything else.
+        //
         // 1.40.2 - the OpenRouter model list now says who routes it.
         //
         //          The entries read "Claude Sonnet 5 - balanced" and "GPT-4o -
@@ -4381,8 +4400,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 70
-        versionName = "1.40.2"
+        versionCode = 71
+        versionName = "1.40.3"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

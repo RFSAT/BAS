@@ -37,6 +37,16 @@ enum class FreeAccess {
     SELECTABLE
 }
 
+/**
+ * DECLARATION ORDER IS PICKER ORDER. Both service spinners are built from
+ * [AiProvider.OFFERED], which preserves the order below, so moving an entry
+ * here moves it on screen — and adding one in the middle inserts it there.
+ *
+ * OpenRouter sits last on purpose: it is a router rather than a service of
+ * its own, and every model it offers belongs to a vendor listed above it.
+ * Reading the list top to bottom therefore goes direct services first, then
+ * the way to reach anything else.
+ */
 enum class AiProvider(
     val label: String,
     val keyHint: String,
@@ -60,21 +70,6 @@ enum class AiProvider(
     OPENAI("OpenAI", "sk-…", "platform.openai.com",
         tokenLimitField = "max_completion_tokens"),
 
-    /**
-     * One key, most of the field. OpenRouter proxies the OpenAI
-     * chat-completions API to several hundred models from every major
-     * vendor, so a shooter who wants a second opinion from a model this app
-     * does not integrate directly can simply name it.
-     *
-     * The catch is that OpenRouter's catalogue is a superset of what this app
-     * can use: not every model behind it reads images, and not every one
-     * honours a strict json_schema. Choosing a text-only model there produces
-     * the same failure DeepSeek would have — which is why the models listed
-     * for it are ones that do both, and why "Other" carries a warning.
-     */
-    OPENROUTER("OpenRouter", "sk-or-v1-…", "openrouter.ai/keys",
-        freeAccess = FreeAccess.SELECTABLE),
-
     /** Grok. OpenAI-compatible down to the path, with vision models and
      *  structured outputs. */
     XAI("xAI (Grok)", "xai-…", "console.x.ai"),
@@ -96,6 +91,21 @@ enum class AiProvider(
      */
     GEMINI("Google Gemini", "AIza…", "aistudio.google.com",
         freeAccess = FreeAccess.ACCOUNT),
+
+    /**
+     * One key, most of the field. OpenRouter proxies the OpenAI
+     * chat-completions API to several hundred models from every major
+     * vendor, so a shooter who wants a second opinion from a model this app
+     * does not integrate directly can simply name it.
+     *
+     * The catch is that OpenRouter's catalogue is a superset of what this app
+     * can use: not every model behind it reads images, and not every one
+     * honours a strict json_schema. Choosing a text-only model there produces
+     * the same failure DeepSeek would have — which is why the models listed
+     * for it are ones that do both, and why "Other" carries a warning.
+     */
+    OPENROUTER("OpenRouter", "sk-or-v1-…", "openrouter.ai/keys",
+        freeAccess = FreeAccess.SELECTABLE),
 
     /**
      * NOT OFFERED. Kept because the transport is correct and the day DeepSeek
