@@ -465,7 +465,7 @@ object SecondOpinion {
                 .put("responseMimeType", "application/json")
                 .put("responseSchema", geminiSchema(scoreToo))
                 .put("maxOutputTokens", MAX_TOKENS))
-        }
+        }.toString()
         return try {
             val conn = (URL(GEMINI_BASE + model + ":generateContent")
                 .openConnection() as HttpsURLConnection).apply {

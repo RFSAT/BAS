@@ -421,22 +421,25 @@ class ProfileActivity : BaseActivity() {
          * and a control that vanishes answers no question. The note beneath
          * says which of the three cases this service is in.
          */
+        var syncingFreeBox = false
+
         fun refreshFreeBox() {
             val p = CloudSettings.setupProvider(this)
             val selectable = p.freeAccess == com.rfsat.bas.cloud.FreeAccess.SELECTABLE
-            binding.cbFreeModels.setOnCheckedChangeListener(null)
+            // Guarded rather than detached-and-reattached, because the
+            // listener is attached ONCE below — after both of these local
+            // functions exist. Kotlin local functions cannot call one
+            // declared later, and these two need each other: the box rebuilds
+            // the model list, and rebuilding the list refreshes the box.
+            syncingFreeBox = true
             binding.cbFreeModels.isChecked = CloudSettings.freeOnly(this, p)
+            syncingFreeBox = false
             binding.cbFreeModels.isEnabled = selectable
             // isEnabled alone leaves a CheckBox's label at full strength on
             // some themes, which reads as available. The alpha makes the
             // greying unambiguous.
             binding.cbFreeModels.alpha = if (selectable) 1f else 0.45f
             binding.tvFreeModels.text = p.freeAccessNote
-            binding.cbFreeModels.setOnCheckedChangeListener { _, checked ->
-                CloudSettings.setFreeOnly(this, p, checked)
-                refreshModels()
-                refreshCloud()
-            }
         }
 
         fun refreshModels() {
@@ -466,6 +469,12 @@ class ProfileActivity : BaseActivity() {
         }
         refreshModels()
         refreshCloud()
+        binding.cbFreeModels.setOnCheckedChangeListener { _, checked ->
+            if (syncingFreeBox) return@setOnCheckedChangeListener
+            CloudSettings.setFreeOnly(this, CloudSettings.setupProvider(this), checked)
+            refreshModels()
+            refreshCloud()
+        }
         binding.spCloudModel.onItemSelectedListener = onSelectedIndex { i ->
             val p = CloudSettings.setupProvider(this)
             val list = CloudSettings.models(p, CloudSettings.freeOnly(this, p))

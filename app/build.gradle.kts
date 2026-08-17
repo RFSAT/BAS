@@ -48,6 +48,33 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.40.1 - two compile errors from 1.40.0, both mine.
+        //
+        //          The Gemini request body was built as a JSONObject and
+        //          written without .toString(). The three transports beside it
+        //          all end "}.toString()"; the paste dropped it, and the
+        //          compiler reported an unresolved toByteArray rather than the
+        //          missing conversion.
+        //
+        //          refreshFreeBox() called refreshModels(), declared twelve
+        //          lines below it. KOTLIN DOES NOT HOIST LOCAL FUNCTIONS, so
+        //          two local helpers cannot call each other - and these two
+        //          genuinely need to: ticking the box rebuilds the model list,
+        //          and rebuilding the list refreshes the box. The cycle is
+        //          broken by attaching the checkbox listener ONCE, after both
+        //          functions exist, with a flag so programmatic changes to
+        //          isChecked do not re-enter it.
+        //
+        //          A gate for that scoping rule was written, tested, and
+        //          WITHDRAWN. Indentation cannot distinguish a local function,
+        //          which must be declared first, from a method of a nested
+        //          anonymous object, which may not be - KestrelProvider is
+        //          full of the second kind and the check reported all of them,
+        //          while still failing to catch the case it was written for.
+        //          Wrong in both directions is worse than absent. The
+        //          reasoning is left in tools/kotlin_checks.py so it is not
+        //          attempted the same way again.
+        //
         // 1.40.0 - a free-models checkbox, and an honest answer about what
         //          "free" means at each service.
         //
@@ -4331,8 +4358,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 68
-        versionName = "1.40.0"
+        versionCode = 69
+        versionName = "1.40.1"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

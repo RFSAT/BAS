@@ -628,5 +628,28 @@ if os.path.exists(_pg):
                     f"-keepclassmembers rule — R8 will rename its fields and every "
                     f"stored copy will stop loading, in release builds only")
 
+
+# ---------------------------------------------------------------- gate 15
+#
+# WITHDRAWN, and left here as a note so it is not attempted again the same
+# way.
+#
+# The intent was to catch a local function called before it is declared —
+# Kotlin does not hoist them, so `fun a()` calling a `fun b()` declared below
+# it is an "Unresolved reference", which reads like a missing import rather
+# than a scoping rule. It cost a CI run in 1.40.0.
+#
+# A text-level version cannot do it. Indentation does not distinguish a LOCAL
+# function inside a function body, which must be declared first, from a METHOD
+# of a nested object or class, which may be referenced before its declaration.
+# KestrelProvider is full of the second kind inside anonymous
+# BluetoothGattCallback objects, and the check reported all of them. It also
+# failed to catch the case it was written for.
+#
+# Wrong in both directions is worse than absent: a gate that fires on correct
+# code teaches people to route around it, and this one would have done that
+# while still missing the bug. Doing it properly needs block-level parsing —
+# function body versus class body — which is a real parser, not a regex.
+
 print(("PROBLEMS:\n  "+"\n  ".join(problems)) if problems else "No problems found.")
 sys.exit(1 if problems else 0)
