@@ -677,6 +677,10 @@
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 style="@style/Sts.ActionButton"
                 android:text="Restore from a backup" />
+            <Button android:id="@+id/btnDetectionAudit"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                style="@style/Sts.ActionButton"
+                android:text="Detection accuracy record" />
             <Button android:id="@+id/btnSnapshots"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 style="@style/Sts.ActionButton"

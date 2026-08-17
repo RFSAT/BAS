@@ -153,6 +153,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.41.0** - the detector becomes measurable. Every second opinion is now filed as a comparison - agreed, unsupported, unconfirmed - together with the detector's own numbers for each mark, readable and exportable from Settings. This is the training data the planned classifier work needs, and the only way to tell whether a change to the pipeline helped.
+
 **1.40.3** - OpenRouter now appears last in both AI service lists, after the direct services it routes to.
 
 **1.40.2** - OpenRouter's model list now reads "(via OpenRouter)" on every entry. The identifiers were always correct; the labels were identical to the standalone Anthropic and OpenAI entries and hid which service was being billed.

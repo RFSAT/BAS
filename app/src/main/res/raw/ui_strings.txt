@@ -141,6 +141,7 @@ Diagnostic log…
 Backup and reset
 Export a backup of everything
 Restore from a backup
+Detection accuracy record
 Snapshots taken before an upgrade
 Recover the session set aside after a crash
 Reset to defaults
@@ -798,6 +799,15 @@ Pre-upgrade snapshots
 Restore ${labels[which]}?
 session — is replaced by what this snapshot holds. This cannot be undone.
 The snapshot could not be read: ${it.message}
+app marked but service did not see
+The record could not be read.
+Detection accuracy
+Export…
+$packageName.fileprovider
+Export the detection record
+Could not export: ${it.message}
+Clear
+Detection record cleared.
 JSB Exact 4.50 mm 8.44gr
 track the projectile in flight
 Subsonic
@@ -1159,6 +1169,15 @@ by the four card corners.
 precise there.
 crop less — detection below about three pixels is guesswork.
 memory at full resolution, so it is being sampled %.1f× coarser.
+detection-audit
+scored card and the result is kept here.
+%d card(s) compared.
+Agreed on %d mark(s) — %.0f%% of everything either side saw.
+App marked but service did not see: %d
+Service saw but app did not mark: %d
+Mean distance between agreed positions: %.1f mm
+another over many cards, not for judging a single one.
+${rec.unconfirmed.size} unconfirmed
 1280 x 720 — fastest
 1920 x 1080 — default
 3840 x 2160 — 4K, if supported
@@ -2299,7 +2318,6 @@ Keep them
 There are no shots to clear.
 Clear all shots?
 distance stay as they are, so you can score the same target again.
-Clear
 Shot ${shot.index} moved: ${shot.displayValue} → ${rescored.displayValue}
 Shot ${shot.index} — ${shot.displayValue}
 %.2f mm right, %.2f mm up (%.2f mm from centre, %s)\n%s, confidence %.2f

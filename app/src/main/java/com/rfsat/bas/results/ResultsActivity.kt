@@ -516,6 +516,18 @@ class ResultsActivity : BaseActivity() {
                                 result.opinion, measured, faceName, outerMm,
                                 uMin, uMax, vMin, vMax, provider.label
                             )
+                            // Filed before it is shown, so a comparison is
+                            // kept whether or not the shooter acts on it —
+                            // the ones they dismiss are as informative as the
+                            // ones they accept, and arguably more so.
+                            runCatching {
+                                com.rfsat.bas.detect.DetectionAudit.record(
+                                    this, rec, measured, faceName,
+                                    com.rfsat.bas.scoring.ScoringSession.state.distanceM,
+                                    provider.label,
+                                    com.rfsat.bas.cloud.CloudSettings.model(this, provider)
+                                )
+                            }
                             showOpinion(rec, result.inputTokens, result.outputTokens)
                         }
                     }

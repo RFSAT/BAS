@@ -36,6 +36,13 @@ object OpinionReconciler {
          *  error — the model may simply have missed one — but worth showing,
          *  because it is also what a false positive looks like. */
         val unsupported: List<DetectedHole>,
+        /** EVERY mark the service reported, in millimetres — not only the
+         *  ones the detector missed. The disagreements are what a shooter
+         *  needs; the agreements are what the DETECTOR needs, because a
+         *  matched pair is a measurement of how far off the app's position
+         *  was, and that is the only place position error can be seen at all
+         *  without hand-marked ground truth. */
+        val claimedMm: List<Suggestion> = emptyList(),
         val faceAgrees: Boolean,
         /** True when the app found more than the service did AND some of its finds
          *  are unsupported — the case where the useful action is removal. */
@@ -126,6 +133,6 @@ object OpinionReconciler {
         }
 
         return Reconciliation(measured.size, opinion.holeCount, unconfirmed, unsupported,
-            faceAgrees, overDetected, summary)
+            spotsMm, faceAgrees, overDetected, summary)
     }
 }

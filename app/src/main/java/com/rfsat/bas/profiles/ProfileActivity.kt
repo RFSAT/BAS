@@ -95,6 +95,7 @@ class ProfileActivity : BaseActivity() {
         setupSettingsFilter()
         setupOrientationControls()
         binding.btnSnapshots.setOnClickListener { showSnapshots() }
+        binding.btnDetectionAudit.setOnClickListener { showDetectionAudit() }
 
         // Only offered when there is in fact something to recover, so it is
         // not a button that usually does nothing.
@@ -1914,5 +1915,45 @@ class ProfileActivity : BaseActivity() {
             }
             .setNegativeButton("Close", null)
             .show()
+    }
+
+    /**
+     * The running comparison between the detector and whichever service has
+     * been asked for a second opinion.
+     *
+     * Shown rather than hidden because the numbers change what a shooter
+     * should do: a high "app marked but service did not see" count is the
+     * over-detection this app is known for, and it is worth knowing before
+     * trusting a score. Exportable because the file is the training set for
+     * a better detector, and it is no use to anyone sitting in app storage.
+     */
+    private fun showDetectionAudit() {
+        val audit = com.rfsat.bas.detect.DetectionAudit
+        val summary = runCatching { audit.summary(this) }.getOrNull()
+        val text = summary?.describe() ?: "The record could not be read."
+        val b = androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Detection accuracy")
+            .setMessage(text)
+            .setNegativeButton("Close", null)
+        if (summary != null && summary.cards > 0) {
+            b.setPositiveButton("Export…") { _, _ ->
+                runCatching {
+                    val f = audit.exportFile(this) ?: return@runCatching
+                    val uri = androidx.core.content.FileProvider.getUriForFile(
+                        this, "$packageName.fileprovider", f)
+                    startActivity(android.content.Intent.createChooser(
+                        android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                            type = "application/json"
+                            putExtra(android.content.Intent.EXTRA_STREAM, uri)
+                            addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }, "Export the detection record"))
+                }.onFailure { notifyUser("Could not export: ${it.message}") }
+            }
+            b.setNeutralButton("Clear") { _, _ ->
+                audit.clear(this)
+                notifyUser("Detection record cleared.")
+            }
+        }
+        b.show()
     }
 }

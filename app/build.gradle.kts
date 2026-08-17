@@ -48,6 +48,52 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.41.0 - the detector becomes measurable. Step one of five.
+        //
+        //          The plan agreed: measure the gap (1), exploit the known
+        //          geometry harder (3), replace the hand-tuned constants with
+        //          a learned classifier (5), add a small patch classifier (6),
+        //          and label the training data from the second opinion (7).
+        //          Deliberately NOT a clean-target reference photograph and
+        //          NOT the expected shot count: both fail exactly where this
+        //          has to work, on an unfamiliar card at a competition.
+        //
+        //          3, 5 and 6 are all blocked on the same thing. The
+        //          detector's thresholds - SIGMA_THRESHOLD 6.0, MIN_CONTRAST
+        //          8.0, MAX_ELONGATION 2.2 and a dozen more - were chosen by
+        //          what they rejected on the cards available at the time, and
+        //          NOTHING MEASURES THE RESULT. Every change is a guess, and a
+        //          guess that improves one card while ruining another is
+        //          indistinguishable from a fix. So this release builds the
+        //          instrument before touching the pipeline.
+        //
+        //          A SECOND OPINION IS A LABEL. The reconciliation already
+        //          sorts marks into agreed / unsupported / unconfirmed - which
+        //          is precisely true-positive, false-positive and miss - and
+        //          those labels arrive as a by-product of a feature the
+        //          shooter already uses, on THEIR cards in THEIR light. That
+        //          is worth more than any corpus gathered elsewhere, because
+        //          it is the distribution the detector actually faces. Every
+        //          comparison is now filed with the detector's own numbers for
+        //          each mark: contrast, confidence, diameter, elongation,
+        //          merged, radius. Those are the inputs a classifier will
+        //          learn from, stored NOW so that when there is one there is
+        //          already something to train it on.
+        //
+        //          Reconciliation also gained claimedMm - every mark the
+        //          service reported, not only the disputed ones - because a
+        //          matched pair is the only view of POSITION error available
+        //          without hand-marked ground truth.
+        //
+        //          NEITHER SIDE IS GROUND TRUTH and the summary says so in the
+        //          dialog, not just here. The service misses shots and invents
+        //          them. What the record supports is a trend across many
+        //          cards; it cannot settle a single one.
+        //
+        //          Stored: geometry and the detector's own numbers. No
+        //          photograph, no location, nothing about the shooter. It
+        //          stays in app storage until deliberately exported.
+        //
         // 1.40.3 - OpenRouter moved to the bottom of both service lists.
         //
         //          Both spinners are built straight from AiProvider.OFFERED,
@@ -4400,8 +4446,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 71
-        versionName = "1.40.3"
+        versionCode = 72
+        versionName = "1.41.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two
