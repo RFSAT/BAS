@@ -70,12 +70,20 @@ object CloudSettings {
         AiProvider.OPENAI to listOf(
             "gpt-4o-mini" to "GPT-4o mini — cheapest, fastest",
             "gpt-4o" to "GPT-4o — balanced (recommended)"
+        ),
+        // Listed for completeness. Both are text models on the public API —
+        // see AiProvider.DEEPSEEK — so the app warns before using either on a
+        // photograph. "Other" accepts any identifier the account has.
+        AiProvider.DEEPSEEK to listOf(
+            "deepseek-chat" to "deepseek-chat — general",
+            "deepseek-reasoner" to "deepseek-reasoner — slower, reasons first"
         )
     )
 
     val DEFAULT_MODEL: Map<AiProvider, String> = mapOf(
         AiProvider.ANTHROPIC to "claude-sonnet-5",
-        AiProvider.OPENAI to "gpt-4o"
+        AiProvider.OPENAI to "gpt-4o",
+        AiProvider.DEEPSEEK to "deepseek-chat"
     )
 
     private var prefs: SharedPreferences? = null

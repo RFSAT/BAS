@@ -153,6 +153,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.36.0** - DeepSeek added to the AI-assisted services, using its OpenAI-compatible endpoint. DeepSeek's published API is text-only and every AI task here sends a photograph, so it is labelled 'text only' in the pickers and a failure explains why; the transport is complete, so a vision-capable model on the account works by typing its identifier.
+
 **1.35.0** — R8. The blanket keep on the whole app package is replaced by field-name keeps for the eight packages Gson actually persists, plus enum constants and View constructors, lifting Play's optimisation/obfuscation/shrinking rates from ~45%. A static gate re-runs the audit each build. **Verify by installing over existing data** — CI cannot prove Gson still round-trips.
 
 **1.34.4** — CI pinned to `testDebugUnitTest`, the only unit-test task AGP 9 creates, and the GitHub Actions bumped to majors that run on Node 24 before Node 20 is removed from the runners.

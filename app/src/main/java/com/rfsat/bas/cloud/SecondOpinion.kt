@@ -139,10 +139,29 @@ object SecondOpinion {
                     "go in a request header. Set the key again, pasting it as a single line."
             )
         }
-        return when (provider) {
+        // A provider whose API takes text alone cannot do ANY job in this
+        // app, because every one of them is a question about a photograph.
+        // Said here, once, rather than left to arrive as a schema error from
+        // the service — and said as a warning attached to the attempt rather
+        // than as a refusal, so a vision-capable model added to the account
+        // later works without an app update.
+        val note = if (provider.readsImages) "" else
+            " Note: ${provider.label}'s published API takes text only, so a photograph may be " +
+            "rejected whatever the key says. If the account has a vision-capable model, enter its " +
+            "identifier under \u201cOther\u201d."
+
+        val outcome = when (provider) {
             AiProvider.ANTHROPIC -> askAnthropic(apiKey, model, jpegBase64, scoreToo)
-            AiProvider.OPENAI -> askOpenAi(apiKey, model, jpegBase64, scoreToo)
+            AiProvider.OPENAI ->
+                askOpenAiCompatible(provider, OPENAI_ENDPOINT, apiKey, model, jpegBase64, scoreToo)
+            // DeepSeek speaks the same dialect, so it is the same call with a
+            // different host. The warning about text-only models is added by
+            // the caller below, not here, so this stays a pure transport.
+            AiProvider.DEEPSEEK ->
+                askOpenAiCompatible(provider, DEEPSEEK_ENDPOINT, apiKey, model, jpegBase64, scoreToo)
         }
+        return if (note.isEmpty() || outcome !is Result.Failed) outcome
+               else Result.Failed(outcome.message + note)
     }
 
     /** The hole schema both services are held to. Written once so the two
@@ -231,6 +250,10 @@ object SecondOpinion {
 
     private const val OPENAI_ENDPOINT = "https://api.openai.com/v1/chat/completions"
 
+    /** DeepSeek implements the OpenAI chat-completions API, path and all, so
+     *  the only difference is the host. */
+    private const val DEEPSEEK_ENDPOINT = "https://api.deepseek.com/chat/completions"
+
     /**
      * OpenAI's Chat Completions, with the answer pinned by a JSON schema.
      *
@@ -242,7 +265,14 @@ object SecondOpinion {
      * separately here rather than shared wholesale, even though the question
      * and the hole fields are the same.
      */
-    private fun askOpenAi(apiKey: String, model: String, jpegBase64: String, scoreToo: Boolean): Result {
+    private fun askOpenAiCompatible(
+        provider: AiProvider,
+        endpoint: String,
+        apiKey: String,
+        model: String,
+        jpegBase64: String,
+        scoreToo: Boolean
+    ): Result {
         val holeProps = holeProperties(scoreToo)
         val required = JSONArray().put("x").put("y").put("note")
         if (scoreToo) required.put("ring")
@@ -288,7 +318,7 @@ object SecondOpinion {
         }.toString()
 
         return runCatching {
-            val conn = (URL(OPENAI_ENDPOINT).openConnection() as HttpsURLConnection).apply {
+            val conn = (URL(endpoint).openConnection() as HttpsURLConnection).apply {
                 requestMethod = "POST"
                 connectTimeout = TIMEOUT_MS
                 readTimeout = TIMEOUT_MS
@@ -301,7 +331,7 @@ object SecondOpinion {
             val reply = (if (code in 200..299) conn.inputStream else conn.errorStream)
                 ?.bufferedReader()?.use(BufferedReader::readText).orEmpty()
             conn.disconnect()
-            if (code !in 200..299) return Result.Failed(explainOpenAi(code, reply))
+            if (code !in 200..299) return Result.Failed(explainOpenAi(provider, code, reply))
             parseOpenAi(reply)
         }.getOrElse {
             Logger.w("SecondOpinion", "OpenAI request failed: ${it.javaClass.simpleName}")
@@ -310,18 +340,22 @@ object SecondOpinion {
         }
     }
 
-    private fun explainOpenAi(code: Int, body: String): String {
+    /** Takes the provider because these messages name a console and a model,
+     *  and pointing a DeepSeek user at platform.openai.com would be worse
+     *  than saying nothing. */
+    private fun explainOpenAi(provider: AiProvider, code: Int, body: String): String {
         val detail = runCatching {
             JSONObject(body).getJSONObject("error").getString("message")
         }.getOrDefault("")
         return when (code) {
-            401 -> "The API key was rejected. It must be a key from platform.openai.com, not a " +
-                "ChatGPT password — the two are different things."
+            401 -> "The API key was rejected. It must be an API key from ${provider.console}, " +
+                "not a password for the service's chat website — the two are different things."
             400 -> "The request was refused: $detail" +
                 (if (detail.contains("max_completion_tokens") || detail.contains("max_tokens"))
                     " This model may not accept the token limit the app sends; try another model."
                  else if (detail.contains("json_schema") || detail.contains("response_format"))
-                    " This model may not support schema-constrained replies; try GPT-4o."
+                    " This model may not support schema-constrained replies; try one of the " +
+                    "models listed for ${provider.label}."
                  else "")
             404 -> "That model was not found on this account: $detail"
             429 -> "Rate limited, or the account is out of credit. $detail"

@@ -1584,6 +1584,7 @@ JSON and nothing else
 <one sentence on anything odd: creases, glare, overlapping holes, shots off the card>
 No API key is set for ${provider.label}.
 go in a request header. Set the key again, pasting it as a single line.
+identifier under \u201cOther\u201d.
 , JSONObject().put(
 0..1 across the image, left to right
 0..1 down the image, top to bottom
@@ -1598,9 +1599,9 @@ x-api-key
 Ranges often have no signal — this needs a connection.
 data:image/jpeg;base64,$jpegBase64
 Bearer $apiKey
-ChatGPT password — the two are different things.
+not a password for the service's chat website — the two are different things.
 This model may not accept the token limit the app sends; try another model.
-This model may not support schema-constrained replies; try GPT-4o.
+models listed for ${provider.label}.
 That model was not found on this account: $detail
 Rate limited, or the account is out of credit. $detail
 The service is having trouble ($code). Try again shortly.
@@ -1618,7 +1619,9 @@ room. Try a smaller image or a different model.
 (stopped: $stop).
 , -1.0); val y = h.optDouble(
 Claude (Anthropic)
-sk-ant-\u2026
+sk-ant-…
+cannot read a photograph
+$label — text only
 did you already find this one?
 the AI
 The AI service
@@ -1642,6 +1645,10 @@ gpt-4o-mini
 GPT-4o mini — cheapest, fastest
 gpt-4o
 GPT-4o — balanced (recommended)
+deepseek-chat
+deepseek-chat — general
+deepseek-reasoner
+deepseek-reasoner — slower, reasons first
 should not
 current key
 + p.name,

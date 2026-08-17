@@ -290,7 +290,7 @@ class ProfileActivity : BaseActivity() {
 
         // ---- what scores a card on import: the app, or a named service ----
         val engineOptions = listOf(ScoringSource.EMBEDDED.label) +
-            AiProvider.values().map { it.label }
+            AiProvider.values().map { it.pickerLabel }
         binding.spEngine.adapter = android.widget.ArrayAdapter(
             this, R.layout.spinner_item, engineOptions
         ).also { it.setDropDownViewResource(R.layout.spinner_dropdown_item) }
@@ -335,7 +335,7 @@ class ProfileActivity : BaseActivity() {
         // Independent of the import choice on purpose: asking the other
         // service is exactly what makes a second opinion worth having.
         binding.spOpinion.adapter = android.widget.ArrayAdapter(
-            this, R.layout.spinner_item, AiProvider.values().map { it.label }
+            this, R.layout.spinner_item, AiProvider.values().map { it.pickerLabel }
         ).also { it.setDropDownViewResource(R.layout.spinner_dropdown_item) }
         binding.spOpinion.setSelection(
             AiProvider.values().indexOf(CloudSettings.opinionProvider(this)))
@@ -424,7 +424,7 @@ class ProfileActivity : BaseActivity() {
         }
 
         binding.spProvider.adapter = android.widget.ArrayAdapter(
-            this, R.layout.spinner_item, AiProvider.values().map { it.label }
+            this, R.layout.spinner_item, AiProvider.values().map { it.pickerLabel }
         ).also { it.setDropDownViewResource(R.layout.spinner_dropdown_item) }
         binding.spProvider.setSelection(
             AiProvider.values().indexOf(CloudSettings.setupProvider(this)))

@@ -48,6 +48,41 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.36.0 - DeepSeek added to the AI-assisted services, with a caveat
+        //          that matters more than the code.
+        //
+        //          DeepSeek implements the OpenAI chat-completions API, so the
+        //          transport is the existing one with a different host:
+        //          askOpenAi became askOpenAiCompatible and now takes an
+        //          endpoint. Models offered are deepseek-chat and
+        //          deepseek-reasoner, with "Other" for anything the account
+        //          has.
+        //
+        //          THE CAVEAT. Every job this app gives a model is a question
+        //          about a PHOTOGRAPH - the second opinion and the import
+        //          reading both send a rectified card - and DeepSeek's
+        //          published API documents its chat models as TEXT-ONLY: user
+        //          content is a string, not a content-part list carrying an
+        //          image. So on the public endpoint today it will very likely
+        //          refuse the picture. Third-party articles saying otherwise
+        //          describe proxies and hosted platforms, not
+        //          api.deepseek.com.
+        //
+        //          Wired in full rather than half, and warned about rather
+        //          than blocked: AiProvider.readsImages marks it, the Settings
+        //          pickers show "DeepSeek - text only", and a failure carries
+        //          a note explaining why. If a vision-capable model appears on
+        //          the account, typing its identifier under "Other" is enough,
+        //          with no app update, because the transport is already right.
+        //
+        //          The exhaustiveness gate found the missing branch in
+        //          SecondOpinion the moment the enum grew.
+        //
+        //          Also fixed while there: the OpenAI error explainer named
+        //          platform.openai.com and GPT-4o in messages a DeepSeek user
+        //          could now see. It takes the provider and names the right
+        //          console.
+        //
         // 1.35.0 — letting R8 actually work. READ THE VERIFICATION NOTE.
         //
         //          Play measured this build at 44% optimisation, 45%
@@ -4131,8 +4166,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 63
-        versionName = "1.35.0"
+        versionCode = 64
+        versionName = "1.36.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two
