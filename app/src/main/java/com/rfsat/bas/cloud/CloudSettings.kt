@@ -78,9 +78,20 @@ object CloudSettings {
         // every picker keeps an "Other" box for typing whatever the account
         // actually has. A wrong identifier here is a 404 naming the model —
         // annoying, obvious, and fixable without an app update.
+        // "(via OpenRouter)" on every entry, because OpenRouter is a ROUTER
+        // and not a model maker: these identifiers name someone else's model
+        // reached through OpenRouter's API, on an OpenRouter key, billed by
+        // OpenRouter.
+        //
+        // The labels used to read "Claude Sonnet 5 — balanced", identical to
+        // the entry under the standalone Anthropic service, which left two
+        // questions unanswerable from the screen: whose model is this, and who
+        // is charging me. Picking Anthropic -> Claude Sonnet 5 and
+        // OpenRouter -> Claude Sonnet 5 reaches the same model but needs a
+        // different key and spends a different account.
         AiProvider.OPENROUTER to listOf(
-            "anthropic/claude-sonnet-5" to "Claude Sonnet 5 — balanced",
-            "openai/gpt-4o" to "GPT-4o — widely available"
+            "anthropic/claude-sonnet-5" to "Claude Sonnet 5 (via OpenRouter)",
+            "openai/gpt-4o" to "GPT-4o (via OpenRouter)"
         ),
         AiProvider.XAI to listOf(
             "grok-2-vision-latest" to "Grok 2 Vision — reads images"
@@ -125,8 +136,9 @@ object CloudSettings {
      */
     val FREE_MODELS: Map<AiProvider, List<Pair<String, String>>> = mapOf(
         AiProvider.OPENROUTER to listOf(
-            "qwen/qwen2.5-vl-72b-instruct:free" to "Qwen2.5-VL 72B (free)",
-            "meta-llama/llama-3.2-11b-vision-instruct:free" to "Llama 3.2 11B Vision (free)"
+            "qwen/qwen2.5-vl-72b-instruct:free" to "Qwen2.5-VL 72B (free, via OpenRouter)",
+            "meta-llama/llama-3.2-11b-vision-instruct:free"
+                to "Llama 3.2 11B Vision (free, via OpenRouter)"
         )
     )
 

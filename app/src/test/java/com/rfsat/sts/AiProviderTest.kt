@@ -109,4 +109,34 @@ class AiProviderTest {
             assertTrue("${p.label}'s free list is empty", list.isNotEmpty())
         }
     }
+
+    @Test
+    fun `routed models say who routes them`() {
+        // OpenRouter resells other vendors' models, so a label like
+        // "Claude Sonnet 5" is indistinguishable from the entry under the
+        // standalone Anthropic service — same model, different key, different
+        // bill. Every routed entry has to name the router.
+        val cs = com.rfsat.bas.cloud.CloudSettings
+        val routed = cs.MODELS[AiProvider.OPENROUTER].orEmpty() +
+            cs.FREE_MODELS[AiProvider.OPENROUTER].orEmpty()
+        assertTrue("OpenRouter offers no models", routed.isNotEmpty())
+        for ((id, label) in routed) {
+            assertTrue("'$label' does not say it is routed", label.contains("OpenRouter"))
+            assertTrue("'$id' is not a vendor-prefixed OpenRouter identifier", id.contains("/"))
+        }
+    }
+
+    @Test
+    fun `only OpenRouter uses vendor-prefixed identifiers`() {
+        // A slash in a direct service's model id means an OpenRouter name was
+        // pasted into the wrong list, which fails as a 404 that looks like the
+        // model was withdrawn.
+        val cs = com.rfsat.bas.cloud.CloudSettings
+        for (p in AiProvider.OFFERED.filter { it != AiProvider.OPENROUTER }) {
+            for ((id, _) in cs.MODELS[p].orEmpty()) {
+                assertTrue("${p.label} model '$id' looks like an OpenRouter identifier",
+                    !id.contains("/"))
+            }
+        }
+    }
 }

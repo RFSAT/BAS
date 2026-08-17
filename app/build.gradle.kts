@@ -48,6 +48,29 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.40.2 - the OpenRouter model list now says who routes it.
+        //
+        //          The entries read "Claude Sonnet 5 - balanced" and "GPT-4o -
+        //          widely available", which are exactly the labels under the
+        //          standalone Anthropic and OpenAI services. That left two
+        //          questions unanswerable from the screen: whose model is
+        //          this, and who is charging me. OpenRouter is a ROUTER - it
+        //          resells other vendors' models - so Anthropic -> Claude
+        //          Sonnet 5 and OpenRouter -> Claude Sonnet 5 reach the same
+        //          model on a different key against a different account, and
+        //          looked identical.
+        //
+        //          Now "(via OpenRouter)" on every entry, free ones included.
+        //          The identifiers were always right - anthropic/claude-
+        //          sonnet-5, openai/gpt-4o - only the display text hid the
+        //          routing.
+        //
+        //          Tests pin both directions: every routed label names the
+        //          router and is vendor-prefixed, and no direct service lists
+        //          an identifier containing a slash, which would mean an
+        //          OpenRouter name pasted into the wrong list - a 404 that
+        //          looks like a withdrawn model rather than a mistake.
+        //
         // 1.40.1 - two compile errors from 1.40.0, both mine.
         //
         //          The Gemini request body was built as a JSONObject and
@@ -4358,8 +4381,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 69
-        versionName = "1.40.1"
+        versionCode = 70
+        versionName = "1.40.2"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

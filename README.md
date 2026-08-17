@@ -153,6 +153,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.40.2** - OpenRouter's model list now reads "(via OpenRouter)" on every entry. The identifiers were always correct; the labels were identical to the standalone Anthropic and OpenAI entries and hid which service was being billed.
+
 **1.40.1** - fixes two compile errors in 1.40.0: the Gemini request body was not serialised to a string, and a local function was called before its declaration, which Kotlin does not permit.
 
 **1.40.0** - a 'use only free models' checkbox for the AI services. It is a control only where free access is something the app can choose (OpenRouter's ':free' variants); where the free tier belongs to the key instead (Gemini, Mistral) the box is greyed and a note explains that it applies automatically, and paid-only services say so. Free and paid model choices are stored separately.
