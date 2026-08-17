@@ -110,6 +110,26 @@ object CloudSettings {
         )
     )
 
+    /**
+     * Models reachable without paying, for the one service where that is a
+     * choice the app can make.
+     *
+     * These rotate faster than anything else in this file — OpenRouter adds
+     * and withdraws free variants continually — so the list is short, the
+     * "Other" box takes anything, and the failure is a 404 naming the model.
+     *
+     * READ THE CAVEAT IN AiProvider.freeAccessNote. Free models are
+     * rate-limited and many do not honour a strict json_schema, which this
+     * app depends on. A free model failing where a paid one works is
+     * expected behaviour, not a bug in the app.
+     */
+    val FREE_MODELS: Map<AiProvider, List<Pair<String, String>>> = mapOf(
+        AiProvider.OPENROUTER to listOf(
+            "qwen/qwen2.5-vl-72b-instruct:free" to "Qwen2.5-VL 72B (free)",
+            "meta-llama/llama-3.2-11b-vision-instruct:free" to "Llama 3.2 11B Vision (free)"
+        )
+    )
+
     val DEFAULT_MODEL: Map<AiProvider, String> = mapOf(
         AiProvider.ANTHROPIC to "claude-sonnet-5",
         AiProvider.OPENAI to "gpt-4o",
@@ -242,16 +262,50 @@ object CloudSettings {
      */
     private fun sanitise(v: String): String = v.filterNot { it.isWhitespace() }
 
+    /**
+     * The chosen model, kept SEPARATELY for free and paid.
+     *
+     * One slot for both would mean ticking the box, choosing a free model,
+     * unticking it and silently sending that free model to a paid account —
+     * or the reverse, which is the expensive direction.
+     */
+    private fun modelKey(context: Context, p: AiProvider): String =
+        KEY_MODEL + "_" + p.name + if (freeOnly(context, p)) "_free" else ""
+
     fun model(context: Context, p: AiProvider): String {
-        val fallback = DEFAULT_MODEL[p].orEmpty()
-        return store(context)?.getString(KEY_MODEL + "_" + p.name, fallback) ?: fallback
+        val fallback =
+            if (freeOnly(context, p)) FREE_MODELS[p]?.firstOrNull()?.first.orEmpty()
+            else DEFAULT_MODEL[p].orEmpty()
+        return store(context)?.getString(modelKey(context, p), fallback) ?: fallback
     }
 
     fun setModel(context: Context, p: AiProvider, value: String) {
-        store(context)?.edit()?.putString(KEY_MODEL + "_" + p.name, value)?.apply()
+        store(context)?.edit()?.putString(modelKey(context, p), value)?.apply()
     }
 
-    fun models(p: AiProvider): List<Pair<String, String>> = MODELS[p].orEmpty()
+    /** Which list the pickers show: the free one when the shooter asked for
+     *  it AND this service has one to give. */
+    fun models(p: AiProvider, freeOnly: Boolean = false): List<Pair<String, String>> =
+        if (freeOnly && p.freeAccess == FreeAccess.SELECTABLE) FREE_MODELS[p].orEmpty()
+        else MODELS[p].orEmpty()
+
+    private const val KEY_FREE = "free_only"
+
+    /**
+     * Never true for a service that cannot act on it, whatever is stored.
+     *
+     * The flag is written per provider, so switching services to compare and
+     * back does not silently carry a free-only choice into a paid account —
+     * or, worse, leave it set on a service where it means nothing and let the
+     * shooter believe requests are free.
+     */
+    fun freeOnly(context: Context, p: AiProvider): Boolean =
+        p.freeAccess == FreeAccess.SELECTABLE &&
+            (store(context)?.getBoolean(KEY_FREE + "_" + p.name, false) ?: false)
+
+    fun setFreeOnly(context: Context, p: AiProvider, value: Boolean) {
+        store(context)?.edit()?.putBoolean(KEY_FREE + "_" + p.name, value)?.apply()
+    }
 
     fun enabled(context: Context): Boolean =
         store(context)?.getBoolean(KEY_ENABLED, false) ?: false

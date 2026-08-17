@@ -335,6 +335,16 @@
             <Spinner android:id="@+id/spProvider"
                 android:layout_width="match_parent" android:layout_height="wrap_content" />
 
+            <CheckBox style="@style/Sts.CheckBox" android:id="@+id/cbFreeModels"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Use only free models" />
+
+            <TextView android:id="@+id/tvFreeModels"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:justificationMode="inter_word" />
+
             <TextView android:id="@+id/tvModelLabel"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:textSize="12sp" android:layout_marginTop="4dp"

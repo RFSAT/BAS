@@ -71,4 +71,42 @@ class AiProviderTest {
         val labels = AiProvider.OFFERED.map { it.pickerLabel }
         assertEquals("two providers share a label", labels.size, labels.toSet().size)
     }
+
+    @Test
+    fun `only OpenRouter offers free access the app can actually choose`() {
+        // The checkbox is only a control where free access is a different
+        // MODEL. Where it belongs to the key — Gemini, Mistral — the app can
+        // do nothing about it, and a control that pretends otherwise would
+        // suggest requests are free when they are being billed.
+        val selectable = AiProvider.entries.filter {
+            it.freeAccess == com.rfsat.bas.cloud.FreeAccess.SELECTABLE
+        }
+        assertEquals(listOf(AiProvider.OPENROUTER), selectable)
+    }
+
+    @Test
+    fun `services with an account-level free tier say so rather than offering a switch`() {
+        for (p in listOf(AiProvider.GEMINI, AiProvider.MISTRAL)) {
+            assertEquals(com.rfsat.bas.cloud.FreeAccess.ACCOUNT, p.freeAccess)
+            assertTrue("${p.label} must explain its free tier",
+                p.freeAccessNote.contains("free tier"))
+        }
+    }
+
+    @Test
+    fun `paid-only services say that plainly`() {
+        for (p in listOf(AiProvider.ANTHROPIC, AiProvider.OPENAI, AiProvider.XAI)) {
+            assertEquals(com.rfsat.bas.cloud.FreeAccess.NONE, p.freeAccess)
+            assertTrue("${p.label} must say it is paid", p.freeAccessNote.contains("paid only"))
+        }
+    }
+
+    @Test
+    fun `the free model list only exists where free access is selectable`() {
+        for ((p, list) in com.rfsat.bas.cloud.CloudSettings.FREE_MODELS) {
+            assertEquals("${p.label} lists free models but cannot select them",
+                com.rfsat.bas.cloud.FreeAccess.SELECTABLE, p.freeAccess)
+            assertTrue("${p.label}'s free list is empty", list.isNotEmpty())
+        }
+    }
 }

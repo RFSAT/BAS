@@ -48,6 +48,48 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.40.0 - a free-models checkbox, and an honest answer about what
+        //          "free" means at each service.
+        //
+        //          The request was one checkbox. Implementing it truthfully
+        //          needed three states, because "does this service offer free
+        //          access" and "can this app DO anything about it" are
+        //          different questions:
+        //
+        //            SELECTABLE - free access is a different set of MODELS,
+        //              which the app can choose. OpenRouter's ":free"
+        //              variants. Only here is the box a control.
+        //            ACCOUNT - a free tier exists but belongs to the KEY, not
+        //              the request. Gemini's AI Studio keys and Mistral's
+        //              free plan both work this way: it applies automatically
+        //              within its limits and there is nothing to switch.
+        //            NONE - paid only. Anthropic, OpenAI, xAI.
+        //
+        //          A box that claimed to enable Gemini's free tier would be
+        //          worse than no box at all: it would invite the belief that
+        //          money was not being spent while it was. So it is enabled
+        //          only for OpenRouter, and the note beneath always says
+        //          which of the three cases the selected service is in.
+        //
+        //          DISABLED RATHER THAN HIDDEN. A shooter comparing services
+        //          wants to see that Gemini has a free tier and OpenAI does
+        //          not; a control that vanishes answers no question. Greyed
+        //          with alpha as well as isEnabled, because on some themes a
+        //          disabled CheckBox keeps its label at full strength and
+        //          reads as available.
+        //
+        //          The chosen model is stored SEPARATELY for free and paid.
+        //          One slot for both would mean ticking the box, picking a
+        //          free model, unticking it, and silently sending that model
+        //          to a paid account - or the reverse, which is the expensive
+        //          direction.
+        //
+        //          CAVEAT CARRIED IN THE UI, not just here: OpenRouter's free
+        //          variants are rate-limited, they come and go, and many do
+        //          not honour a strict json_schema, which this app depends
+        //          on. A free model failing where a paid one works is
+        //          expected, not a fault.
+        //
         // 1.39.0 - Google Gemini, the one that needed its own transport.
         //
         //          Everything else added so far speaks the OpenAI dialect and
@@ -4289,8 +4331,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 67
-        versionName = "1.39.0"
+        versionCode = 68
+        versionName = "1.40.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

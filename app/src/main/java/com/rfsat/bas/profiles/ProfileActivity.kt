@@ -412,15 +412,45 @@ class ProfileActivity : BaseActivity() {
         // identifier from one means nothing to the other. Keys and model
         // choices are kept per service, so switching to compare the two and
         // back does not mean pasting a key in again.
+        /**
+         * The free-models box, which is only a control for the one service
+         * where free access is a choice the app can make.
+         *
+         * Disabled elsewhere rather than hidden: a shooter comparing services
+         * wants to see that Gemini has a free tier and that OpenAI does not,
+         * and a control that vanishes answers no question. The note beneath
+         * says which of the three cases this service is in.
+         */
+        fun refreshFreeBox() {
+            val p = CloudSettings.setupProvider(this)
+            val selectable = p.freeAccess == com.rfsat.bas.cloud.FreeAccess.SELECTABLE
+            binding.cbFreeModels.setOnCheckedChangeListener(null)
+            binding.cbFreeModels.isChecked = CloudSettings.freeOnly(this, p)
+            binding.cbFreeModels.isEnabled = selectable
+            // isEnabled alone leaves a CheckBox's label at full strength on
+            // some themes, which reads as available. The alpha makes the
+            // greying unambiguous.
+            binding.cbFreeModels.alpha = if (selectable) 1f else 0.45f
+            binding.tvFreeModels.text = p.freeAccessNote
+            binding.cbFreeModels.setOnCheckedChangeListener { _, checked ->
+                CloudSettings.setFreeOnly(this, p, checked)
+                refreshModels()
+                refreshCloud()
+            }
+        }
+
         fun refreshModels() {
             val p = CloudSettings.setupProvider(this)
-            val opts = CloudSettings.models(p).map { it.second } + OTHER_MODEL
+            val free = CloudSettings.freeOnly(this, p)
+            val list = CloudSettings.models(p, free)
+            val opts = list.map { it.second } + OTHER_MODEL
             binding.spCloudModel.adapter = android.widget.ArrayAdapter(
                 this, R.layout.spinner_item, opts
             ).also { it.setDropDownViewResource(R.layout.spinner_dropdown_item) }
             val current = CloudSettings.model(this, p)
-            val idx = CloudSettings.models(p).indexOfFirst { it.first == current }
+            val idx = list.indexOfFirst { it.first == current }
             binding.spCloudModel.setSelection(if (idx >= 0) idx else opts.size - 1)
+            refreshFreeBox()
         }
 
         binding.spProvider.adapter = android.widget.ArrayAdapter(
@@ -438,7 +468,7 @@ class ProfileActivity : BaseActivity() {
         refreshCloud()
         binding.spCloudModel.onItemSelectedListener = onSelectedIndex { i ->
             val p = CloudSettings.setupProvider(this)
-            val list = CloudSettings.models(p)
+            val list = CloudSettings.models(p, CloudSettings.freeOnly(this, p))
             val picked = list.getOrNull(i)
             if (picked != null) { CloudSettings.setModel(this, p, picked.first); return@onSelectedIndex }
             // "Other": a list of model names goes stale the week it is

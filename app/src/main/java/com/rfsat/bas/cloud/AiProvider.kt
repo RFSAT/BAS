@@ -14,6 +14,29 @@ package com.rfsat.bas.cloud
  * work at all. Saying so in the picker is kinder than a 400 from the service
  * with a message about message content types.
  */
+/**
+ * How, if at all, a service can be used without paying.
+ *
+ * The distinction matters because only one of these is something the APP can
+ * act on. A checkbox that claims to switch on free access, and in fact does
+ * nothing because the free tier is a property of the account, is worse than
+ * no checkbox: it invites the belief that money is not being spent.
+ */
+enum class FreeAccess {
+    /** Paid only. Nothing to offer. */
+    NONE,
+
+    /** A free tier exists but belongs to the KEY, not the request — Gemini's
+     *  AI Studio keys and Mistral's free plan both work this way. The app
+     *  cannot switch it on or off, and says so instead of pretending. */
+    ACCOUNT,
+
+    /** Free access is a different set of MODELS, which the app can choose —
+     *  OpenRouter's ":free" variants. This is the only case where a checkbox
+     *  changes what gets sent. */
+    SELECTABLE
+}
+
 enum class AiProvider(
     val label: String,
     val keyHint: String,
@@ -30,7 +53,8 @@ enum class AiProvider(
      * spelling — and it is precisely the kind of detail that made DeepSeek
      * look supported when it was not.
      */
-    val tokenLimitField: String = "max_tokens"
+    val tokenLimitField: String = "max_tokens",
+    val freeAccess: FreeAccess = FreeAccess.NONE
 ) {
     ANTHROPIC("Claude (Anthropic)", "sk-ant-…", "console.anthropic.com"),
     OPENAI("OpenAI", "sk-…", "platform.openai.com",
@@ -48,7 +72,8 @@ enum class AiProvider(
      * the same failure DeepSeek would have — which is why the models listed
      * for it are ones that do both, and why "Other" carries a warning.
      */
-    OPENROUTER("OpenRouter", "sk-or-v1-…", "openrouter.ai/keys"),
+    OPENROUTER("OpenRouter", "sk-or-v1-…", "openrouter.ai/keys",
+        freeAccess = FreeAccess.SELECTABLE),
 
     /** Grok. OpenAI-compatible down to the path, with vision models and
      *  structured outputs. */
@@ -56,7 +81,7 @@ enum class AiProvider(
 
     /** Pixtral and its successors. Also OpenAI-shaped, and Mistral supports
      *  json_schema with strict mode, which is what this app needs. */
-    MISTRAL("Mistral", "…", "console.mistral.ai"),
+    MISTRAL("Mistral", "…", "console.mistral.ai", freeAccess = FreeAccess.ACCOUNT),
 
     /**
      * The one provider here that is not OpenAI-shaped: Gemini has its own
@@ -69,7 +94,8 @@ enum class AiProvider(
      * get a second opinion, which is the difference between a feature that
      * exists and a feature that gets used.
      */
-    GEMINI("Google Gemini", "AIza…", "aistudio.google.com"),
+    GEMINI("Google Gemini", "AIza…", "aistudio.google.com",
+        freeAccess = FreeAccess.ACCOUNT),
 
     /**
      * NOT OFFERED. Kept because the transport is correct and the day DeepSeek
@@ -103,6 +129,19 @@ enum class AiProvider(
      *  photograph, so "cannot read a photograph" is the single most useful
      *  thing to know before choosing one. */
     val pickerLabel: String get() = if (readsImages) label else "$label — text only"
+
+    /** What to say under the free-models checkbox for this service. */
+    val freeAccessNote: String get() = when (freeAccess) {
+        FreeAccess.SELECTABLE ->
+            "OpenRouter publishes free variants of some models, marked \u201c:free\u201d. They are " +
+            "rate-limited, they come and go, and many do not support the schema-constrained " +
+            "answering this app needs — so a free model may fail where a paid one succeeds."
+        FreeAccess.ACCOUNT ->
+            "$label has a free tier, but it belongs to the key rather than to the request: it " +
+            "applies automatically within its limits and there is nothing here to switch on."
+        FreeAccess.NONE ->
+            "$label is paid only. Every request spends credit on the key."
+    }
 
     companion object {
         /**
