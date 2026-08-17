@@ -165,6 +165,7 @@ object SecondOpinion {
                 askOpenAiCompatible(provider, XAI_ENDPOINT, apiKey, model, jpegBase64, scoreToo)
             AiProvider.MISTRAL ->
                 askOpenAiCompatible(provider, MISTRAL_ENDPOINT, apiKey, model, jpegBase64, scoreToo)
+            AiProvider.GEMINI -> askGemini(apiKey, model, jpegBase64, scoreToo)
         }
         return if (note.isEmpty() || outcome !is Result.Failed) outcome
                else Result.Failed(outcome.message + note)
@@ -411,6 +412,131 @@ object SecondOpinion {
         return build(obj,
             usage?.optInt("prompt_tokens") ?: 0,
             usage?.optInt("completion_tokens") ?: 0)
+    }
+
+
+    // ----------------------------------------------------------- Gemini
+    //
+    // The only provider here that is NOT OpenAI-shaped, so it gets its own
+    // transport rather than an endpoint constant. Three differences matter:
+    //
+    //   * the model is part of the URL, not a field in the body;
+    //   * the key goes in an x-goog-api-key HEADER. It may also go in the
+    //     query string, and it is not put there: a URL ends up in logs,
+    //     crash reports and proxy records, and a key in a header does not;
+    //   * the schema goes in generationConfig.responseSchema, which is an
+    //     OpenAPI subset. It does NOT accept additionalProperties — the very
+    //     field OpenAI's strict mode REQUIRES — so the schema is built
+    //     separately here. The two could not have been shared.
+
+    private const val GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models/"
+
+    /** Gemini's schema dialect: the same shape as the others, minus the
+     *  additionalProperties that OpenAI insists on and Google rejects. */
+    private fun geminiSchema(scoreToo: Boolean): JSONObject {
+        val required = JSONArray().put("x").put("y").put("note")
+        if (scoreToo) required.put("ring")
+        return JSONObject()
+            .put("type", "object")
+            .put("properties", JSONObject()
+                .put("face", JSONObject().put("type", "string"))
+                .put("usable", JSONObject().put("type", "boolean"))
+                .put("comment", JSONObject().put("type", "string"))
+                .put("holes", JSONObject()
+                    .put("type", "array")
+                    .put("items", JSONObject()
+                        .put("type", "object")
+                        .put("properties", holeProperties(scoreToo))
+                        .put("required", required))))
+            .put("required", JSONArray().put("face").put("usable").put("comment").put("holes"))
+    }
+
+    private fun askGemini(apiKey: String, model: String, jpegBase64: String, scoreToo: Boolean): Result {
+        val text = if (scoreToo) PROMPT + "\n\n" + SCORING_EXTRA else PROMPT
+        val body = JSONObject().apply {
+            put("contents", JSONArray().put(JSONObject()
+                .put("role", "user")
+                .put("parts", JSONArray()
+                    .put(JSONObject().put("text", text))
+                    .put(JSONObject().put("inline_data", JSONObject()
+                        .put("mime_type", "image/jpeg")
+                        .put("data", jpegBase64))))))
+            put("generationConfig", JSONObject()
+                .put("responseMimeType", "application/json")
+                .put("responseSchema", geminiSchema(scoreToo))
+                .put("maxOutputTokens", MAX_TOKENS))
+        }
+        return try {
+            val conn = (URL(GEMINI_BASE + model + ":generateContent")
+                .openConnection() as HttpsURLConnection).apply {
+                requestMethod = "POST"
+                connectTimeout = TIMEOUT_MS
+                readTimeout = TIMEOUT_MS
+                doOutput = true
+                setRequestProperty("content-type", "application/json")
+                setRequestProperty("x-goog-api-key", apiKey)
+            }
+            conn.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
+            val code = conn.responseCode
+            val reply = (if (code in 200..299) conn.inputStream else conn.errorStream)
+                ?.bufferedReader()?.use(BufferedReader::readText).orEmpty()
+            conn.disconnect()
+            if (code !in 200..299) return Result.Failed(explainGemini(code, reply))
+            parseGemini(reply)
+        } catch (t: Throwable) {
+            Logger.w("SecondOpinion", "Gemini request failed: ${t.javaClass.simpleName}")
+            Result.Failed("Could not reach the Gemini API: ${t.message ?: t.javaClass.simpleName}.")
+        }
+    }
+
+    private fun explainGemini(code: Int, body: String): String {
+        val detail = runCatching {
+            JSONObject(body).getJSONObject("error").getString("message")
+        }.getOrDefault("")
+        return when (code) {
+            400 -> "Gemini rejected the request: $detail" +
+                (if (detail.contains("API key", true))
+                    " The key must come from aistudio.google.com." else "")
+            403 -> "Gemini refused the key. Check that the Generative Language API is enabled " +
+                "for it: $detail"
+            404 -> "That model was not found. Model names change between generations — check " +
+                "the current list at ai.google.dev and set it under \u201cOther\u201d. ($detail)"
+            429 -> "Gemini is rate-limiting this key. The free tier has per-minute limits; " +
+                "wait a moment and try again."
+            else -> "Gemini returned HTTP $code" + (if (detail.isNotBlank()) ": $detail" else ".")
+        }
+    }
+
+    private fun parseGemini(response: String): Result {
+        val root = JSONObject(response)
+        // A blocked prompt has no candidates at all, and the reason lives
+        // somewhere else entirely — reported as its own case, because "no
+        // answer" and "refused to answer" are different problems.
+        root.optJSONObject("promptFeedback")?.optString("blockReason")
+            ?.takeIf { it.isNotBlank() && it != "null" }?.let {
+                return Result.Failed("Gemini declined to look at the image (reason: $it).")
+            }
+        val candidate = root.optJSONArray("candidates")?.optJSONObject(0)
+            ?: return Result.Failed("The reply held no answer at all.")
+        val finish = candidate.optString("finishReason")
+        val content = candidate.optJSONObject("content")
+            ?.optJSONArray("parts")?.optJSONObject(0)?.optString("text").orEmpty()
+        if (content.isBlank()) {
+            return Result.Failed(
+                if (finish == "MAX_TOKENS")
+                    "The reply was cut off before it finished — the model ran out of room. " +
+                        "Try a smaller image or a different model."
+                else "The reply came back empty" +
+                    (if (finish.isNotBlank()) " (stopped: $finish)." else ".")
+            )
+        }
+        val obj = runCatching { JSONObject(content) }.getOrElse {
+            return Result.Failed("The reply was not valid JSON.")
+        }
+        val usage = root.optJSONObject("usageMetadata")
+        return build(obj,
+            usage?.optInt("promptTokenCount") ?: 0,
+            usage?.optInt("candidatesTokenCount") ?: 0)
     }
 
     /** Turns an HTTP status into something a shooter can act on. */

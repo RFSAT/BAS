@@ -85,6 +85,16 @@ object CloudSettings {
         AiProvider.XAI to listOf(
             "grok-2-vision-latest" to "Grok 2 Vision — reads images"
         ),
+        // Gemini renames its models with each generation rather than keeping
+        // an alias, so these WILL age. 2.5 is the safe one today and is
+        // announced as GA-stable only until 16 October 2026; the 3.x names
+        // are current as of this release. "Other" is the escape hatch, and a
+        // wrong name here fails as a 404 that says so.
+        AiProvider.GEMINI to listOf(
+            "gemini-3.5-flash" to "3.5 Flash — fast, cheap (recommended)",
+            "gemini-3.1-pro" to "3.1 Pro — strongest reasoning",
+            "gemini-2.5-flash" to "2.5 Flash — older, GA until Oct 2026"
+        ),
         AiProvider.MISTRAL to listOf(
             "pixtral-large-latest" to "Pixtral Large — vision (recommended)",
             "mistral-medium-latest" to "Mistral Medium — newer, vision"
@@ -106,7 +116,8 @@ object CloudSettings {
         AiProvider.DEEPSEEK to "deepseek-v4-flash",
         AiProvider.OPENROUTER to "anthropic/claude-sonnet-5",
         AiProvider.XAI to "grok-2-vision-latest",
-        AiProvider.MISTRAL to "pixtral-large-latest"
+        AiProvider.MISTRAL to "pixtral-large-latest",
+        AiProvider.GEMINI to "gemini-3.5-flash"
     )
 
     private var prefs: SharedPreferences? = null

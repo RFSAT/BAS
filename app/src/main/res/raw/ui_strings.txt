@@ -1613,6 +1613,16 @@ The model declined to answer: $it
 Try a smaller image or a different model.
 (stopped: $finish).
 The reply was not valid JSON.
+:generateContent
+x-goog-api-key
+Could not reach the Gemini API: ${t.message ?: t.javaClass.simpleName}.
+The key must come from aistudio.google.com.
+for it: $detail
+the current list at ai.google.dev and set it under \u201cOther\u201d. ($detail)
+wait a moment and try again.
+Gemini returned HTTP $code
+: $detail
+Gemini declined to look at the image (reason: $it).
 Console, not your Claude.ai password — the two are different things.
 The request was refused: $detail
 Rate limited. Wait a moment and try again.
@@ -1627,6 +1637,8 @@ openrouter.ai/keys
 xAI (Grok)
 xai-…
 Mistral
+Google Gemini
+AIza…
 cannot read a photograph
 $label — text only
 did you already find this one?
@@ -1659,6 +1671,12 @@ openai/gpt-4o
 GPT-4o — widely available
 grok-2-vision-latest
 Grok 2 Vision — reads images
+gemini-3.5-flash
+3.5 Flash — fast, cheap (recommended)
+gemini-3.1-pro
+3.1 Pro — strongest reasoning
+gemini-2.5-flash
+2.5 Flash — older, GA until Oct 2026
 pixtral-large-latest
 Pixtral Large — vision (recommended)
 mistral-medium-latest

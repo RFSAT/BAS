@@ -59,6 +59,19 @@ enum class AiProvider(
     MISTRAL("Mistral", "…", "console.mistral.ai"),
 
     /**
+     * The one provider here that is not OpenAI-shaped: Gemini has its own
+     * request, its own schema dialect and its own way of carrying the key, so
+     * it has a transport of its own in SecondOpinion rather than an endpoint
+     * constant.
+     *
+     * Worth that extra code for one reason above the others: the free tier is
+     * usable. A shooter who will not put a card on file for an API can still
+     * get a second opinion, which is the difference between a feature that
+     * exists and a feature that gets used.
+     */
+    GEMINI("Google Gemini", "AIza…", "aistudio.google.com"),
+
+    /**
      * NOT OFFERED. Kept because the transport is correct and the day DeepSeek
      * ships vision this is a one-word change, but hidden from the pickers
      * because it cannot do this app's job at all.

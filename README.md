@@ -153,6 +153,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.39.0** - Google Gemini added, completing the AI provider list. It needs its own transport rather than the shared OpenAI one: the model is in the URL, the key is an `x-goog-api-key` header, and its schema dialect rejects the `additionalProperties` that OpenAI's strict mode requires. Its free tier makes the second opinion usable without a card on file.
+
 **1.38.0** - OpenRouter, xAI (Grok) and Mistral added as AI providers for the second opinion and the import reading. All three speak the OpenAI chat-completions API, so they share the existing transport; the reply-length field is now named per provider, since OpenAI's rename was not followed by the others. Model lists are short and prefer '-latest' aliases, with 'Other' for anything else.
 
 **1.37.0** - DeepSeek withdrawn from the AI provider pickers. Its published API takes text only, offers no `json_schema` response format, and every task here sends a photograph, so the option could not produce a result. The transport is retained, unlisted.

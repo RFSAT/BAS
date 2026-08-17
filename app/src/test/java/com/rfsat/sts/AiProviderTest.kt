@@ -51,4 +51,24 @@ class AiProviderTest {
             assertTrue("${p.label} has no label", p.label.isNotBlank())
         }
     }
+
+    @Test
+    fun `every offered provider has a model list and a default that is in it`() {
+        // A default outside its own list shows an empty spinner and silently
+        // sends a model the shooter never chose.
+        for (p in AiProvider.OFFERED) {
+            val list = com.rfsat.bas.cloud.CloudSettings.MODELS[p].orEmpty()
+            val default = com.rfsat.bas.cloud.CloudSettings.DEFAULT_MODEL[p]
+            assertTrue("${p.label} offers no models", list.isNotEmpty())
+            assertTrue("${p.label} has no default model", !default.isNullOrBlank())
+            assertTrue("${p.label}'s default '$default' is not in its own list",
+                list.any { it.first == default })
+        }
+    }
+
+    @Test
+    fun `provider names are distinct enough to tell apart in a picker`() {
+        val labels = AiProvider.OFFERED.map { it.pickerLabel }
+        assertEquals("two providers share a label", labels.size, labels.toSet().size)
+    }
 }

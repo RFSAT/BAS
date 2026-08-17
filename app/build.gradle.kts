@@ -48,6 +48,47 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.39.0 - Google Gemini, the one that needed its own transport.
+        //
+        //          Everything else added so far speaks the OpenAI dialect and
+        //          cost one endpoint constant each. Gemini differs in three
+        //          ways that no amount of sharing would paper over:
+        //
+        //            * the MODEL IS IN THE URL, not a field in the body;
+        //            * the key travels in an x-goog-api-key HEADER. Google
+        //              also accepts it as a query parameter and this app does
+        //              not use that: a URL reaches logs, crash reports and
+        //              proxy records, and a header does not;
+        //            * the schema goes in generationConfig.responseSchema,
+        //              which is an OpenAPI SUBSET and rejects
+        //              additionalProperties - the very field OpenAI's strict
+        //              mode requires. The two schemas could never have been
+        //              one.
+        //
+        //          Worth the extra code for a reason that is not technical:
+        //          the free tier is usable. A shooter unwilling to put a card
+        //          on file for an API can still get a second opinion, which
+        //          is the difference between a feature that exists and one
+        //          that gets used.
+        //
+        //          Failure modes are reported apart rather than as one error:
+        //          a blocked prompt (no candidates, reason in promptFeedback)
+        //          is a different problem from an empty answer, and a 404 says
+        //          plainly that Gemini renames models between generations and
+        //          points at where to look.
+        //
+        //          MODEL NAMES WILL AGE. Gemini renames rather than keeping a
+        //          "-latest" alias, so 2.5 is listed as the safe old one -
+        //          announced GA-stable only to 16 October 2026 - and the 3.x
+        //          names are current at this release. Tests now assert every
+        //          offered provider has a model list and a default that
+        //          appears in it, because a default outside its own list
+        //          shows an empty spinner and sends a model nobody chose.
+        //
+        //          UNVERIFIED AGAINST THE LIVE API, as with the last three.
+        //          The shape is from Google's published reference; the first
+        //          real request will be the shooter's.
+        //
         // 1.38.0 - three providers that can actually do the job:
         //          OpenRouter, xAI (Grok) and Mistral.
         //
@@ -4248,8 +4289,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 66
-        versionName = "1.38.0"
+        versionCode = 67
+        versionName = "1.39.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two
