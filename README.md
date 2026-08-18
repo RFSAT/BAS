@@ -153,6 +153,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.41.2** - backups now carry every setting and, if you choose, the API keys as well; keys are opt-in per export because a backup cannot carry the encryption they normally sit behind. A backup can be saved to the phone, shared, or copied as text, and restored from a file or from pasted text.
+
 **1.41.1** - fixes a compile error in 1.41.0: the new `claimedMm` field was passed raw `Triple`s instead of `Suggestion`s.
 
 **1.41.0** - the detector becomes measurable. Every second opinion is now filed as a comparison - agreed, unsupported, unconfirmed - together with the detector's own numbers for each mark, readable and exportable from Settings. This is the training data the planned classifier work needs, and the only way to tell whether a change to the pipeline helped.

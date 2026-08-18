@@ -54,6 +54,34 @@ class ProfileActivity : BaseActivity() {
      * reticle that vanishes after a reboot — on the firing point, with no
      * explanation — is worse than one that was never offered.
      */
+    /** Held between choosing "Save to storage" and the file picker coming
+     *  back, since the contract hands over a destination and not the data. */
+    private var pendingBackupJson: String? = null
+
+    private val saveBackupTo = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        val json = pendingBackupJson
+        pendingBackupJson = null
+        if (uri == null || json == null) return@registerForActivityResult
+        runCatching {
+            contentResolver.openOutputStream(uri)?.use { it.write(json.toByteArray()) }
+                ?: throw java.io.IOException("the file could not be opened for writing")
+            notifyUser("Backup saved.")
+        }.onFailure { notifyUser("Could not save the backup: ${it.message}") }
+    }
+
+    private val loadBackupFrom = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri == null) return@registerForActivityResult
+        runCatching {
+            val json = contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
+                ?: throw java.io.IOException("the file could not be read")
+            confirmRestore(json)
+        }.onFailure { notifyUser("Could not read that file: ${it.message}") }
+    }
+
     private val pickReticle = registerForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.GetContent()
     ) { uri ->
@@ -1498,33 +1526,115 @@ class ProfileActivity : BaseActivity() {
     //  Backup
     // ------------------------------------------------------------------
 
+    /**
+     * Two questions, in this order: what goes in, then where it goes.
+     *
+     * The first is asked because API keys change what the file IS. Inside the
+     * app they sit in EncryptedSharedPreferences behind a Keystore key; a
+     * backup cannot carry that and still be readable on another phone, so a
+     * backup with keys in it is a plaintext file that anyone holding it can
+     * spend money with. That is worth one tap to decide, and worth saying
+     * plainly rather than in a footnote.
+     */
     private fun exportBackup() {
-        val json = AppBackup.export(this)
-        val send = Intent(Intent.ACTION_SEND).apply {
-            type = "application/json"
-            putExtra(Intent.EXTRA_SUBJECT, "BAS backup")
-            putExtra(Intent.EXTRA_TEXT, json)
+        AlertDialog.Builder(this)
+            .setTitle("What goes in the backup?")
+            .setMessage(
+                "Profile sets, custom targets, custom rules and every setting are always " +
+                "included.\n\nAPI keys are stored encrypted on this phone. A backup cannot carry " +
+                "that encryption, so including them writes them in plain text — anyone who gets " +
+                "the file can use them at your expense. Include them only if you are keeping the " +
+                "backup somewhere you would keep a password.")
+            .setPositiveButton("Include API keys") { _, _ -> chooseBackupDestination(true) }
+            .setNegativeButton("Without keys") { _, _ -> chooseBackupDestination(false) }
+            .setNeutralButton("Cancel", null)
+            .show()
+    }
+
+    private fun chooseBackupDestination(withKeys: Boolean) {
+        val json = runCatching { AppBackup.export(this, withKeys) }.getOrElse {
+            notifyUser("The backup could not be built: ${it.message}"); return
         }
-        startActivity(Intent.createChooser(send, "Export the BAS backup"))
+        val stamp = java.text.SimpleDateFormat("yyyyMMdd-HHmm", java.util.Locale.US)
+            .format(java.util.Date())
+        val name = "BAS-backup-$stamp" + (if (withKeys) "-with-keys" else "") + ".json"
+
+        AlertDialog.Builder(this)
+            .setTitle("Where should it go?")
+            .setItems(arrayOf("Save to this phone", "Share…", "Copy as text")) { _, which ->
+                when (which) {
+                    0 -> {
+                        pendingBackupJson = json
+                        runCatching { saveBackupTo.launch(name) }
+                            .onFailure { notifyUser("No file manager could take it: ${it.message}") }
+                    }
+                    1 -> startActivity(Intent.createChooser(
+                        Intent(Intent.ACTION_SEND).apply {
+                            type = "application/json"
+                            putExtra(Intent.EXTRA_SUBJECT, "BAS backup")
+                            putExtra(Intent.EXTRA_TEXT, json)
+                        }, "Export the BAS backup"))
+                    2 -> {
+                        val cb = getSystemService(android.content.ClipboardManager::class.java)
+                        cb?.setPrimaryClip(
+                            android.content.ClipData.newPlainText("BAS backup", json))
+                        notifyUser(
+                            if (withKeys)
+                                "Backup copied. It contains API keys — paste it somewhere safe " +
+                                "and clear the clipboard afterwards."
+                            else "Backup copied to the clipboard.")
+                    }
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun importBackup() {
+        AlertDialog.Builder(this)
+            .setTitle("Restore from a backup")
+            .setItems(arrayOf("Load a file…", "Paste the text")) { _, which ->
+                when (which) {
+                    0 -> runCatching {
+                        loadBackupFrom.launch(arrayOf("application/json", "text/plain", "*/*"))
+                    }.onFailure { notifyUser("No file manager available: ${it.message}") }
+                    1 -> pasteBackup()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    /** Shared by both routes, so a file and a paste are confirmed the same
+     *  way and neither can restore without the warning. */
+    private fun confirmRestore(json: String) {
+        AlertDialog.Builder(this)
+            .setTitle("Restore this backup?")
+            .setMessage("This replaces your profile sets, custom targets, custom rules and " +
+                "settings with the contents of the backup, and any API keys it carries. " +
+                "Sessions already recorded are not affected.")
+            .setPositiveButton("Restore") { _, _ ->
+                val result = AppBackup.import(this, json)
+                notifyUser(result)
+                loadProfilesIntoFields()
+                refreshSets()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun pasteBackup() {
         val input = EditText(this).apply {
             hint = "Paste the backup JSON here"
             setLines(6)
             gravity = android.view.Gravity.TOP or android.view.Gravity.START
         }
         AlertDialog.Builder(this)
-            .setTitle("Restore from a backup")
-            .setMessage("This replaces your profile sets, custom targets and custom rules with the " +
-                "contents of the backup. Sessions already recorded are not affected.")
+            .setTitle("Paste a backup")
+            // No warning here: confirmRestore gives it, and saying it twice
+            // trains people to tap past both.
             .setView(input)
-            .setPositiveButton("Restore") { _, _ ->
-                val result = AppBackup.import(this, input.text.toString())
-                notifyUser(result)
-                loadProfilesIntoFields()
-                refreshSets()
-            }
+            .setPositiveButton("Continue") { _, _ -> confirmRestore(input.text.toString()) }
             .setNegativeButton("Cancel", null)
             .show()
     }

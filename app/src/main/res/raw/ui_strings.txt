@@ -610,6 +610,13 @@ AR-15 20in 1:7 .223 Rem
 Gold Medal 77 SMK
 50 m Smallbore
 Other\u2026
+Save to storage
+application/json
+the file could not be opened for writing
+Backup saved.
+Could not save the backup: ${it.message}
+the file could not be read
+Could not read that file: ${it.message}
 not an image this device can read
 That image could not be used: ${it.message}
 its colours are not changed by the theme.
@@ -756,12 +763,32 @@ against your own chronograph.
 ${shown.size} of ${ScopeCatalog.all.size} scopes
 Scope catalogue
 Loaded ${e.brand} ${e.model}.
-application/json
+What goes in the backup?
+backup somewhere you would keep a password.
+Include API keys
+Without keys
+The backup could not be built: ${it.message}
+yyyyMMdd-HHmm
+BAS-backup-$stamp
+-with-keys
+Where should it go?
+Save to this phone
+Share…
+Copy as text
+No file manager could take it: ${it.message}
 BAS backup
 Export the BAS backup
-Paste the backup JSON here
-contents of the backup. Sessions already recorded are not affected.
+and clear the clipboard afterwards.
+Backup copied to the clipboard.
+Load a file…
+Paste the text
+No file manager available: ${it.message}
+Restore this backup?
+Sessions already recorded are not affected.
 Restore
+Paste the backup JSON here
+Paste a backup
+Continue
 something changed
 Scale
 and reports it when they do not, which usually means the wrong face is selected.
@@ -1061,10 +1088,17 @@ ${payload.customRules.size} rule set(s)
 Nothing was pasted.
 That is not a readable BAS backup — the JSON could not be parsed.
 this build understands $FORMAT_VERSION). Update the app and try again.
+settings store '$store'
+key for unknown service '$name'
+API key for ${p.label}
 profile set '${s.name}'
 target '${t.name}'
 rule set '${r.name}'
+$prefs preference(s), $keys key(s)
 Restored $sets profile set(s), $targets custom target(s) and $rules custom rule set(s).
+$prefs setting(s) restored.
+$keys API key(s) restored.
+rules were in it.
 These could not be restored: ${problems.joinToString(
 upgrade-snapshots
 yyyyMMdd-HHmmss

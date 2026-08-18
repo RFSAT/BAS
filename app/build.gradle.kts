@@ -48,6 +48,50 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.41.2 - a backup that actually holds everything, and three ways
+        //          to put it somewhere.
+        //
+        //          It carried profile sets, targets and rules. Not settings -
+        //          so a restored phone came up with the wrong units, theme,
+        //          camera, weather sources, rangefinder and rifle orientation
+        //          - and not API keys, so the AI features were dead until each
+        //          was pasted in again. Format version 2 adds both.
+        //
+        //          SETTINGS ARE TYPE-TAGGED STRINGS: "b:", "i:", "l:", "f:",
+        //          "s:". SharedPreferences holds five types and Gson reading
+        //          into Map<String, Any?> turns every number into a Double;
+        //          putting a Double where an Int is expected throws the next
+        //          time that preference is READ, on the restored phone, long
+        //          after the restore reported success. Only the first colon
+        //          is the tag, so a model identifier like "...:free" or a URL
+        //          with a port survives intact - there is a test for exactly
+        //          that.
+        //
+        //          Excluded on purpose: sts_session, vtb_last_analysis and
+        //          sts_crash. A backup restored onto a second phone should not
+        //          resurrect a half-scored card or last week's crash.
+        //
+        //          API KEYS ARE OPT-IN, ASKED EVERY TIME. In the app they sit
+        //          in EncryptedSharedPreferences behind a Keystore key; a
+        //          backup cannot carry that encryption and still be readable
+        //          on another phone, so including them writes them in PLAIN
+        //          TEXT. A file anyone can spend money with is worth one tap
+        //          to decide, and the dialog says so in those words rather
+        //          than in a footnote. The filename says it too
+        //          (-with-keys.json), and copying to the clipboard warns to
+        //          clear it afterwards.
+        //
+        //          Destinations: save to the phone (SAF, so the shooter picks
+        //          the folder), share, or copy as text. Restoring accepts a
+        //          file or pasted text, and both routes pass through the same
+        //          confirmation - the paste dialog no longer repeats the
+        //          warning, because saying it twice trains people to tap past
+        //          both.
+        //
+        //          A pre-2 backup still restores, and says that it predates
+        //          settings support rather than leaving the shooter to wonder
+        //          why theirs did not come back.
+        //
         // 1.41.1 - correction: claimedMm was handed a Triple.
         //
         //          Inside reconcile(), spotsMm is a List<Triple> and is
@@ -4458,8 +4502,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 73
-        versionName = "1.41.1"
+        versionCode = 74
+        versionName = "1.41.2"
     }
 
     // Resolved once, here, rather than re-read from the environment in two
