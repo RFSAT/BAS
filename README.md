@@ -44,26 +44,66 @@ by horizontal swipe.
 ### Ballistics — put shots on centre
 
 1. **Describe the rig once.** Rifle, load and scope profiles — shared with the
-   scoring side, so nothing is entered twice.
+   scoring side, so nothing is entered twice. The catalogue velocity is
+   corrected from the test barrel to the barrel actually fitted (~25 fps/inch
+   on a centrefire; rimfire reverses above about 16 in).
 2. **Bring in conditions.** Temperature, pressure and humidity from a Kestrel
-   weather meter over Bluetooth, or entered by hand; each feeds the trajectory.
-3. **Capture the shot.** Phone camera, an imported video, or a Wi-Fi RTSP feed
-   from a scope or action camera.
-4. **Read the wind.** Crosswind is estimated from the bullet's vapour trail, or
+   over Bluetooth, from the phone's own sensors, or from an online service;
+   whichever source is best wins, and the screen says which answered. Powder
+   temperature moves muzzle velocity, and that reaches the firing solution —
+   applied to the shot, not to the zero.
+3. **Range the target.** A rangefinder over Bluetooth, a Kestrel acting as the
+   bridge, or by hand.
+4. **Capture the shot.** Phone camera, an imported video, or a Wi-Fi feed from
+   a scope, a TACTACAM, a ShotKam or a GoPro.
+5. **Read the wind.** Crosswind is estimated from the bullet's vapour trail, or
    from a tracer's lag deflection, and folded into the solution.
-5. **Get the correction.** In clicks for the turret in the active profile — MRAD
-   or MOA — for telescopic sights, diopters and irons alike.
+6. **Get the correction,** in clicks for the turret on the active profile —
+   MRAD or MOA — for telescopic sights, diopters and irons alike.
+
+### What the solution accounts for
+
+Beyond drag and gravity, three effects that a point-mass model cannot see and
+that move the whole group rather than widening it:
+
+| Effect | Size | Needs |
+|---|---|---|
+| **Spin drift** | ~22 cm at 1000 m (175 gr .308) | the twist rate already in the profile |
+| **Coriolis** | ~8 cm horizontal at 50° N; vertical reverses east/west | position, and the compass bearing while the phone is aimed downrange |
+| **Cant** | ~16 cm at 600 m for 5° with 3 mrad up | the phone on the rail, or the angle entered by hand |
+
+Below about 300 m all three are under a centimetre, and the app leaves out any
+term it has no input for rather than assuming one — saying so past 600 m.
+
+**Truing** fits the trajectory to groups already shot: muzzle velocity from
+groups inside 500 m, drag beyond it, never both at one distance. The result is
+kept as an overlay against that rifle and load, so the ammunition catalogue is
+never altered and the fit can be discarded.
 
 ### Scoring — grade the group
 
 1. **Register the target.** The scoring area is found and squared to a
    millimetre grid; everything downstream works in millimetres.
-2. **Capture a clean reference,** then shoot, and each new hole is found by
-   differencing against it.
+2. **Find the shots,** by differencing against a clean reference where one was
+   taken, or from the card alone.
 3. **Score against the face,** under the conventions of the selected rule set,
    with a running total and group statistics.
 4. **Read the correction** the group implies — clicks on the sight, or a
    rear-sight movement in millimetres for sights with no clicks.
+
+Every deletion is undoable from the notification that reports it.
+
+### A second opinion
+
+Any card can be put to a vision model, which answers against a fixed schema so
+the reply can be parsed rather than read. Five services are supported —
+Claude, OpenAI, xAI, Mistral, Google Gemini, and OpenRouter as a router to
+most other models. Keys are stored encrypted, one per service.
+
+The comparison is filed as a record: marks both agreed on, marks the app made
+alone, marks the service saw alone. Neither side is ground truth, and the
+summary says so; the value is the trend across many cards, and the file is the
+training data for a better detector.
 
 ### Ways to record a shot
 
@@ -86,10 +126,36 @@ and switch between them in a tap.
 ## Built for the firing point
 
 Dark and night-red themes to protect dark adaptation; full-screen, glance-able
-layouts; metric or imperial throughout; a diagnostic log and a full
-backup/restore of everything set up. Persistence is Gson in SharedPreferences,
-and startup is crash-safe — a failure in shared chrome can never kill the
-screen it merely decorates.
+layouts; metric or imperial throughout. Range mode shows the correction at
+arm's length with an instrument chip that distinguishes a **silent** link from
+a working one — the failure that otherwise presents as a confident, stale
+number.
+
+Prone behind a bipod, one hand is committed: button rows can be mirrored so
+the first control falls under the free hand, strings are labelled from a list
+that learns what you type, and Settings has a filter that searches whatever
+language the interface is showing. The interface translates into every EU
+language, cached so it works without a signal, and English always returns to
+the original text rather than a translation of a translation.
+
+**Data safety.** Persistence is Gson in SharedPreferences, and startup is
+crash-safe — a failure in shared chrome can never kill the screen it merely
+decorates. After a crash the app declines to reload the stored session, and
+sets it aside rather than overwriting it; Settings can put it back. Every new
+build snapshots everything before it touches storage, keeping the last five.
+Backups carry profiles, targets, rules and every setting, with API keys as an
+explicit choice — they cannot be encrypted inside a file meant to be readable
+on another phone.
+
+---
+
+## Documentation
+
+`docs/BAS-User-Guide` and `docs/BAS-Programmer-Reference` describe **1.17.0**.
+Everything since is in `docs/WHATS-NEW-SINCE-1.17.md`, written for both
+audiences in turn — the shooter first, then the programmer. The two PDFs have
+not been rebuilt; read them together with that file, and treat it as
+authoritative wherever they disagree.
 
 ---
 
@@ -152,6 +218,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
+
+**1.41.3** - documentation. README's description of the app is brought up to date; `docs/WHATS-NEW-SINCE-1.17.md` records everything the checked-in User Guide and Programmer Reference (still at 1.17.0) are missing; INTEGRATION.md is marked historical.
 
 **1.41.2** - backups now carry every setting and, if you choose, the API keys as well; keys are opt-in per export because a backup cannot carry the encryption they normally sit behind. A backup can be saved to the phone, shared, or copied as text, and restored from a file or from pasted text.
 

@@ -48,6 +48,34 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.41.3 - documentation, honestly scoped.
+        //
+        //          README's descriptive sections had drifted badly: they still
+        //          described scoring as needing a clean reference photograph,
+        //          said nothing of spin drift, Coriolis, cant, truing, the six
+        //          AI services, the languages, or any of the data-safety work,
+        //          while the changelog beneath them was current. Those
+        //          sections are rewritten.
+        //
+        //          The User Guide and Programmer Reference in docs/ describe
+        //          1.17.0 - twenty-four releases back. They were hand-built
+        //          and there is no generator, so they CANNOT be regenerated
+        //          from anything in the repository. Rewriting sixty pages of
+        //          prose badly would be worse than leaving them, so instead
+        //          docs/WHATS-NEW-SINCE-1.17.md records everything a reader of
+        //          those documents would find missing, written for the shooter
+        //          first and the programmer second. README says which to trust
+        //          where they disagree.
+        //
+        //          That is a stopgap and is labelled as one, in the guide
+        //          sources as well as in README. The right end state is for
+        //          the guides to absorb it and for this file to disappear.
+        //
+        //          INTEGRATION.md is marked historical rather than updated: it
+        //          describes the 1.0.0 merge, its reasoning still holds, and
+        //          rewriting it as a description of the current app would
+        //          destroy the record of why the layout is what it is.
+        //
         // 1.41.2 - a backup that actually holds everything, and three ways
         //          to put it somewhere.
         //
@@ -4502,8 +4530,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 74
-        versionName = "1.41.2"
+        versionCode = 75
+        versionName = "1.41.3"
     }
 
     // Resolved once, here, rather than re-read from the environment in two
