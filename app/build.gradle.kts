@@ -48,6 +48,18 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.41.1 - correction: claimedMm was handed a Triple.
+        //
+        //          Inside reconcile(), spotsMm is a List<Triple> and is
+        //          converted to Suggestion where the unconfirmed list is
+        //          built. The new field takes Suggestion, and I passed the
+        //          raw Triples - having read the conversion four lines above
+        //          without noticing it WAS a conversion.
+        //
+        //          Same shape as the last two compile failures: the checks in
+        //          tools/ verify patterns, and this is a type. Only the
+        //          compiler sees it.
+        //
         // 1.41.0 - the detector becomes measurable. Step one of five.
         //
         //          The plan agreed: measure the gap (1), exploit the known
@@ -4446,8 +4458,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 72
-        versionName = "1.41.0"
+        versionCode = 73
+        versionName = "1.41.1"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

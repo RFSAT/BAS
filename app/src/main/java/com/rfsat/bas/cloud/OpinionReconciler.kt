@@ -133,6 +133,9 @@ object OpinionReconciler {
         }
 
         return Reconciliation(measured.size, opinion.holeCount, unconfirmed, unsupported,
-            spotsMm, faceAgrees, overDetected, summary)
+            // spotsMm is a Triple in this function — the same conversion the
+            // unconfirmed list already does a few lines up.
+            spotsMm.map { (u, v, note) -> Suggestion(u, v, note) },
+            faceAgrees, overDetected, summary)
     }
 }
