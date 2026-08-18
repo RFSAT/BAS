@@ -48,6 +48,40 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.41.4 - the User Guide rebuilt, at 1.41.3.
+        //
+        //          EDITED, not regenerated. The document was unzipped, its
+        //          document.xml modified, and it was zipped back - so the
+        //          title page, the RFSAT logo, the heading styles, the list
+        //          numbering and the header and footer are the originals
+        //          rather than an imitation of them. Rewriting it with a
+        //          generator would have reproduced the words and lost the
+        //          document.
+        //
+        //          Added: 5.6 What the solution accounts for (spin drift,
+        //          Coriolis, cant), 5.7 Truing, 12.1-12.3 (which service
+        //          answers, free models, the detection accuracy record),
+        //          13.1-13.3 (languages, reaching the controls, backups and
+        //          snapshots), plus undo at the end of chapter 6 and the
+        //          instrument chip at the end of chapter 11. 276 paragraphs
+        //          to 330.
+        //
+        //          The contents list is static, so its page numbers were
+        //          recomputed from the rendered PDF rather than left stale -
+        //          46 rows rewritten from where the headings actually land.
+        //          An attempt to make Word refresh the fields on open instead
+        //          was reverted: w:updateFields has a fixed position in the
+        //          schema and inserting it at the top made settings.xml
+        //          invalid. Correct numbers in a valid file beat a refresh
+        //          instruction in a broken one.
+        //
+        //          Verified by rendering and reading it: title page intact,
+        //          new sections indistinguishable from the old ones, and the
+        //          document validates against the schema.
+        //
+        //          The Programmer Reference is still at 1.17.0. Part two of
+        //          docs/WHATS-NEW-SINCE-1.17.md remains its stand-in.
+        //
         // 1.41.3 - documentation, honestly scoped.
         //
         //          README's descriptive sections had drifted badly: they still
@@ -4530,8 +4564,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 75
-        versionName = "1.41.3"
+        versionCode = 76
+        versionName = "1.41.4"
     }
 
     // Resolved once, here, rather than re-read from the environment in two
