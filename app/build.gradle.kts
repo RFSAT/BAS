@@ -48,6 +48,37 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.41.5 - the Programmer Reference rebuilt, at 1.41.4.
+        //
+        //          Edited in place like the guide before it, so the styles,
+        //          the tables and the numbering are the document's own. Its
+        //          contents list is a live TOC field, so unlike the guide it
+        //          needed no page-number surgery - it rebuilds itself in Word.
+        //
+        //          The title page was rebuilt to match the User Guide's, at
+        //          the reader's request: the guide's title block was
+        //          transplanted whole, with the image relationship repointed
+        //          at this document's own copy of the logo rather than
+        //          assuming the two files number their relationships alike.
+        //
+        //          Six new chapters - systematic corrections, truing and
+        //          muzzle velocity, instrument status and shot geometry, safe
+        //          mode and data protection, AI services, detection audit -
+        //          and ten rows added to the architecture table. Chapters were
+        //          written with an \"X.\" placeholder and numbered by a single
+        //          pass afterwards, so nothing had to be counted by hand: 21
+        //          chapters became 27.
+        //
+        //          Existing chapters were brought forward rather than left to
+        //          rot: build and delivery (AGP 9, built-in Kotlin, the delta
+        //          manifest and why it is verified), static checks (the four
+        //          gates added and the one withdrawn), backup (format 2),
+        //          Play configuration (all three optimisation findings), and
+        //          six new entries under known pitfalls.
+        //
+        //          179 paragraphs to 263. Validates against the schema, and
+        //          was rendered and read before shipping.
+        //
         // 1.41.4 - the User Guide rebuilt, at 1.41.3.
         //
         //          EDITED, not regenerated. The document was unzipped, its
@@ -4564,8 +4595,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 76
-        versionName = "1.41.4"
+        versionCode = 77
+        versionName = "1.41.5"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

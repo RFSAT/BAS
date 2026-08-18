@@ -151,13 +151,15 @@ on another phone.
 
 ## Documentation
 
-The **User Guide** is current: `docs/BAS-User-Guide_v1.41.3.docx` and the PDF
-beside it cover everything through this release.
+Both documents are current, and both were produced by editing the originals
+rather than regenerating them, so the title pages and every style are the
+originals:
 
-The **Programmer Reference** still describes **1.17.0**. Until it is rebuilt,
-`docs/WHATS-NEW-SINCE-1.17.md` carries what it is missing — its second half is
-written for that reader — and should be treated as authoritative where the two
-disagree.
+- `docs/BAS-User-Guide_v1.41.3.docx` — for shooters.
+- `docs/BAS-Programmer-Reference_v1.41.4.docx` — for whoever maintains this.
+
+`docs/WHATS-NEW-SINCE-1.17.md` is superseded by both and kept only as the
+record of what changed between them.
 
 ---
 
@@ -220,6 +222,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
+
+**1.41.5** - the Programmer Reference rebuilt at 1.41.4, with the User Guide's title page. Six new chapters and ten new architecture-table rows; build, static checks, backup, Play configuration and known pitfalls brought forward.
 
 **1.41.4** - the User Guide rebuilt at 1.41.3 by editing the original document, so the title page and every style are the originals. New sections on the ballistic corrections, truing, the AI services, languages, reach and backups; contents page numbers recomputed from the rendered layout.
 
