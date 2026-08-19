@@ -48,7 +48,7 @@ class RegistrationOverlayView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyle: Int = 0
 ) : View(context, attrs, defStyle) {
 
-    enum class Mode { BOX, CORNERS }
+    enum class Mode { BOX, CORNERS, CENTRE }
 
     /**
      * How the source is fitted into this view. A camera preview is
@@ -69,6 +69,30 @@ class RegistrationOverlayView @JvmOverloads constructor(
     /** Fires with the number of corners tapped (CORNERS mode), or with 4 when
      *  a box exists (BOX mode), so hosts can enable a Register button. */
     var onCornersChanged: ((Int) -> Unit)? = null
+
+    /**
+     * Where the shooter says the middle of the face is, in SOURCE pixels, or
+     * null while they have not said.
+     *
+     * A HINT, not a measurement. It is not used to move, crop or rescale the
+     * picture — doing that would shift the optical centre, and the lens
+     * correction is radial ABOUT THE OPTICAL CENTRE, so a picture recentred
+     * on the target would then be corrected about the wrong point. It is used
+     * only to tell the detector where to look, which is where it helps and
+     * where it cannot do any harm.
+     */
+    var centreHint: Pair<Double, Double>? = null
+        private set
+
+    var onCentreChanged: (() -> Unit)? = null
+
+    fun setCentreFromSource(x: Double, y: Double) {
+        centreHint = x to y; invalidate(); onCentreChanged?.invoke()
+    }
+
+    fun clearCentre() {
+        centreHint = null; invalidate(); onCentreChanged?.invoke()
+    }
 
     /** Fires whenever the box is moved or resized. */
     var onBoxChanged: (() -> Unit)? = null
@@ -284,7 +308,11 @@ class RegistrationOverlayView @JvmOverloads constructor(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        if (mode == Mode.BOX) drawBox(canvas) else drawCorners(canvas)
+        when (mode) {
+            Mode.BOX -> drawBox(canvas)
+            Mode.CORNERS -> drawCorners(canvas)
+            Mode.CENTRE -> drawCentre(canvas)
+        }
         drawDetections(canvas)
     }
 
@@ -403,9 +431,51 @@ class RegistrationOverlayView @JvmOverloads constructor(
     private var lastX = 0f
     private var lastY = 0f
 
-    override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (mode == Mode.CORNERS) return cornerTouch(event)
-        return boxTouch(event)
+    override fun onTouchEvent(event: MotionEvent): Boolean = when (mode) {
+        Mode.CORNERS -> cornerTouch(event)
+        Mode.CENTRE -> centreTouch(event)
+        Mode.BOX -> boxTouch(event)
+    }
+
+    /** Drag anywhere: the crosshair follows the finger rather than needing to
+     *  be picked up first, because there is only one of it and hunting for a
+     *  grab handle on a phone held at arm's length is its own small misery. */
+    private fun centreTouch(event: MotionEvent): Boolean {
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
+                val (sx, sy) = viewToSource(event.x, event.y)
+                centreHint = sx to sy
+                invalidate()
+                if (event.actionMasked == MotionEvent.ACTION_DOWN) performClick()
+                return true
+            }
+            MotionEvent.ACTION_UP -> { onCentreChanged?.invoke(); return true }
+        }
+        return super.onTouchEvent(event)
+    }
+
+    /**
+     * A full-width crosshair, not a small cross. The eye judges "is this line
+     * through the middle of the rings" far better than "is this dot on the
+     * middle", because a line can be compared against the printing along its
+     * whole length.
+     */
+    private fun drawCentre(canvas: Canvas) {
+        val c = centreHint
+        if (c == null || srcWidth <= 0) {
+            prompt(canvas, "Drag the crosshair onto the middle of the target face")
+            return
+        }
+        val (vx, vy) = sourceToView(c.first, c.second)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            strokeWidth = 2f
+            color = 0xFFFFC107.toInt()
+        }
+        canvas.drawLine(0f, vy, width.toFloat(), vy, paint)
+        canvas.drawLine(vx, 0f, vx, height.toFloat(), paint)
+        val gap = 14f * resources.displayMetrics.density
+        canvas.drawCircle(vx, vy, gap, paint)
     }
 
     private fun cornerTouch(event: MotionEvent): Boolean {

@@ -48,6 +48,58 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.43.0 - the lens correction stops eating the edges, and the
+        //          shooter can say where the middle of the face is.
+        //
+        //          THE ZOOM WAS A REAL BUG, and the report was exactly right.
+        //          Undistortion moves content outward: an output pixel at
+        //          radius r takes its colour from source radius distort(r),
+        //          which for a barrel correction (k < 0) is SMALLER than r.
+        //          At k = -0.10 the output corner was sampling 90% of the way
+        //          out, so the outer tenth of the picture - which on a target
+        //          photograph is the edge of the card - was pushed off the
+        //          frame. The shape was being corrected and the scale was
+        //          not: the effective focal length changed and nothing
+        //          compensated.
+        //
+        //          Both resamplers now apply a gain chosen so the output
+        //          corner samples the SOURCE corner. Full field of view is
+        //          preserved exactly for k above -4/27 (about -0.148), which
+        //          is every value a real photograph produces; the limit is
+        //          exact, not a tolerance - the peak of r(1 + k f^2) on its
+        //          monotonic branch is two thirds of the fold radius, and
+        //          setting that equal to the corner gives -4/27. Below it the
+        //          fold point is used instead, still recovering 86% of the
+        //          frame at k = -0.20 where the old code kept 80%.
+        //          worthApplying now also refuses k <= -1/3, where the fold
+        //          lands INSIDE the frame and the mapping runs backwards.
+        //
+        //          A TEST OF MINE WAS WRONG FIRST. It asserted exact recovery
+        //          at k = -0.15, which is past the limit; checking the
+        //          arithmetic before shipping caught it, and the limit is now
+        //          documented where the function is rather than discovered
+        //          again later.
+        //
+        //          CENTRE HINT. A third overlay mode: drag a full-width
+        //          crosshair onto the middle of the face. It is a HINT TO THE
+        //          DETECTOR and nothing else - the picture is not moved,
+        //          cropped or rescaled. It helps because the black-mark
+        //          search is an Otsu split, a question about a histogram, and
+        //          whatever else is in the frame competes for the dark class;
+        //          a window around the marked centre removes the competition.
+        //          The hinted window must BEAT the unhinted attempts on
+        //          confidence, so a crosshair left in the wrong place cannot
+        //          make the answer worse.
+        //
+        //          WHY NOT RECENTRE THE IMAGE, as suggested. Lens distortion
+        //          is radial about the OPTICAL centre, which is the middle of
+        //          the frame. Moving the picture so the target sits in the
+        //          middle would move the optical centre with it, and the
+        //          radial correction would then be applied about a point the
+        //          lens knows nothing about - trading a bug for a subtler
+        //          one. As a hint the ordering question does not arise at
+        //          all.
+        //
         // 1.42.0 - the aspect correction is now two sliders with the
         //          picture moving under them.
         //
@@ -4633,8 +4685,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 78
-        versionName = "1.42.0"
+        versionCode = 79
+        versionName = "1.43.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

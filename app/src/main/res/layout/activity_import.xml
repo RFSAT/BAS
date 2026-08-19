@@ -179,6 +179,18 @@
                     android:text="100.0%" />
             </LinearLayout>
 
+            <CheckBox style="@style/Sts.CheckBox" android:id="@+id/cbCentreMode"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Mark the centre of the face" />
+
+            <TextView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:justificationMode="inter_word"
+                android:text="Drag the crosshair onto the middle of the target face. This tells the detector where to look; it does not move or crop the picture." />
+
             <LinearLayout
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:orientation="horizontal" android:layout_marginTop="4dp">

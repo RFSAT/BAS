@@ -223,6 +223,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.43.0** - lens correction no longer crops the edges of the card: the resamplers now preserve the field of view instead of silently magnifying. The scoring screen also gained a centre crosshair, which tells the detector where to look without moving the picture.
+
 **1.42.0** - aspect correction on the scoring screen is now two sliders with the picture stretching live beneath the fitted rings, instead of two percentage boxes and an Apply button. Resampling and re-registration happen once, on release.
 
 **1.41.5** - the Programmer Reference rebuilt at 1.41.4, with the User Guide's title page. Six new chapters and ten new architecture-table rows; build, static checks, backup, Play configuration and known pitfalls brought forward.

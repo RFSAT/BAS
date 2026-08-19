@@ -192,6 +192,7 @@ class ImportActivity : BaseActivity() {
             binding.overlay.clearAll(); registration = null; lastFit = null; lastMarkRadiusPx = 0.0; refreshStatus()
         }
         binding.cbCornerMode.setOnCheckedChangeListener { _, corners ->
+            if (corners) binding.cbCentreMode.isChecked = false
             binding.overlay.mode =
                 if (corners) RegistrationOverlayView.Mode.CORNERS
                 else RegistrationOverlayView.Mode.BOX
@@ -212,6 +213,30 @@ class ImportActivity : BaseActivity() {
             startActivity(android.content.Intent(this, ResultsActivity::class.java)); finish()
         }
         binding.overlay.onCornersChanged = { refreshStatus() }
+
+        // Marking the centre is a third overlay mode, exclusive with the
+        // other two: all three want the same finger.
+        binding.cbCentreMode.setOnCheckedChangeListener { _, marking ->
+            binding.overlay.mode = when {
+                marking -> RegistrationOverlayView.Mode.CENTRE
+                binding.cbCornerMode.isChecked -> RegistrationOverlayView.Mode.CORNERS
+                else -> RegistrationOverlayView.Mode.BOX
+            }
+            if (marking && binding.overlay.centreHint == null) {
+                // Start it in the middle of the picture, which is where a
+                // squared-up photograph already has it — so a small drag is
+                // usually all it needs.
+                sourceShotBitmap?.let {
+                    binding.overlay.setCentreFromSource(it.width / 2.0, it.height / 2.0)
+                }
+            }
+            refreshStatus()
+        }
+        binding.overlay.onCentreChanged = {
+            // Re-identify from the new hint the moment the finger lifts: the
+            // point of marking the centre is to see the detector agree.
+            if (binding.cbCentreMode.isChecked) doIdentifyTarget(silent = true)
+        }
         wireAspectSliders()
         binding.btnLensApply.setOnClickListener { applyLens() }
         moreInfo(binding.infoLens, "Lens distortion",
@@ -551,7 +576,7 @@ class ImportActivity : BaseActivity() {
 
         val face = currentFace()
         val frame = LumaFrame.fromBitmap(bmp)
-        val disc = BlackMarkDetector.detect(frame)
+        val disc = BlackMarkDetector.detect(frame, binding.overlay.centreHint)
 
         if (disc == null) {
             binding.overlay.setDefaultBox()
@@ -1044,7 +1069,7 @@ class ImportActivity : BaseActivity() {
             if (!silent) notifyUser("No picture to work from yet.")
             return
         }
-        val mark = BlackMarkDetector.detect(frame)
+        val mark = BlackMarkDetector.detect(frame, binding.overlay.centreHint)
         val fit = RingFinder.find(
             frame,
             seedX = mark?.centreXPx ?: -1.0,

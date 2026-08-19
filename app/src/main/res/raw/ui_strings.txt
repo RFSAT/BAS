@@ -223,6 +223,8 @@ Image aspect
 Stretches the picture itself so the printed rings come out round. Use it when the drawn circles sit over the printing on one axis but not the other. The picture is re-registered afterwards.
 Width
 Height
+Mark the centre of the face
+Drag the crosshair onto the middle of the target face. This tells the detector where to look; it does not move or crop the picture.
 Original picture
 Lens distortion
 Straightens a picture bowed by a wide lens. Measured from the printed rings; matters at close range and hardly at all down a range.
@@ -1456,6 +1458,8 @@ detected and not used
 #FFC107
 Tap “Auto-detect”, or drag a box around the target
 Tap the ${cornerNames[taps.size]} corner of the card
+far better than
+Drag the crosshair onto the middle of the target face
 /stream0
 /live
 /video0
