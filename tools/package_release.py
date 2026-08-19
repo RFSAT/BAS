@@ -29,7 +29,7 @@ Two guards now make that impossible to repeat:
     deletions is reconstructed and compared, hash for hash, against the tree
     being shipped. A mismatch fails the build rather than the user's CI.
 """
-import hashlib, os, sys, zipfile
+import hashlib, os, re, sys, zipfile
 
 MANIFEST = "RELEASE_MANIFEST.txt"
 
@@ -76,12 +76,54 @@ def read_tree(root, skip=(".git", "build", ".gradle")):
             with open(full, "rb") as fh: out[rel] = (digest(fh.read()), full)
     return out
 
+def guide_matches(root, version):
+    """Is the User Guide stamped with the version being packaged?
+
+    A standing instruction: every release ships an updated guide and its PDF.
+    Instructions that live only in someone's memory are followed until the
+    day they are not, so it is checked here — the one place every release
+    passes through.
+    """
+    docs = os.path.join(root, "docs")
+    if not os.path.isdir(docs):
+        return True, ""
+    want = "BAS-User-Guide_v%s.docx" % version
+    have = sorted(f for f in os.listdir(docs)
+                  if f.startswith("BAS-User-Guide_v") and f.endswith(".docx"))
+    if want in have:
+        pdf = os.path.join(docs, "BAS-User-Guide.pdf")
+        if not os.path.exists(pdf):
+            return False, "docs/%s is there but docs/BAS-User-Guide.pdf is missing." % want
+        if os.path.getmtime(pdf) < os.path.getmtime(os.path.join(docs, want)):
+            return False, ("docs/BAS-User-Guide.pdf is older than the document it should have "
+                           "been rendered from.")
+        return True, ""
+    return False, ("the User Guide is at %s, not %s.\n"
+                   "    Run: python3 tools/update_user_guide.py %s <build>"
+                   % (", ".join(h.replace("BAS-User-Guide_v", "").replace(".docx", "")
+                                for h in have) or "nothing", version, version))
+
+
+def app_version(root):
+    src = open(os.path.join(root, "app", "build.gradle.kts"), encoding="utf-8").read()
+    m = re.search(r'versionName\s*=\s*"([^"]+)"', src)
+    return m.group(1) if m else None
+
+
 def main():
     if len(sys.argv) < 3:
         print(__doc__); sys.exit(2)
     prev_zip, version = sys.argv[1], sys.argv[2]
     here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     outdir = os.path.dirname(os.path.abspath(prev_zip)) or "."
+
+    version_name = app_version(here)
+    if version_name:
+        ok, why = guide_matches(here, version_name)
+        if not ok:
+            print("REFUSING TO PACKAGE %s: %s" % (version_name, why))
+            sys.exit(2)
+        print("guide:    BAS-User-Guide_v%s.docx and its PDF are current" % version_name)
 
     prev = read_zip(prev_zip)
     cur = read_tree(here)

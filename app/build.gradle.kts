@@ -48,6 +48,40 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.43.2 - the User Guide ships with every release, and the build
+        //          refuses to package one where it does not.
+        //
+        //          A standing instruction is followed until the day it is
+        //          not, so it is checked in the one place every release
+        //          passes through: package_release.py now exits rather than
+        //          package a version whose guide is stamped with a different
+        //          one, or whose PDF is older than the document it came from.
+        //
+        //          tools/update_user_guide.py owns the mechanical half - the
+        //          version on the title page and in the footer, and the page
+        //          numbers in the CONTENTS LIST, which is static and which
+        //          neither Word nor LibreOffice refreshes on its own. One
+        //          paragraph added on page 6 is enough to make every number
+        //          after it wrong. They are read back out of the rendered PDF,
+        //          because where the headings actually landed is the only
+        //          honest source for them.
+        //
+        //          TWO BUGS IN THAT SCRIPT, both caught by looking at the
+        //          output rather than trusting it. It first found every
+        //          heading on the CONTENTS PAGE - which lists them all - and
+        //          stamped 2 against all forty-eight rows. Excluding contents
+        //          pages then lost the five headings that share page 3 with
+        //          the end of the list. Contents ROWS are excluded now, by
+        //          their dot leaders, which nothing else in the document has.
+        //
+        //          The prose is still written by hand. A release note is not
+        //          a user guide and no script can tell the difference.
+        //
+        //          This release's guide adds 6.2 Squaring up the picture -
+        //          the aspect sliders, the centre crosshair, the lens
+        //          correction and what none of them can fix - and the guide
+        //          had said nothing about any of them before.
+        //
         // 1.43.1 - weather keys: the right explanation, a list of what is
         //          set, and a place in the backup.
         //
@@ -4718,8 +4752,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 80
-        versionName = "1.43.1"
+        versionCode = 81
+        versionName = "1.43.2"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

@@ -151,6 +151,15 @@ on another phone.
 
 ## Documentation
 
+**Every release ships an updated User Guide and a freshly rendered PDF.** That
+is not a habit to remember: `tools/package_release.py` refuses to package a
+version whose guide is not stamped with it, or whose PDF is older than the
+document it came from. `tools/update_user_guide.py <version> <build>` does the
+mechanical half — the version on the title page and in the footer, and the
+page numbers in the static contents list, which are read back out of the
+rendered PDF because nothing else keeps them honest. The prose is still
+written by hand.
+
 Both documents are current, and both were produced by editing the originals
 rather than regenerating them, so the title pages and every style are the
 originals:
@@ -222,6 +231,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
+
+**1.43.2** - the User Guide is rebuilt and re-rendered with every release from now on, enforced by the packager rather than remembered. This one adds section 6.2 on squaring up the picture (the aspect sliders, the centre crosshair and the lens correction), and notes on the weather key list and on weather keys in backups.
 
 **1.43.1** - weather service keys: each service now explains its own key rather than showing a sentence about Netatmo, Settings lists which keys are set, and backups carry them - under the same opt-in as the AI keys, not hidden in the settings dump.
 
