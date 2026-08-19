@@ -48,6 +48,39 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.43.1 - weather keys: the right explanation, a list of what is
+        //          set, and a place in the backup.
+        //
+        //          THE WRONG SERVICE WAS BEING EXPLAINED. The key dialog
+        //          carried one hardcoded sentence - \"Netatmo goes through the
+        //          RFSAT proxy and needs no key here\" - so choosing
+        //          OpenWeatherMap or Windy produced an explanation of a
+        //          service the shooter had not picked. Each service now
+        //          carries its own provenance text, naming the console the
+        //          key comes from, and a test refuses to let any service but
+        //          Netatmo mention Netatmo.
+        //
+        //          A LIST, as the AI services have. Every service with its
+        //          key masked or marked \"not set\", and \"no key needed\"
+        //          where that is the truth - Open-Meteo showing \"not set\"
+        //          would send someone hunting for a key that does not exist.
+        //          Tapping the list opens any service's key, not only the
+        //          selected one, because a key is missing exactly when nobody
+        //          is looking at the service that needs it.
+        //
+        //          THE BACKUP WAS LOSING THEM ENTIRELY: bas_weather was not
+        //          in the list of stores, so the service choice, the position
+        //          and every key were dropped. It is in now - but the keys
+        //          are STRIPPED OUT of the settings dump and carried with the
+        //          other API keys instead, under a WEATHER: prefix.
+        //
+        //          That last part is the point. Folding them into the
+        //          settings would have put them in every backup including one
+        //          taken \"without keys\", quietly breaking the promise that
+        //          dialog makes. A Google Maps Platform key in a file the
+        //          shooter believed carried no keys is exactly the failure
+        //          the opt-in exists to prevent.
+        //
         // 1.43.0 - the lens correction stops eating the edges, and the
         //          shooter can say where the middle of the face is.
         //
@@ -4685,8 +4718,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 79
-        versionName = "1.43.0"
+        versionCode = 80
+        versionName = "1.43.1"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

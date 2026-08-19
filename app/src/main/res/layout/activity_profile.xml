@@ -576,6 +576,9 @@
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 style="@style/Sts.ActionButton"
                 android:text="Position for forecasts…" />
+
+            <TextView android:id="@+id/tvWeatherKeys"
+                style="@style/Sts.Value" android:layout_marginTop="2dp" android:textSize="12sp" />
             <Button android:id="@+id/btnEnvRead"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 style="@style/Sts.ActionButton"

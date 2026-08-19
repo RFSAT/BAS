@@ -767,22 +767,7 @@ class ProfileActivity : BaseActivity() {
                     d.dismiss()
                     val svc = svcs[w]
                     com.rfsat.bas.environment.WeatherConfig.setService(this, svc)
-                    if (svc.needsKey) {
-                        val et = android.widget.EditText(this).apply {
-                            setText(com.rfsat.bas.environment.WeatherConfig.key(this@ProfileActivity, svc))
-                            hint = svc.keyHint
-                        }
-                        androidx.appcompat.app.AlertDialog.Builder(this)
-                            .setTitle("${svc.label} key")
-                            .setMessage("Your own key, kept on this phone. Netatmo goes through the RFSAT proxy and needs no key here.")
-                            .setView(et)
-                            .setPositiveButton("Save") { _, _ ->
-                                com.rfsat.bas.environment.WeatherConfig.setKey(this, svc, et.text.toString())
-                                refreshEnvLabels()
-                            }
-                            .setNegativeButton("Cancel", null).show()
-                    }
-                    refreshEnvLabels()
+                    if (svc.needsKey) weatherKeyDialog(svc) else refreshEnvLabels()
                 }
                 .show()
         }
@@ -1186,6 +1171,7 @@ class ProfileActivity : BaseActivity() {
     }.getOrDefault(emptyList())
 
     private fun refreshEnvLabels() {
+        runCatching { refreshWeatherKeys() }
         binding.btnWeatherTier.text =
             "Source: ${com.rfsat.bas.environment.WeatherConfig.tier(this).label}"
         binding.btnWeatherDevice.text =
@@ -2065,5 +2051,61 @@ class ProfileActivity : BaseActivity() {
             }
         }
         b.show()
+    }
+
+    /**
+     * The key for one weather service.
+     *
+     * The message is the SERVICE'S OWN. It used to be a single hardcoded
+     * sentence about Netatmo, so choosing OpenWeatherMap or Windy produced an
+     * explanation of a service the shooter had not picked — which reads as
+     * the app having lost track of what it is asking for.
+     */
+    private fun weatherKeyDialog(svc: com.rfsat.bas.environment.OnlineService) {
+        val et = android.widget.EditText(this).apply {
+            setText(com.rfsat.bas.environment.WeatherConfig.key(this@ProfileActivity, svc))
+            hint = svc.keyHint
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+        }
+        AlertDialog.Builder(this)
+            .setTitle("${svc.label} key")
+            .setMessage("Kept on this phone and sent only to ${svc.label}.\n\n${svc.whereFrom}")
+            .setView(et)
+            .setPositiveButton("Save") { _, _ ->
+                com.rfsat.bas.environment.WeatherConfig.setKey(this, svc, et.text.toString())
+                refreshEnvLabels()
+            }
+            .setNeutralButton("Clear") { _, _ ->
+                com.rfsat.bas.environment.WeatherConfig.setKey(this, svc, "")
+                refreshEnvLabels()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    /**
+     * Every weather service and whether its key is in place — the same list
+     * the AI services get, and for the same reason: a key is missing exactly
+     * when nobody is looking at the service that needs it.
+     *
+     * Tapping the list opens the key for any service, not only the selected
+     * one, so a key can be put in before it is needed rather than in the
+     * middle of a relay.
+     */
+    private fun refreshWeatherKeys() {
+        val svcs = com.rfsat.bas.environment.OnlineService.values()
+        binding.tvWeatherKeys.text = svcs.joinToString("\n") { s ->
+            "${s.label}: ${com.rfsat.bas.environment.WeatherConfig.maskedKey(this, s)}"
+        }
+        binding.tvWeatherKeys.setOnClickListener {
+            val keyed = svcs.filter { it.needsKey }
+            AlertDialog.Builder(this)
+                .setTitle("Weather service keys")
+                .setItems(keyed.map { it.label }.toTypedArray()) { _, w ->
+                    weatherKeyDialog(keyed[w])
+                }
+                .setNegativeButton("Close", null)
+                .show()
+        }
     }
 }

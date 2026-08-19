@@ -7,6 +7,8 @@ import com.google.gson.reflect.TypeToken
 import com.rfsat.bas.BuildConfig
 import com.rfsat.bas.cloud.AiProvider
 import com.rfsat.bas.cloud.CloudSettings
+import com.rfsat.bas.environment.OnlineService
+import com.rfsat.bas.environment.WeatherConfig
 import com.rfsat.bas.log.Logger
 import com.rfsat.bas.profiles.ProfileRepository
 import com.rfsat.bas.profiles.ProfileSet
@@ -44,11 +46,23 @@ object AppBackup {
      * card or last week's crash. bas_cloud is absent too because it is
      * encrypted and is handled separately below.
      */
+    /** Marks a weather key inside the shared apiKeys map. */
+    private const val WEATHER_KEY_PREFIX = "WEATHER:"
+
     private val SETTING_STORES = listOf(
         "bas_prefs", "bas_units", "bas_theme", "bas_range", "bas_camera",
         "bas_distance", "bas_setup", "bas_import", "bas_environment",
-        "bas_orientation", "bas_truing", "bas_labels", "vtb_environment"
+        "bas_orientation", "bas_truing", "bas_labels", "vtb_environment",
+        // Weather: the service choice, the position, and the keys. The keys
+        // are stripped out below and carried with the other API keys instead,
+        // so a backup taken "without keys" really is without keys — putting
+        // them in the settings dump would have quietly broken that promise.
+        WeatherConfig.STORE
     )
+
+    /** Preferences that are API keys wearing a settings store's clothes. */
+    private fun isSecret(store: String, key: String) =
+        store == WeatherConfig.STORE && key.startsWith(WeatherConfig.KEY_PREFIX)
 
     data class Payload(
         val formatVersion: Int = FORMAT_VERSION,
@@ -90,6 +104,7 @@ object AppBackup {
         val p = context.getSharedPreferences(name, Context.MODE_PRIVATE)
         val out = LinkedHashMap<String, String>()
         for ((k, v) in p.all) {
+            if (isSecret(name, k)) continue
             out[k] = when (v) {
                 is Boolean -> "b:$v"
                 is Int -> "i:$v"
@@ -132,11 +147,19 @@ object AppBackup {
      * the file goes astray.
      */
     fun export(context: Context, includeApiKeys: Boolean = false): String {
-        val keys = if (!includeApiKeys) emptyMap() else
-            AiProvider.entries.mapNotNull { p ->
+        // AI providers by enum name; weather services under a prefix, so the
+        // two namespaces cannot collide and a reader can tell them apart.
+        val keys = if (!includeApiKeys) emptyMap() else buildMap {
+            AiProvider.entries.forEach { p ->
                 val k = runCatching { CloudSettings.apiKey(context, p) }.getOrDefault("")
-                if (k.isBlank()) null else p.name to k
-            }.toMap()
+                if (k.isNotBlank()) put(p.name, k)
+            }
+            OnlineService.entries.forEach { s ->
+                if (!s.needsKey) return@forEach
+                val k = runCatching { WeatherConfig.key(context, s) }.getOrDefault("")
+                if (k.isNotBlank()) put(WEATHER_KEY_PREFIX + s.name, k)
+            }
+        }
 
         val payload = Payload(
             settings = SETTING_STORES.associateWith { dumpStore(context, it) }
@@ -190,6 +213,14 @@ object AppBackup {
                 .onFailure { problems += "settings store '$store'" }
         }
         payload.apiKeys.forEach { (name, key) ->
+            if (name.startsWith(WEATHER_KEY_PREFIX)) {
+                val svc = OnlineService.entries
+                    .firstOrNull { it.name == name.removePrefix(WEATHER_KEY_PREFIX) }
+                if (svc == null) problems += "key for unknown weather service '$name'"
+                else runCatching { WeatherConfig.setKey(context, svc, key); keys++ }
+                    .onFailure { problems += "weather key for ${svc.label}" }
+                return@forEach
+            }
             val p = AiProvider.entries.firstOrNull { it.name == name }
             if (p == null) {
                 // A key for a service this build does not know is kept out

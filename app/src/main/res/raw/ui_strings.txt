@@ -681,8 +681,6 @@ is being translated for the first time.
 Conditions at the firing point
 Default external device
 Online weather service
-${svc.label} key
-Your own key, kept on this phone. Netatmo goes through the RFSAT proxy and needs no key here.
 lat, lon (blank = use the phone's location)
 ${com.rfsat.bas.environment.WeatherConfig.longitude(this@ProfileActivity)}
 Position for forecasts
@@ -836,6 +834,10 @@ Export the detection record
 Could not export: ${it.message}
 Clear
 Detection record cleared.
+${svc.label} key
+Kept on this phone and sent only to ${svc.label}.\n\n${svc.whereFrom}
+${s.label}: ${com.rfsat.bas.environment.WeatherConfig.maskedKey(this, s)}
+Weather service keys
 JSB Exact 4.50 mm 8.44gr
 track the projectile in flight
 Subsonic
@@ -1084,12 +1086,16 @@ everything else is a miss. Edit the diameter to match the plate in use.
 Steel plate 2 MOA @ 100 m
 Full-size IPSC steel
 300 mm round steel
+WEATHER:
+without keys
 ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})
 ${payload.customRules.size} rule set(s)
 Nothing was pasted.
 That is not a readable BAS backup — the JSON could not be parsed.
 this build understands $FORMAT_VERSION). Update the app and try again.
 settings store '$store'
+key for unknown weather service '$name'
+weather key for ${svc.label}
 key for unknown service '$name'
 API key for ${p.label}
 profile set '${s.name}'
@@ -1615,11 +1621,17 @@ Smartphone sensors
 External device (Kestrel)
 Online service
 Open-Meteo (no key needed)
+No key. Open-Meteo serves forecasts free for non-commercial use.
+for the few calls this app makes.
 Windy point forecast
 Windy API key
+Windy website login is not one.
 Google Maps Platform key
+must be set up even inside the free allowance.
 Netatmo (wind needs an anemometer station)
-key_${s.name}
+No key here. Netatmo goes through the RFSAT proxy, which holds the credentials.
+no key needed
+not set
 use the phone's last known location
 Kestrel 5700
 Kestrel Elite
@@ -1760,7 +1772,6 @@ Bearer sk-proj-...
 enable the button
 override the app
 find and score outright
-not set
 whole rings.
 that, but a jury may rule differently.
 $excess shot(s) more than the course of fire nominally allows; none were annulled.
