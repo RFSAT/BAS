@@ -223,6 +223,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
+**1.42.0** - aspect correction on the scoring screen is now two sliders with the picture stretching live beneath the fitted rings, instead of two percentage boxes and an Apply button. Resampling and re-registration happen once, on release.
+
 **1.41.5** - the Programmer Reference rebuilt at 1.41.4, with the User Guide's title page. Six new chapters and ten new architecture-table rows; build, static checks, backup, Play configuration and known pitfalls brought forward.
 
 **1.41.4** - the User Guide rebuilt at 1.41.3 by editing the original document, so the title page and every style are the originals. New sections on the ballistic corrections, truing, the AI services, languages, reach and backups; contents page numbers recomputed from the rendered layout.

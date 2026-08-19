@@ -221,9 +221,8 @@ Register
 Reset
 Image aspect
 Stretches the picture itself so the printed rings come out round. Use it when the drawn circles sit over the printing on one axis but not the other. The picture is re-registered afterwards.
-Width %
-Height %
-Apply and re-register
+Width
+Height
 Original picture
 Lens distortion
 Straightens a picture bowed by a wide lens. Measured from the printed rings; matters at close range and hardly at all down a range.
@@ -1261,7 +1260,6 @@ The rings measure round; no stretch needed.
 height %.1f%% would make them round — press Apply to try it.
 stretch that would correct it — nothing has been applied.
 Choose a photo first.
-Both figures must be percentages between %.0f and %.0f.
 The picture could not be resized — it may be too large for this device.
 Stretched to width %.1f%%, height %.1f%% of the original.
 Picture stretched to %.1f%% by %.1f%%. Registering again from the new pixels.

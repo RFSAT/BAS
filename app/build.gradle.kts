@@ -48,6 +48,44 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.42.0 - the aspect correction is now two sliders with the
+        //          picture moving under them.
+        //
+        //          It was two percentage boxes and an Apply button: guess a
+        //          number, look at the result, guess again. Whether the rings
+        //          sit on the printing is a judgement the eye makes instantly
+        //          and arithmetic makes slowly, so the eye should be doing it.
+        //
+        //          WHAT MOVES WHILE THE FINGER IS DOWN is only the ImageView's
+        //          own scaleX/scaleY about its centre. The bitmap is NOT
+        //          resampled and the registration is NOT re-run: either would
+        //          cost hundreds of milliseconds per step and turn a drag into
+        //          a slideshow. The real work happens once, on release, down
+        //          the same path the Apply button used to run - the pipeline
+        //          order is unchanged, and this is only a new way of choosing
+        //          the number.
+        //
+        //          THE OVERLAY DELIBERATELY DOES NOT SCALE. The rings stay
+        //          where the last registration put them while the photograph
+        //          stretches beneath, so there is a fixed reference to line
+        //          the printing up against. Scaling both together would move
+        //          the ruler with the thing being measured and show nothing.
+        //
+        //          The preview is expressed RELATIVE to what is already baked
+        //          into the bitmap on screen. An absolute slider value would
+        //          apply the stretch twice the moment anything had been
+        //          committed.
+        //
+        //          Range 62.5% to 160% - the limits AspectCorrection already
+        //          allowed - in steps of 0.1%, and 100% lands exactly on a
+        //          step. A mapping that could only reach 99.9% would leave
+        //          every photograph faintly resampled for no reason.
+        //
+        //          The measured suggestion still fills the controls without
+        //          applying itself, as before: a ring fit has a residual of
+        //          its own, and imposing a correction derived from it would
+        //          distort a picture that was already right.
+        //
         // 1.41.5 - the Programmer Reference rebuilt, at 1.41.4.
         //
         //          Edited in place like the guide before it, so the styles,
@@ -4595,8 +4633,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 77
-        versionName = "1.41.5"
+        versionCode = 78
+        versionName = "1.42.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

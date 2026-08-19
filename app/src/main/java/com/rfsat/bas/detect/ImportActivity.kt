@@ -212,7 +212,7 @@ class ImportActivity : BaseActivity() {
             startActivity(android.content.Intent(this, ResultsActivity::class.java)); finish()
         }
         binding.overlay.onCornersChanged = { refreshStatus() }
-        binding.btnAspectApply.setOnClickListener { applyAspect() }
+        wireAspectSliders()
         binding.btnLensApply.setOnClickListener { applyLens() }
         moreInfo(binding.infoLens, "Lens distortion",
             "Everything the app measures geometrically assumes a pinhole camera, in which a " +
@@ -319,8 +319,7 @@ class ImportActivity : BaseActivity() {
                         "registration.").format(100 * (1 - fit.axisRatio))
             return
         }
-        binding.etAspectX.setText("%.1f".format(s.percentX))
-        binding.etAspectY.setText("%.1f".format(s.percentY))
+        setSliders(s.percentX / 100.0, s.percentY / 100.0)
         binding.tvAspect.text =
             ("The rings measure %.0f%% out of round along the picture's own axes. Width %.1f%%, " +
                 "height %.1f%% would make them round — press Apply to try it.")
@@ -345,15 +344,8 @@ class ImportActivity : BaseActivity() {
         val src = sourceShotBitmap ?: shotBitmap ?: run {
             notifyUser("Choose a photo first."); return
         }
-        val sx = AspectCorrection.parsePercent(binding.etAspectX.text.toString())
-        val sy = AspectCorrection.parsePercent(binding.etAspectY.text.toString())
-        if (sx == null || sy == null) {
-            notifyUser(
-                "Both figures must be percentages between %.0f and %.0f."
-                    .format(100.0 / AspectCorrection.MAX_STRETCH, 100.0 * AspectCorrection.MAX_STRETCH)
-            )
-            return
-        }
+        val sx = sliderScale(binding.sbAspectX)
+        val sy = sliderScale(binding.sbAspectY)
         if (!AspectCorrection.worthApplying(sx, sy)) {
             resetAspect(); return
         }
@@ -455,8 +447,7 @@ class ImportActivity : BaseActivity() {
         lensK = 0.0
         binding.etLensK.setText("0")
         binding.tvLens.text = ""
-        binding.etAspectX.setText("100")
-        binding.etAspectY.setText("100")
+        setSliders(1.0, 1.0)
         useBitmap(src)
         binding.tvAspect.text = "Original picture."
         notifyUser("Back to the original picture. Registering it again.")
@@ -513,8 +504,7 @@ class ImportActivity : BaseActivity() {
             shotBitmap = bmp
             sourceShotBitmap = bmp
             aspectX = 1.0; aspectY = 1.0
-            binding.etAspectX.setText("100")
-            binding.etAspectY.setText("100")
+            setSliders(1.0, 1.0)
             binding.tvAspect.text = ""
             shotUri = uri
             rememberLastImage(uri)
@@ -1335,5 +1325,92 @@ class ImportActivity : BaseActivity() {
         shotBitmap = null
         sourceShotBitmap?.recycle(); sourceShotBitmap = null
         cleanBitmap?.recycle(); cleanBitmap = null
+    }
+
+    // ------------------------------------------------------------------
+    //  Aspect sliders
+    // ------------------------------------------------------------------
+    //
+    // Two numbers in boxes asked the shooter to guess a percentage, look at
+    // the result, and guess again. The rings either sit on the printing or
+    // they do not, and that is a judgement the eye makes instantly and
+    // arithmetic makes slowly.
+    //
+    // WHAT MOVES WHILE THE FINGER IS DOWN. Only the ImageView's own scale —
+    // scaleX and scaleY about its centre. The picture is NOT resampled and
+    // the registration is NOT re-run, because either would take hundreds of
+    // milliseconds per step and turn a smooth drag into a slideshow.
+    //
+    // The overlay deliberately does NOT scale with it. The rings stay where
+    // the last registration put them, so the shooter stretches the photograph
+    // until its printed rings line up with the drawn ones. Scaling both
+    // together would move the reference along with the thing being measured
+    // and show nothing at all.
+    //
+    // The real work happens on release: resample, then register again from
+    // the new pixels — the same path the Apply button used to run, unchanged,
+    // because the pipeline order matters and this is only a new way of
+    // choosing the number.
+
+    /** Slider position to a scale factor. 0.1% per step across the range the
+     *  stretch is allowed to cover, so 100% is exactly reachable. */
+    private fun sliderScale(bar: android.widget.SeekBar): Double {
+        val minPct = 100.0 / AspectCorrection.MAX_STRETCH
+        return (minPct * 10.0 + bar.progress) / 1000.0
+    }
+
+    private fun scaleToSlider(scale: Double): Int {
+        val minPct = 100.0 / AspectCorrection.MAX_STRETCH
+        return ((scale * 1000.0) - minPct * 10.0).toInt().coerceIn(0, 975)
+    }
+
+    private fun setSliders(sx: Double, sy: Double) {
+        binding.sbAspectX.progress = scaleToSlider(sx)
+        binding.sbAspectY.progress = scaleToSlider(sy)
+        showSliderValues()
+        previewAspect()
+    }
+
+    private fun showSliderValues() {
+        binding.tvAspectXVal.text = "%.1f%%".format(sliderScale(binding.sbAspectX) * 100)
+        binding.tvAspectYVal.text = "%.1f%%".format(sliderScale(binding.sbAspectY) * 100)
+    }
+
+    /**
+     * Live preview, expressed RELATIVE to what is already baked into the
+     * bitmap on screen. The committed picture has aspectX/aspectY in its
+     * pixels, so showing an absolute slider value would apply the stretch
+     * twice the moment anything had been committed.
+     */
+    private fun previewAspect() {
+        val sx = sliderScale(binding.sbAspectX)
+        val sy = sliderScale(binding.sbAspectY)
+        binding.image.pivotX = binding.image.width / 2f
+        binding.image.pivotY = binding.image.height / 2f
+        binding.image.scaleX = (sx / aspectX).toFloat()
+        binding.image.scaleY = (sy / aspectY).toFloat()
+    }
+
+    private fun clearPreview() {
+        binding.image.scaleX = 1f
+        binding.image.scaleY = 1f
+    }
+
+    private fun wireAspectSliders() {
+        val listener = object : android.widget.SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(bar: android.widget.SeekBar?, p: Int, fromUser: Boolean) {
+                showSliderValues()
+                if (fromUser) previewAspect()
+            }
+            override fun onStartTrackingTouch(bar: android.widget.SeekBar?) {}
+            override fun onStopTrackingTouch(bar: android.widget.SeekBar?) {
+                // Committed on release, once, rather than on every step.
+                clearPreview()
+                applyAspect()
+            }
+        }
+        binding.sbAspectX.setOnSeekBarChangeListener(listener)
+        binding.sbAspectY.setOnSeekBarChangeListener(listener)
+        setSliders(aspectX, aspectY)
     }
 }

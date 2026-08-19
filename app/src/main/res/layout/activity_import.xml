@@ -155,33 +155,35 @@
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:orientation="horizontal" android:layout_marginTop="4dp"
                 android:gravity="center_vertical">
-                <TextView style="@style/Sts.ParamName" android:text="Width %" />
-                <EditText android:id="@+id/etAspectX"
+                <TextView style="@style/Sts.ParamName" android:text="Width" />
+                <SeekBar android:id="@+id/sbAspectX"
                     android:layout_width="0dp" android:layout_weight="1"
                     android:layout_height="wrap_content"
-                    android:textSize="13sp"
-                    android:inputType="numberDecimal"
-                    android:text="100"
-                    android:autofillHints="" />
-                <TextView style="@style/Sts.ParamName" android:text="  Height %" />
-                <EditText android:id="@+id/etAspectY"
+                    android:max="975" />
+                <TextView android:id="@+id/tvAspectXVal"
+                    style="@style/Sts.ParamValue" android:minWidth="60dp"
+                    android:text="100.0%" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginTop="2dp"
+                android:gravity="center_vertical">
+                <TextView style="@style/Sts.ParamName" android:text="Height" />
+                <SeekBar android:id="@+id/sbAspectY"
                     android:layout_width="0dp" android:layout_weight="1"
                     android:layout_height="wrap_content"
-                    android:textSize="13sp"
-                    android:inputType="numberDecimal"
-                    android:text="100"
-                    android:autofillHints="" />
+                    android:max="975" />
+                <TextView android:id="@+id/tvAspectYVal"
+                    style="@style/Sts.ParamValue" android:minWidth="60dp"
+                    android:text="100.0%" />
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:orientation="horizontal" android:layout_marginTop="4dp">
-                <Button android:id="@+id/btnAspectApply"
-                    android:layout_width="0dp" android:layout_weight="1"
-                    android:layout_height="wrap_content" android:text="Apply and re-register"
-                    style="@style/Sts.ActionButton.Dense" />
                 <Button android:id="@+id/btnAspectReset"
-                    android:layout_width="0dp" android:layout_weight="1"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content" android:text="Original picture"
                     style="@style/Sts.ActionButton.Dense" />
             </LinearLayout>
