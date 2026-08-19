@@ -51,6 +51,13 @@
                 android:layout_marginTop="4dp"
                 android:shrinkColumns="1" />
 
+            <TextView android:id="@+id/tvFaceLink"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:paddingTop="6dp"
+                android:paddingBottom="2dp"
+                android:textColor="?attr/colorAccent" />
+
             <TextView android:id="@+id/tvDetailFoot"
                 style="@style/Sts.Value"
                 android:layout_marginTop="5dp"

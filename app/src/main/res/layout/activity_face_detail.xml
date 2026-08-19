@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One target face, given the room to be read.
+
+     The list has to fit many faces on a phone; this page has to fit one, so
+     it can afford to be handsome: a wide plate for the drawing, a rule under
+     the title, and the numbers set as a table rather than run together in a
+     sentence. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView android:id="@+id/tvTitle"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="?android:attr/textColorPrimary" />
+
+            <TextView android:id="@+id/tvSubtitle"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="13sp"
+                android:letterSpacing="0.08"
+                android:textAllCaps="true"
+                android:paddingTop="2dp"
+                android:textColor="?attr/colorAccent" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="12dp"
+                android:background="?attr/colorAccent" />
+
+            <com.rfsat.bas.ui.TargetPlotView
+                android:id="@+id/plot"
+                android:layout_width="match_parent"
+                android:layout_height="320dp"
+                android:background="@drawable/bg_card" />
+
+            <TextView android:id="@+id/tvCaption"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:gravity="center"
+                android:paddingTop="6dp"
+                android:paddingBottom="10dp"
+                android:textColor="?android:attr/textColorSecondary" />
+
+            <TextView style="@style/Sts.SectionHeading" android:text="The card" />
+            <TableLayout android:id="@+id/tblFace"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:stretchColumns="1" />
+
+            <TextView style="@style/Sts.SectionHeading" android:text="Scoring rings" />
+            <TableLayout android:id="@+id/tblRings"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:stretchColumns="1" />
+
+            <TextView android:id="@+id/lblCompetitions"
+                style="@style/Sts.SectionHeading" android:text="Shot in" />
+            <LinearLayout android:id="@+id/boxCompetitions"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <TextView android:id="@+id/tvNotes"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="13sp"
+                android:paddingTop="10dp"
+                android:justificationMode="inter_word"
+                android:textColor="?android:attr/textColorSecondary" />
+        </LinearLayout>
+    </ScrollView>
+
+    <include layout="@layout/include_bottom_nav" />
+</LinearLayout>

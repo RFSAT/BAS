@@ -27,7 +27,12 @@ import com.rfsat.bas.ui.TargetThumbnail
  * old sessions keep pointing at the old geometry, which is the only version
  * of events that is true.
  */
-private const val PREVIEW_MAX_SCREEN_FRACTION = 0.42f
+// Trimmed from 0.42: the preview at the top was taking nearly half the
+// screen and the catalogue underneath it showed three rows. The face is still
+// large enough to tell an IPSC target from an IDPA one at a glance, which is
+// what the preview is for; anyone wanting to READ it now taps the row and
+// gets a page of it.
+private const val PREVIEW_MAX_SCREEN_FRACTION = 0.30f
 
 /** How much catalogue must remain visible under the preview. Two rows and a
  *  little: enough to see that a list exists and that it scrolls, which for
@@ -65,7 +70,12 @@ class TargetActivity : BaseActivity() {
         binding.spDiscipline.onItemSelectedListener = onSelected { refreshList() }
         binding.spBody.onItemSelectedListener = onSelected { refreshList() }
 
-        binding.list.setOnItemClickListener { _, _, position, _ -> select(shown.getOrNull(position)) }
+        binding.list.setOnItemClickListener { _, _, position, _ ->
+            val face = shown.getOrNull(position)
+            // Tapping the row that is ALREADY selected opens it, so a single
+            // tap still just selects — nobody loses their place by browsing.
+            if (face != null && face.id == selected?.id) openFaceDetail(face) else select(face)
+        }
 
         binding.btnUse.setOnClickListener {
             selected?.let { repo.setActiveFace(it.id); notifyUser("${it.name} is now the active target.") }
@@ -218,14 +228,18 @@ class TargetActivity : BaseActivity() {
             val name = view.findViewById<android.widget.TextView>(R.id.tvFaceName)
             val detail = view.findViewById<android.widget.TextView>(R.id.tvFaceDetail)
 
-            val px = (44 * resources.displayMetrics.density).toInt()
+            val px = (38 * resources.displayMetrics.density).toInt()
             img.setImageBitmap(TargetThumbnail.of(face, px))
             name.text = buildString {
                 append(face.name)
                 if (face.custom) append("  [mine]")
                 if (!face.verified) append("  ⚠")
             }
-            detail.text = face.summary()
+            // The competitions matter as much as the millimetres when
+            // choosing: a shooter looking for "the one we use at the club"
+            // recognises the match name faster than the ring ladder.
+            val used = FaceLinks.summaryFor(face.id, com.rfsat.bas.rules.RuleRepository(this@TargetActivity).customSets())
+            detail.text = if (used.isBlank()) face.summary() else "${face.summary()}\n$used"
             return view
         }
     }
@@ -394,4 +408,12 @@ class TargetActivity : BaseActivity() {
 
     override fun swipeExemptViews(): List<View> =
         listOf(binding.plot, binding.list, binding.spBody, binding.spDiscipline)
+
+    /** Opens the face on a page of its own. */
+    private fun openFaceDetail(face: TargetFace) {
+        startActivity(
+            android.content.Intent(this, TargetFaceDetailActivity::class.java)
+                .putExtra(TargetFaceDetailActivity.EXTRA_FACE_ID, face.id)
+        )
+    }
 }

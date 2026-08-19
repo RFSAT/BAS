@@ -23,6 +23,9 @@ Use this
 Copy & edit
 Delete
 Add my own target…
+The card
+Scoring rings
+Shot in
 Grouping
 GROUP — dial to centre
 Close
@@ -991,6 +994,33 @@ Beretta
 92X Centurion 9x19
 92X Compact 9x19
 Glock
+That target face is no longer in the catalogue.
+Shot at %s m
+·   dimensions not verified against the current rulebook
+Card
+${fmt(f.faceWidthMm)} × ${fmt(f.faceHeightMm)} mm
+Nominal distance
+${fmt(f.nominalDistanceM)} m
+Outer ring
+${fmt(f.outerRadiusMm * 2)} mm
+Aiming black
+${fmt(f.blackDiameterMm)} mm
+${fmt(f.innerTenDiameterMm)} mm
+Ring pitch
+${fmt(it)} mm — decimal scoring available
+Origin
+your own face
+Ring ${r.value}
+Zone
+${fmt(r.diameterMm)} mm
+Rings
+none — this face is scored as a zone or a plate
+does — it means none of the rule sets here does.
+Shot in one competition
+Shot in ${used.size} competitions
+▸  ${rule.name}
+%s · %s m · %d shots
+· yours
 C-head
 IPSC Classic target
 Practical Pistol
@@ -1001,6 +1031,7 @@ higher is better
 IDPA target
 -0 head
 Cardboard 18 x 30 in, down-zero 8 in body / 4 in head.
+${used.first().name} and ${used.size - 1} more
 Air Rifle
 Air Pistol
 Rimfire Rifle
@@ -1016,17 +1047,12 @@ hit/miss
 $governingBody — $discipline$dist, $geom
 ${it.name} is now the active target.
 No target selected.
-Card
 ${fmt(f.faceWidthMm)} \u00d7 ${fmt(f.faceHeightMm)} mm
-Outer ring
-${fmt(f.outerRadiusMm * 2)} mm
-Aiming black
-${fmt(f.blackDiameterMm)} mm
-${fmt(f.innerTenDiameterMm)} mm
-Ring pitch
 ${fmt(it)} mm \u2014 decimal scoring available
 before quoting a score from this face.
 is the one with the 50 mm ten ring and
+the one we use at the club
+${face.summary()}\n$used
 Built-in faces cannot be deleted — copy one instead.
 Delete ${face.name}?
 fall back to the default face when you reopen them.
@@ -1086,6 +1112,21 @@ everything else is a miss. Edit the diameter to match the plate in use.
 Steel plate 2 MOA @ 100 m
 Full-size IPSC steel
 300 mm round steel
+NRA B-2 — 50 ft Slow Fire Pistol
+Pistol
+NRA B-3 — 50 ft Timed/Rapid Pistol
+NRA B-4 — 20 yd Slow Fire Pistol
+NRA B-5 — 20 yd Timed/Rapid Pistol
+NRA B-6 — 50 yd Slow Fire Pistol
+Black taken as the 8 ring; sources also describe it as the 9 ring.
+NRA B-8 — 25 yd Timed/Rapid Pistol
+NRA B-16 — 25 yd Slow Fire Pistol
+Black 5 5/16", which is the 7 ring.
+Biathlon — prone (45 mm)
+Biathlon
+in biathlon.
+Biathlon — standing (115 mm)
+115 mm at 50 m. A hit anywhere inside counts.
 WEATHER:
 without keys
 ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})
@@ -2208,6 +2249,8 @@ Built-in rule sets cannot be deleted — copy one instead.
 ) + (if (!it.verified)
 No rule set selected.
 ${r.name}\n${r.summary()}
+Target face ${r.targetFaceId} is not in the catalogue.
+\u25b8  Shot on ${face.name}
 in series of ${r.shotsPerSeries}
 Scoring gauge
 ${r.gaugeDiameterMm} mm
@@ -2303,6 +2346,20 @@ Training practice
 the mode to use when the point is the group and the correction, not the total.
 Training — group and zero
 centre and the click correction the Results screen derives from it.
+NRA Precision Pistol — Slow fire, 50 yd
+Ten shots in ten minutes on the B-6, one hand, unsupported. Gauge set for .22; change it for the centrefire and .45 stages of an aggregate.
+NRA Precision Pistol — Timed fire, 25 yd
+Two series of five, twenty seconds each, on the B-8.
+NRA Precision Pistol — Rapid fire, 25 yd
+Two series of five, ten seconds each, on the B-8.
+NRA Precision Pistol — Slow fire, 25 yd
+Ten shots in ten minutes on the B-16, the reduced slow-fire face.
+NRA Gallery Pistol — Slow fire, 50 ft
+The indoor course, on the B-2.
+Biathlon — prone, 5 shots
+result is a count of hits.
+Biathlon — standing, 5 shots
+Hit or miss, five shots.
 No usable wind estimate from the trail (none, or mostly implausible samples) — this is a zero-wind solution.
 check camera FOV, boresight calibration and shot-break time. Falling back to a zero-wind solution.
 Confidence ${(windConf * 100).toInt()}% below threshold (${(MIN_USABLE_CONFIDENCE * 100).toInt()}%) — zero-wind solution.

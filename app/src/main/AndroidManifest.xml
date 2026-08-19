@@ -70,6 +70,7 @@
         <activity android:name="com.rfsat.bas.detect.ImportActivity" android:exported="false" />
         <activity android:name="com.rfsat.bas.results.ResultsActivity" android:exported="false" />
         <activity android:name="com.rfsat.bas.targets.TargetActivity" android:exported="false" />
+        <activity android:name="com.rfsat.bas.targets.TargetFaceDetailActivity" android:exported="false" />
         <activity android:name="com.rfsat.bas.profiles.ProfileActivity" android:exported="false" />
         <!-- Ballistics flow (integrated from VTB) -->
         <activity android:name="com.rfsat.bas.capture.CaptureActivity" android:exported="false" />

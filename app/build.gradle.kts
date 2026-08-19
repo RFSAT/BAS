@@ -48,6 +48,54 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.44.0 - nine more faces, seven more courses of fire, and the two
+        //          made to point at each other.
+        //
+        //          FACES. The NRA conventional pistol ladder - B-2, B-3, B-4,
+        //          B-5, B-6, B-8 and B-16 - taken from the rulebook table
+        //          reproduced at indecorous.com, and the two IBU biathlon
+        //          faces, 45 mm prone and 115 mm standing. Biathlon is scored
+        //          HIT_MISS because that is what it is: the target falls or
+        //          it does not, and a shot a millimetre inside the edge counts
+        //          the same as one through the middle.
+        //
+        //          The ring ladders are solid. THE BLACK DIAMETERS ARE NOT,
+        //          and are marked unverified: sources disagree about the
+        //          B-6/B-8 black, some calling it the 9 ring at 5.54 in and
+        //          others eight inches. The larger is used, because an aiming
+        //          mark too small makes the detector hunt for a disc that is
+        //          not there while one slightly too large still contains it.
+        //
+        //          LINKS, DERIVED RATHER THAN STORED. RuleSet already carried
+        //          targetFaceId, so the reverse direction is a scan of the
+        //          rule catalogue - not a second list to keep in step. A
+        //          stored list would be wrong the first time somebody added a
+        //          rule and forgot the face, and wrong SILENTLY, which is the
+        //          worst way for a cross-reference to fail. The rules screen
+        //          names the face as a link; the face names its competitions
+        //          as links; the catalogue row names the first of them.
+        //
+        //          A DETAIL PAGE. The preview at the top of the catalogue was
+        //          taking 42% of the screen and leaving three rows underneath;
+        //          it is 30% now, and tapping the selected row opens the face
+        //          on a page of its own - full-width plate, every ring
+        //          diameter as a table, and what it is shot in. Tapping an
+        //          unselected row still just selects it, so browsing costs
+        //          nobody their place.
+        //
+        //          GUIDES LEAVE THE PACKAGE. They are large binaries that
+        //          change every release and are of no use to a build, so every
+        //          delta was carrying a megabyte of Word document nobody would
+        //          diff. They are still produced and still checked for
+        //          currency - the packager refuses a stale one - they simply
+        //          travel as separate files now.
+        //
+        //          One mistake worth recording: Gauge.PISTOL_5_6 does not
+        //          exist and I wrote it five times. The static checks resolve
+        //          UNQUALIFIED names across packages; they cannot know which
+        //          members a real object actually has. Caught by listing the
+        //          constants and diffing against the ones used.
+        //
         // 1.43.2 - the User Guide ships with every release, and the build
         //          refuses to package one where it does not.
         //
@@ -4752,8 +4800,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 81
-        versionName = "1.43.2"
+        versionCode = 82
+        versionName = "1.44.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

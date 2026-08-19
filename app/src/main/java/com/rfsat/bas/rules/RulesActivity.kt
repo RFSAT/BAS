@@ -27,6 +27,12 @@ class RulesActivity : BaseActivity() {
     private var shown: List<RuleSet> = emptyList()
     private var selected: RuleSet? = null
 
+    companion object {
+        /** Open the screen with one rule already selected — used when
+         *  arriving from the face it is shot on. */
+        const val EXTRA_RULE_ID = "rule_id"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityRulesBinding.inflate(layoutInflater)
@@ -55,6 +61,12 @@ class RulesActivity : BaseActivity() {
         }
 
         refreshList()
+        // Arriving from a target face: show the rule that sent us here rather
+        // than whatever was active.
+        intent.getStringExtra(EXTRA_RULE_ID)?.let { id ->
+            val i = shown.indexOfFirst { it.id == id }
+            if (i >= 0) { binding.list.setSelection(i); select(shown[i]) }
+        }
         setupBottomNav(0) // Rules is reached from Settings, not a tab
     }
 
@@ -84,6 +96,26 @@ class RulesActivity : BaseActivity() {
         val face = TargetRepository(this).byId(r.targetFaceId)
 
         binding.tvDetailHead.text = "${r.name}\n${r.summary()}"
+
+        // The face as a link. A course of fire is not much use without
+        // knowing what it is shot at, and the shooter should be able to go
+        // either way: from the competition to the card, or from the card to
+        // the competitions that use it.
+        if (face == null) {
+            binding.tvFaceLink.text =
+                "Target face ${r.targetFaceId} is not in the catalogue."
+            binding.tvFaceLink.setOnClickListener(null)
+        } else {
+            binding.tvFaceLink.text = "\u25b8  Shot on ${face.name}"
+            binding.tvFaceLink.setOnClickListener {
+                startActivity(
+                    android.content.Intent(this,
+                        com.rfsat.bas.targets.TargetFaceDetailActivity::class.java)
+                        .putExtra(
+                            com.rfsat.bas.targets.TargetFaceDetailActivity.EXTRA_FACE_ID, face.id)
+                )
+            }
+        }
 
         val params = buildList {
             add("Target face" to (face?.name ?: r.targetFaceId))

@@ -43,7 +43,7 @@ def read_zip(path):
         for n in z.namelist():
             if n.endswith("/"): continue
             rel = n.split("/", 1)[1] if "/" in n else n     # strip the BAS/ root
-            if rel == MANIFEST: continue
+            if rel == MANIFEST or is_guide(rel): continue
             out[rel] = digest(z.read(n))
     return out
 
@@ -59,7 +59,22 @@ def baseline_version(path):
         pass
     return None
 
-def read_tree(root, skip=(".git", "build", ".gradle")):
+# The guides are DELIVERED, not packaged. They are large binaries that change
+# on every release, they are of no use to a build, and shipping them through
+# the same zip as the source means every delta carries a megabyte of Word
+# document nobody is going to diff. They are still produced and still checked
+# for currency — see guide_matches — they simply travel separately.
+GUIDE_PATTERNS = ("BAS-User-Guide", "BAS-Programmer-Reference")
+
+
+def is_guide(rel):
+    base = os.path.basename(rel)
+    return (rel.startswith("docs/") or "/docs/" in rel) and \
+        any(base.startswith(p) for p in GUIDE_PATTERNS) and \
+        base.rsplit(".", 1)[-1].lower() in ("docx", "pdf", "doc")
+
+
+def read_tree(root, skip=(".git", "build", ".gradle", "__pycache__")):
     """The tree as it will be shipped.
 
     RELEASE_MANIFEST.txt is excluded: it DESCRIBES the release, so a working
@@ -73,6 +88,7 @@ def read_tree(root, skip=(".git", "build", ".gradle")):
             if f == MANIFEST: continue
             full = os.path.join(dp, f)
             rel = os.path.relpath(full, root).replace(os.sep, "/")
+            if is_guide(rel): continue
             with open(full, "rb") as fh: out[rel] = (digest(fh.read()), full)
     return out
 
@@ -123,7 +139,8 @@ def main():
         if not ok:
             print("REFUSING TO PACKAGE %s: %s" % (version_name, why))
             sys.exit(2)
-        print("guide:    BAS-User-Guide_v%s.docx and its PDF are current" % version_name)
+        print("guide:    BAS-User-Guide_v%s.docx and its PDF are current "
+              "(delivered separately, not in the zip)" % version_name)
 
     prev = read_zip(prev_zip)
     cur = read_tree(here)
