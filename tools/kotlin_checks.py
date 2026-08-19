@@ -651,5 +651,40 @@ if os.path.exists(_pg):
 # while still missing the bug. Doing it properly needs block-level parsing —
 # function body versus class body — which is a real parser, not a regex.
 
+
+# ---------------------------------------------------------------- gate 16
+#
+# An R.id.* that no resource declares.
+#
+# Gate 4 checks binding.<field> against the layout it was inflated from, which
+# covers view binding. It does NOT cover R.id used directly — menu items, or a
+# findViewById on an id from another file. Referring to one that does not exist
+# is an "Unresolved reference" from the compiler naming the id, which reads
+# like a missing import rather than a resource that was never declared.
+#
+# It cost a CI run in 1.44.0: setupBottomNav(R.id.nav_targets) on a bottom bar
+# whose items are home, ballistics, score, results and settings. Targets is
+# reached from Settings and its own activity passes 0, which is what the new
+# screen should have done.
+_declared_ids = set()
+for _rd, _, _fs in os.walk("app/src/main/res"):
+    for _f in _fs:
+        if not _f.endswith(".xml"): continue
+        _declared_ids |= set(re.findall(r'@\+id/(\w+)',
+                                        open(os.path.join(_rd, _f), encoding="utf-8",
+                                             errors="ignore").read()))
+if _declared_ids:
+    for _f in files:
+        _src = open(_f, encoding="utf-8", errors="ignore").read()
+        for _n, _l in enumerate(_src.split("\n"), 1):
+            _code = _l.split("//")[0]
+            # (?<![.\w]) so android.R.id.content — the PLATFORM's R, which
+            # this project does not declare — is not reported.
+            for _m in re.finditer(r'(?<![.\w])R\.id\.(\w+)', _code):
+                if _m.group(1) not in _declared_ids:
+                    problems.append(
+                        f"{os.path.basename(_f)}:{_n}  R.id.{_m.group(1)} is not declared in "
+                        f"any resource")
+
 print(("PROBLEMS:\n  "+"\n  ".join(problems)) if problems else "No problems found.")
 sys.exit(1 if problems else 0)

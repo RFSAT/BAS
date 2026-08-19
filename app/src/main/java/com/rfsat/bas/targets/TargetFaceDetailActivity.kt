@@ -32,7 +32,7 @@ class TargetFaceDetailActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityFaceDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        setupBottomNav(R.id.nav_targets)
+        setupBottomNav(0) // reached from the catalogue, not a tab of its own
 
         val repo = TargetRepository(this)
         val id = intent.getStringExtra(EXTRA_FACE_ID)

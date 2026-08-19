@@ -48,6 +48,27 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.44.1 - correction: R.id.nav_targets does not exist.
+        //
+        //          The bottom bar holds home, ballistics, score, results and
+        //          settings. Targets is reached FROM Settings and has no tab,
+        //          which is why TargetActivity passes 0 - and the new detail
+        //          screen should have done the same. I wrote the id I
+        //          expected to be there rather than the one that is.
+        //
+        //          A gate now checks every R.id.* against the ids actually
+        //          declared under res/. Gate 4 already covered view binding;
+        //          this covers menu items and anything reached by
+        //          findViewById, where the compiler's \"Unresolved reference\"
+        //          reads like a missing import rather than a resource that was
+        //          never declared.
+        //
+        //          Its first draft reported android.R.id.content twice - the
+        //          PLATFORM's R, which this project does not declare. Fixed
+        //          with a lookbehind and checked both ways: silent on the
+        //          corrected tree, and still naming nav_targets when the
+        //          mistake is put back.
+        //
         // 1.44.0 - nine more faces, seven more courses of fire, and the two
         //          made to point at each other.
         //
@@ -4800,8 +4821,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 82
-        versionName = "1.44.0"
+        versionCode = 83
+        versionName = "1.44.1"
     }
 
     // Resolved once, here, rather than re-read from the environment in two
