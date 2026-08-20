@@ -48,6 +48,49 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.45.0 - automatic weather fills the GAPS instead of stopping at
+        //          Packaging note: excluding the guides from the archives, as
+        //          asked, means a tree rebuilt from one has no guide to stamp
+        //          - and the packager refuses to ship, which is what it is
+        //          for. The guides are deliverables now, not repository
+        //          content; any copies still in docs/ on GitHub should be
+        //          deleted, because nothing will update them there again.
+        //          the first source that answers.
+        //
+        //          The chain was phone, then meter, then online, and it ended
+        //          as soon as one of them succeeded. That is wrong for the
+        //          commonest kit there is: a Kestrel DROP measures
+        //          temperature, pressure and humidity and HAS NO IMPELLER. It
+        //          answers perfectly, so the chain stopped - and the online
+        //          step that could have supplied wind was skipped precisely
+        //          BECAUSE the meter worked.
+        //
+        //          EnvironmentManager.missing() now names the quantities
+        //          nothing has actually measured: a source of rank 0 means the
+        //          standard-atmosphere placeholder rather than a reading, and
+        //          wind is null when not measured, which is not the same as
+        //          calm. The chain continues while anything is missing and
+        //          stops when nothing is - so a full Kestrel 5700 still costs
+        //          no network request.
+        //
+        //          Going further cannot damage anything, which is what makes
+        //          this safe: the online step runs with force = false, and
+        //          that path has always filled gaps only, never replacing a
+        //          value an instrument measured. The ranking that guarantees
+        //          it already existed; only the control flow was wrong.
+        //
+        //          ONE MORE LINK. If the chosen service reports no wind -
+        //          Netatmo does not unless the station owner fitted an
+        //          anemometer - Open-Meteo is asked for it. It needs no key
+        //          and no account, which is what makes it usable as a backstop
+        //          rather than another thing to configure. It fills the gap
+        //          under its own name, so the status line still says a
+        //          forecast supplied it.
+        //
+        //          The explicit tiers are left strict on purpose. Choosing
+        //          \"External device\" means use the device; silently going
+        //          online would make that choice a suggestion.
+        //
         // 1.44.1 - correction: R.id.nav_targets does not exist.
         //
         //          The bottom bar holds home, ballistics, score, results and
@@ -4821,8 +4864,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 83
-        versionName = "1.44.1"
+        versionCode = 84
+        versionName = "1.45.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

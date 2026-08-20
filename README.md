@@ -151,6 +151,12 @@ on another phone.
 
 ## Documentation
 
+**The guides are DELIVERED, not committed.** They are excluded from the
+release archives — large binaries that change every release and are of no use
+to a build — and arrive as separate files. If earlier copies are still sitting
+in `docs/` in the repository, delete them: nothing will update them there
+again.
+
 **Every release ships an updated User Guide and a freshly rendered PDF.** That
 is not a habit to remember: `tools/package_release.py` refuses to package a
 version whose guide is not stamped with it, or whose PDF is older than the
@@ -232,7 +238,7 @@ one. Each release ships as a **single ZIP** holding the whole project —
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
 
-**1.44.1** - fixes a compile error in 1.44.0: the face detail screen asked for a bottom-nav tab that does not exist. A new gate checks every `R.id` against the resources.\n\n**1.44.0** - nine target faces added (the NRA B-series pistol ladder and the two IBU biathlon faces) and seven courses of fire to go with them. Faces and competitions now link to each other, derived from the face each rule already named. The catalogue preview is smaller so more rows fit, and tapping a face opens a page with every dimension and what it is shot in. Guide documents are no longer inside the release zips.\n\n**1.43.2** - the User Guide is rebuilt and re-rendered with every release from now on, enforced by the packager rather than remembered. This one adds section 6.2 on squaring up the picture (the aspect sliders, the centre crosshair and the lens correction), and notes on the weather key list and on weather keys in backups.
+**1.45.0** - automatic weather now continues down the chain until nothing is missing, rather than stopping at the first source that answers. A Kestrel DROP has no impeller, so wind is now sought online instead of being lost; Open-Meteo acts as a keyless backstop when the chosen service reports none. Nothing an instrument measured can be displaced.\n\n**1.44.1** - fixes a compile error in 1.44.0: the face detail screen asked for a bottom-nav tab that does not exist. A new gate checks every `R.id` against the resources.\n\n**1.44.0** - nine target faces added (the NRA B-series pistol ladder and the two IBU biathlon faces) and seven courses of fire to go with them. Faces and competitions now link to each other, derived from the face each rule already named. The catalogue preview is smaller so more rows fit, and tapping a face opens a page with every dimension and what it is shot in. Guide documents are no longer inside the release zips.\n\n**1.43.2** - the User Guide is rebuilt and re-rendered with every release from now on, enforced by the packager rather than remembered. This one adds section 6.2 on squaring up the picture (the aspect sliders, the centre crosshair and the lens correction), and notes on the weather key list and on weather keys in backups.
 
 **1.43.1** - weather service keys: each service now explains its own key rather than showing a sentence about Netatmo, Settings lists which keys are set, and backups carry them - under the same opt-in as the AI keys, not hidden in the settings dump.
 

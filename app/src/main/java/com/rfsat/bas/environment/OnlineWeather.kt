@@ -69,6 +69,24 @@ object OnlineWeather {
         return c
     }
 
+    /**
+     * Open-Meteo directly, whatever service is configured.
+     *
+     * Used as the LAST link in the automatic chain, for wind only. The chosen
+     * service may simply not report it — Netatmo does not unless the station
+     * owner fitted an anemometer, and a shooter who set Netatmo up for
+     * temperature should not lose wind because of that. Open-Meteo needs no
+     * key and no account, which is what makes it usable as a backstop rather
+     * than another thing to configure.
+     *
+     * A forecast is not a measurement at the firing point, and the reading it
+     * fills in is still marked with its own name so the status line says so.
+     */
+    fun fetchOpenMeteo(lat: Double, lon: Double): Conditions? =
+        runCatching { openMeteo(lat, lon) }
+            .onFailure { Logger.e(TAG, "Open-Meteo backstop failed", it) }
+            .getOrNull()
+
     // ---- providers -------------------------------------------------------
 
     private fun openMeteo(lat: Double, lon: Double): Conditions? {

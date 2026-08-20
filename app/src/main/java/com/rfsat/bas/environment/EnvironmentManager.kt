@@ -152,6 +152,33 @@ object EnvironmentManager {
      * firing point; the phone measures it too, for the little it can sense; a
      * forecast describes a region and is the weakest of the three.
      */
+    /**
+     * Which quantities nothing has actually measured yet.
+     *
+     * A source string of rank 0 — "default", "standard", blank — means the
+     * value in [current] is the standard-atmosphere placeholder rather than a
+     * reading. Wind is different: it is nullable, and null means NOT
+     * MEASURED, which is not the same as calm.
+     *
+     * Automatic weather uses this to decide whether there is any point asking
+     * the next source. A Kestrel DROP measures temperature, pressure and
+     * humidity and has no impeller at all, so on its own it can never supply
+     * wind — and the chain used to stop at it simply because it answered.
+     */
+    fun missing(): List<String> {
+        val r = current
+        val out = mutableListOf<String>()
+        if (rankOf(r.temperatureSource) == 0) out += "temperature"
+        if (rankOf(r.pressureSource) == 0) out += "pressure"
+        if (rankOf(r.humiditySource) == 0) out += "humidity"
+        if (r.windSpeedMps == null) out += "wind speed"
+        if (r.windDirectionDeg == null) out += "wind direction"
+        return out
+    }
+
+    /** True when every quantity has come from something real. */
+    fun isComplete(): Boolean = missing().isEmpty()
+
     fun rankOf(source: String): Int = when {
         source.isBlank() -> 0
         source.equals("standard", true) || source.equals("default", true) -> 0

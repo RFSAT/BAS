@@ -1585,6 +1585,8 @@ Advertising-only — it never appears in the paired list, so BAS scans for it.
 no bearing set, treat the reading as relative
 would write defaults over the last real reading
 0 m/s calm
+wind speed
+wind direction
 humidity=${current.humiditySource}
 not measured
 humidity=${if (takeH)
@@ -1631,9 +1633,11 @@ Cam
 Kestrel ●  LRF ◐
 ${k.label} ${symbol(l.state)}
 get me the conditions at the firing point
+after phone and meter — asking the online service
 No weather device found — switch it on, or choose another source.
 No position — set coordinates in Settings, or allow location.
 The weather service returned nothing — see the Log.
+${WeatherConfig.service(context).label} reported none
 Wind not measured
 %.1fhPa
 NOT PROVIDED
