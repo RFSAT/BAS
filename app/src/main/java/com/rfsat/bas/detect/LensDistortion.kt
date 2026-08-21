@@ -162,65 +162,7 @@ object LensDistortion {
     }
 
     /** True when a coefficient is worth the work of applying. */
-
-    /**
-     * How far the mapping must be stretched to keep the whole picture.
-     *
-     * THE BUG THIS FIXES. Undistortion moves content outward: an output pixel
-     * at radius r takes its colour from source radius distort(r), which for a
-     * barrel correction (k < 0) is SMALLER than r. So the output corner shows
-     * what used to be at 80-something per cent of the way out, and everything
-     * beyond that — including the edge of the card — is pushed off the frame
-     * and lost. The correction was right about shape and wrong about scale:
-     * it changed the effective focal length and nothing compensated.
-     *
-     * The fix is a gain g applied to the output radius before it is put back
-     * through the lens, chosen so the output corner samples the SOURCE
-     * corner: distort(g * norm) = norm. That preserves the field of view, and
-     * with it the target face, at the cost of resampling the middle of the
-     * picture a little more finely — which is the right trade, since the
-     * middle is where the resolution is anyway.
-     *
-     * WHEN IT CANNOT BE SOLVED. r * (1 + k f^2) stops being monotonic at
-     * f = sqrt(-1/(3k)), and its largest value on that branch is two thirds
-     * of that. Setting that peak equal to the corner gives the exact limit:
-     *
-     *     FULL RECOVERY IS POSSIBLE ONLY FOR k > -4/27, about -0.148.
-     *
-     * Below that the corner simply cannot be reached, whatever gain is used,
-     * and the fold point is returned instead — the most that can be
-     * recovered without the mapping turning inside out. At k = -0.15 that
-     * leaves 99.4% of the frame, so the shortfall only becomes visible well
-     * past the distortion any real photograph of a target carries.
-     *
-     * (-1/3 is a different and looser limit: below it the fold lands INSIDE
-     * the frame, so the mapping is not merely incomplete but reversed. That
-     * is what worthApplying refuses.)
-     */
-    fun fovGain(k: Double): Double {
-        if (k >= 0.0 || abs(k) < NEGLIGIBLE) return 1.0
-        // Normalised: solve u * (1 + k u^2) = 1 for u, on the monotonic branch.
-        val uFold = Math.sqrt(-1.0 / (3.0 * k))
-        val peak = uFold * (1.0 + k * uFold * uFold)
-        if (peak < 1.0) return uFold          // unreachable; take the fold point
-        var lo = 0.0; var hi = uFold
-        repeat(60) {
-            val mid = (lo + hi) / 2.0
-            if (mid * (1.0 + k * mid * mid) < 1.0) lo = mid else hi = mid
-        }
-        return (lo + hi) / 2.0
-    }
-
-    /**
-     * Beyond this the radial mapping folds within the frame and the model has
-     * stopped describing a lens. Kept separate from [MAX_K], which is a limit
-     * on what a shooter may type; this is a limit on what the mathematics can
-     * express.
-     */
-    const val FOLD_LIMIT = 1.0 / 3.0
-
-    fun worthApplying(k: Double): Boolean =
-        abs(k) >= NEGLIGIBLE && abs(k) < MAX_K && k > -FOLD_LIMIT
+    fun worthApplying(k: Double): Boolean = abs(k) >= NEGLIGIBLE && abs(k) < MAX_K
 
     /** As typed by hand, or null when it is not a usable number. */
     fun parse(text: String): Double? {
@@ -259,9 +201,6 @@ object LensCorrection {
         val cx = (w - 1) / 2.0
         val cy = (h - 1) / 2.0
         val norm = Math.hypot(cx, cy)
-        // Keep the field of view. Without this the corrected picture is
-        // silently magnified and the edges of the card leave the frame.
-        val gain = LensDistortion.fovGain(k)
         val inPx = IntArray(w * h)
         src.getPixels(inPx, 0, w, 0, 0, w, h)
         val out = IntArray(w * h)
@@ -273,8 +212,8 @@ object LensCorrection {
                 // Where in the ORIGINAL this output pixel came from: the
                 // output is the undistorted picture, so the source radius is
                 // that radius put back through the lens.
-                val rSrc = LensDistortion.distort(r * gain, norm, k)
-                val scale = if (r < 1e-9) gain else rSrc / r
+                val rSrc = LensDistortion.distort(r, norm, k)
+                val scale = if (r < 1e-9) 1.0 else rSrc / r
                 val sx = cx + dx * scale
                 val sy = cy + dy * scale
                 out[y * w + x] = sample(inPx, w, h, sx, sy)
@@ -318,15 +257,13 @@ object LensCorrection {
         val cx = (w - 1) / 2.0
         val cy = (h - 1) / 2.0
         val norm = Math.hypot(cx, cy)
-        val gain = LensDistortion.fovGain(k)
         val map = IntArray(w * h)
         for (y in 0 until h) {
             val dy = y - cy
             for (x in 0 until w) {
                 val dx = x - cx
                 val r = Math.hypot(dx, dy)
-                val scale =
-                    if (r < 1e-9) gain else LensDistortion.distort(r * gain, norm, k) / r
+                val scale = if (r < 1e-9) 1.0 else LensDistortion.distort(r, norm, k) / r
                 val sx = (cx + dx * scale).toInt()
                 val sy = (cy + dy * scale).toInt()
                 map[y * w + x] =

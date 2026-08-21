@@ -48,7 +48,7 @@ class RegistrationOverlayView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyle: Int = 0
 ) : View(context, attrs, defStyle) {
 
-    enum class Mode { BOX, CORNERS, CENTRE }
+    enum class Mode { BOX, CORNERS }
 
     /**
      * How the source is fitted into this view. A camera preview is
@@ -73,13 +73,10 @@ class RegistrationOverlayView @JvmOverloads constructor(
     /**
      * One ring of the registered face, as a closed curve in SOURCE pixels.
      *
-     * A curve rather than a centre and a radius, because a registration may
-     * carry perspective: a circle on a card photographed from an angle is an
-     * ellipse on the sensor, and one photographed through a stretched aspect
-     * is an ellipse of a different sort again. Sampling the circle in
-     * millimetres and mapping each point through the same homography the
-     * scoring uses means the drawn ring is exactly where the app believes the
-     * printed one to be — which is the whole point of showing it.
+     * A curve, not a centre and a radius: a card photographed at an angle
+     * shows its rings as ellipses, and drawing them as circles would show a
+     * perfect fit for a registration that is quietly wrong — which is exactly
+     * the error this is meant to expose.
      */
     class RingOutline(
         val points: List<Pair<Double, Double>>,
@@ -89,41 +86,15 @@ class RegistrationOverlayView @JvmOverloads constructor(
     }
 
     /**
-     * The rings to draw over the photograph after a registration.
+     * The ring ladder to draw over the photograph after a registration.
      *
-     * This is the check the shooter could not previously make. A box around
-     * the face says where the app thinks the card is; it says nothing about
-     * whether the SCALE is right, and an aspect error of a few per cent moves
-     * no corner appreciably while putting every ring visibly off the
-     * printing. Drawing the ladder makes that error obvious at a glance and
-     * makes the aspect sliders something to aim with rather than guess at.
+     * PURELY A DRAWING. Nothing here is read by detection, registration or
+     * scoring; the view is told what to draw and draws it. That separation is
+     * deliberate — the point of this is to let the shooter CHECK the
+     * registration, and a check that alters what it is checking is worthless.
      */
     var ringOutlines: List<RingOutline> = emptyList()
         set(value) { field = value; invalidate() }
-
-    /**
-     * Where the shooter says the middle of the face is, in SOURCE pixels, or
-     * null while they have not said.
-     *
-     * A HINT, not a measurement. It is not used to move, crop or rescale the
-     * picture — doing that would shift the optical centre, and the lens
-     * correction is radial ABOUT THE OPTICAL CENTRE, so a picture recentred
-     * on the target would then be corrected about the wrong point. It is used
-     * only to tell the detector where to look, which is where it helps and
-     * where it cannot do any harm.
-     */
-    var centreHint: Pair<Double, Double>? = null
-        private set
-
-    var onCentreChanged: (() -> Unit)? = null
-
-    fun setCentreFromSource(x: Double, y: Double) {
-        centreHint = x to y; invalidate(); onCentreChanged?.invoke()
-    }
-
-    fun clearCentre() {
-        centreHint = null; invalidate(); onCentreChanged?.invoke()
-    }
 
     /** Fires whenever the box is moved or resized. */
     var onBoxChanged: (() -> Unit)? = null
@@ -242,10 +213,7 @@ class RegistrationOverlayView @JvmOverloads constructor(
 
     fun clearAll() {
         taps.clear(); box = null
-        // The rings belong to a registration, so they go when it does. Left
-        // behind they would show a ladder for a mapping that no longer
-        // exists, which is worse than showing nothing.
-        ringOutlines = emptyList()
+        ringOutlines = emptyList()   // the rings belong to a registration
         onCornersChanged?.invoke(0); onBoxChanged?.invoke()
         invalidate()
     }
@@ -343,11 +311,7 @@ class RegistrationOverlayView @JvmOverloads constructor(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        when (mode) {
-            Mode.BOX -> drawBox(canvas)
-            Mode.CORNERS -> drawCorners(canvas)
-            Mode.CENTRE -> drawCentre(canvas)
-        }
+        if (mode == Mode.BOX) drawBox(canvas) else drawCorners(canvas)
         drawRings(canvas)
         drawDetections(canvas)
     }
@@ -434,12 +398,12 @@ class RegistrationOverlayView @JvmOverloads constructor(
     }
 
     /**
-     * The registered ring ladder.
+     * The registered ring ladder, in three weights.
      *
-     * Drawn UNDER the detections, so a marked shot is never hidden by a ring
-     * line, and in three weights: the outer ring and the aiming black carry
-     * the check — if those two sit on the printing the scale is right — while
-     * the rest are thin enough to read the card through.
+     * The outer ring and the aiming black carry the check — if those two sit
+     * on the printing, the scale is right — so they are drawn heavy. The rest
+     * are thin enough to read the card through. Drawn UNDER the detections so
+     * a marked shot is never hidden by a ring line.
      */
     private fun drawRings(canvas: Canvas) {
         if (ringOutlines.isEmpty() || srcWidth <= 0) return
@@ -449,15 +413,13 @@ class RegistrationOverlayView @JvmOverloads constructor(
             if (ring.points.size < 3) continue
             val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 style = Paint.Style.STROKE
-                isDither = true
                 when (ring.emphasis) {
                     RingOutline.Emphasis.OUTER -> { strokeWidth = 3f; color = accent }
                     RingOutline.Emphasis.BLACK -> {
                         strokeWidth = 2.5f
                         color = alpha(accent, 230)
-                        // Dashed, so it is never mistaken for a scoring ring
-                        // it sits close to on faces where the black falls
-                        // between two of them.
+                        // Dashed, so it is never taken for a scoring ring on
+                        // faces where the black falls next to one.
                         pathEffect = android.graphics.DashPathEffect(floatArrayOf(12f, 8f), 0f)
                     }
                     RingOutline.Emphasis.NORMAL -> { strokeWidth = 1.2f; color = alpha(accent, 140) }
@@ -508,51 +470,9 @@ class RegistrationOverlayView @JvmOverloads constructor(
     private var lastX = 0f
     private var lastY = 0f
 
-    override fun onTouchEvent(event: MotionEvent): Boolean = when (mode) {
-        Mode.CORNERS -> cornerTouch(event)
-        Mode.CENTRE -> centreTouch(event)
-        Mode.BOX -> boxTouch(event)
-    }
-
-    /** Drag anywhere: the crosshair follows the finger rather than needing to
-     *  be picked up first, because there is only one of it and hunting for a
-     *  grab handle on a phone held at arm's length is its own small misery. */
-    private fun centreTouch(event: MotionEvent): Boolean {
-        when (event.actionMasked) {
-            MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
-                val (sx, sy) = viewToSource(event.x, event.y)
-                centreHint = sx to sy
-                invalidate()
-                if (event.actionMasked == MotionEvent.ACTION_DOWN) performClick()
-                return true
-            }
-            MotionEvent.ACTION_UP -> { onCentreChanged?.invoke(); return true }
-        }
-        return super.onTouchEvent(event)
-    }
-
-    /**
-     * A full-width crosshair, not a small cross. The eye judges "is this line
-     * through the middle of the rings" far better than "is this dot on the
-     * middle", because a line can be compared against the printing along its
-     * whole length.
-     */
-    private fun drawCentre(canvas: Canvas) {
-        val c = centreHint
-        if (c == null || srcWidth <= 0) {
-            prompt(canvas, "Drag the crosshair onto the middle of the target face")
-            return
-        }
-        val (vx, vy) = sourceToView(c.first, c.second)
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            style = Paint.Style.STROKE
-            strokeWidth = 2f
-            color = 0xFFFFC107.toInt()
-        }
-        canvas.drawLine(0f, vy, width.toFloat(), vy, paint)
-        canvas.drawLine(vx, 0f, vx, height.toFloat(), paint)
-        val gap = 14f * resources.displayMetrics.density
-        canvas.drawCircle(vx, vy, gap, paint)
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        if (mode == Mode.CORNERS) return cornerTouch(event)
+        return boxTouch(event)
     }
 
     private fun cornerTouch(event: MotionEvent): Boolean {

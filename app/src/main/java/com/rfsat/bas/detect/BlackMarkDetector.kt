@@ -115,47 +115,7 @@ object BlackMarkDetector {
      * Finds the aiming mark, or returns null when nothing convincing is
      * there. Coordinates come back in [frame]'s own full-resolution pixels.
      */
-    fun detect(frame: LumaFrame): DetectedDisc? = detect(frame, null)
-
-    /**
-     * As above, with an optional centre the shooter has marked, in the same
-     * pixels as [frame].
-     *
-     * The hint does not move or crop the picture; it only says where to look
-     * first. That matters because the search is an Otsu split, and Otsu is a
-     * question about a HISTOGRAM: whatever else is in the frame — a bench, a
-     * shadow, a second card on the next lane — competes for the dark class
-     * and can win. Cropping the histogram to a window around the face removes
-     * the competition, which is the whole benefit, and it is why a hint helps
-     * far more than its precision would suggest.
-     *
-     * Still only a hint: the hinted window has to BEAT the unhinted attempts
-     * on confidence to be used, so a crosshair left in the wrong place cannot
-     * make the result worse than it would have been.
-     */
-    fun detect(frame: LumaFrame, hint: Pair<Double, Double>?): DetectedDisc? {
-        val hinted = hint?.let { (hx, hy) ->
-            // A window two-thirds of the shorter side, centred on the hint and
-            // clamped to the frame: big enough to hold a face that fills most
-            // of the picture, small enough to exclude most of what does not.
-            val half = (min(frame.width, frame.height) * 0.34).toInt()
-            val x0 = (hx - half).toInt().coerceIn(0, frame.width - 1)
-            val y0 = (hy - half).toInt().coerceIn(0, frame.height - 1)
-            val x1 = (hx + half).toInt().coerceIn(x0 + 1, frame.width)
-            val y1 = (hy + half).toInt().coerceIn(y0 + 1, frame.height)
-            detectIn(frame, x0, y0, x1, y1)
-        }
-        if (hinted != null && hinted.confidence >= GOOD_ENOUGH) return hinted
-        val unhinted = detectUnhinted(frame)
-        return when {
-            hinted == null -> unhinted
-            unhinted == null -> hinted
-            hinted.confidence >= unhinted.confidence -> hinted
-            else -> unhinted
-        }
-    }
-
-    private fun detectUnhinted(frame: LumaFrame): DetectedDisc? {
+    fun detect(frame: LumaFrame): DetectedDisc? {
         // Try the whole picture first, then just the middle of it.
         //
         // WHY THE RETRY. Otsu splits the image into a dark population and a

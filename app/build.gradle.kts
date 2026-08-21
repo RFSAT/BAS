@@ -48,6 +48,53 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.47.0 - REVERT. The scoring pipeline goes back to what it was,
+        //          and the ring overlay is re-done as a drawing and nothing
+        //          more.
+        //
+        //          The request was for VISUAL CONFIRMATION of a registration.
+        //          What was delivered across 1.42-1.46 also changed the
+        //          detection path, and target identification got worse. Two
+        //          of those changes are enough to explain it on their own:
+        //
+        //          * 1.43.0 put a field-of-view gain into LensDistortion.apply
+        //            — BOTH the bitmap and the LumaFrame paths, and the
+        //            LumaFrame one is inside detection. The same coefficient
+        //            now resamples to a different geometry, so anything
+        //            derived from it moves: the registration, the scale, and
+        //            with them where a second opinion's coordinates land.
+        //
+        //          * 1.44.0 added nine faces to the catalogue the identifier
+        //            SEARCHES. Auto-identify picks the best match from that
+        //            list, so widening it with NRA pistol faces of similar
+        //            ring geometry gives it more ways to be wrong. Nothing in
+        //            the request asked for the identifier to have a harder
+        //            job.
+        //
+        //          Reverted to the 1.32.0 state, byte for byte, and checked:
+        //          the whole detect package, TargetCatalog, RuleCatalog and
+        //          activity_import.xml. The aspect sliders, the centre-hint
+        //          crosshair and the lens gain are gone with them.
+        //
+        //          WHAT REMAINS is the ladder itself: RegistrationOverlayView
+        //          gained a list of curves and the code to stroke them, and
+        //          ImportActivity gained one function that reads the
+        //          registration and produces those curves. Nothing reads them
+        //          back. Every scoring ring is drawn, with the outer ring and
+        //          the aiming black picked out heavier — the black dashed —
+        //          so both ends of the ladder can be checked against the
+        //          printing, which is what was asked for.
+        //
+        //          Hooked at ONE call site, inside refreshStatus, which
+        //          already runs after every change of state. The previous
+        //          attempt scattered nine calls through the file with a
+        //          regular expression and never looked at the result.
+        //
+        //          The lesson is not about the gain or the catalogue. It is
+        //          that a request to SHOW something is not a licence to change
+        //          the thing being shown, and that anything touching the
+        //          detector needs to be asked for.
+        //
         // 1.46.0 - the registered ring ladder is drawn over the photograph.
         //
         //          The overlay showed a BOX around the face and nothing else.
@@ -4895,8 +4942,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 85
-        versionName = "1.46.0"
+        versionCode = 86
+        versionName = "1.47.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

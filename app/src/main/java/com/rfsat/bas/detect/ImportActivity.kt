@@ -163,8 +163,7 @@ class ImportActivity : BaseActivity() {
                 notifyUser("Target face switched to ${faces[idx].name} to match the rules.")
             }
             binding.etDistance.setText(fmt(UnitsManager.displayDistance(r.distanceM)))
-            registration = null
-            showRegisteredRings(null)      // the gauge changed, so the rectification did too
+            registration = null      // the gauge changed, so the rectification did too
             refreshStatus()
         }
 
@@ -176,8 +175,7 @@ class ImportActivity : BaseActivity() {
         binding.spTarget.onItemSelectedListener = onSelected { i ->
             if (i == pendingTargetSelection) { pendingTargetSelection = -1; return@onSelected }
             faces.getOrNull(i)?.let { TargetRepository(this).setActiveFace(it.id) }
-            registration = null
-            showRegisteredRings(null)      // a different face means a different mapping
+            registration = null      // a different face means a different mapping
             binding.overlay.clearCorners()
             refreshStatus()
         }
@@ -194,7 +192,6 @@ class ImportActivity : BaseActivity() {
             binding.overlay.clearAll(); registration = null; lastFit = null; lastMarkRadiusPx = 0.0; refreshStatus()
         }
         binding.cbCornerMode.setOnCheckedChangeListener { _, corners ->
-            if (corners) binding.cbCentreMode.isChecked = false
             binding.overlay.mode =
                 if (corners) RegistrationOverlayView.Mode.CORNERS
                 else RegistrationOverlayView.Mode.BOX
@@ -203,7 +200,6 @@ class ImportActivity : BaseActivity() {
             binding.btnIdentify.isEnabled = !corners
             setTransformControlsEnabled(!corners)
             registration = null
-            showRegisteredRings(null)
             refreshStatus()
         }
         binding.btnDetect.setOnClickListener { doDetect() }
@@ -216,31 +212,7 @@ class ImportActivity : BaseActivity() {
             startActivity(android.content.Intent(this, ResultsActivity::class.java)); finish()
         }
         binding.overlay.onCornersChanged = { refreshStatus() }
-
-        // Marking the centre is a third overlay mode, exclusive with the
-        // other two: all three want the same finger.
-        binding.cbCentreMode.setOnCheckedChangeListener { _, marking ->
-            binding.overlay.mode = when {
-                marking -> RegistrationOverlayView.Mode.CENTRE
-                binding.cbCornerMode.isChecked -> RegistrationOverlayView.Mode.CORNERS
-                else -> RegistrationOverlayView.Mode.BOX
-            }
-            if (marking && binding.overlay.centreHint == null) {
-                // Start it in the middle of the picture, which is where a
-                // squared-up photograph already has it — so a small drag is
-                // usually all it needs.
-                sourceShotBitmap?.let {
-                    binding.overlay.setCentreFromSource(it.width / 2.0, it.height / 2.0)
-                }
-            }
-            refreshStatus()
-        }
-        binding.overlay.onCentreChanged = {
-            // Re-identify from the new hint the moment the finger lifts: the
-            // point of marking the centre is to see the detector agree.
-            if (binding.cbCentreMode.isChecked) doIdentifyTarget(silent = true)
-        }
-        wireAspectSliders()
+        binding.btnAspectApply.setOnClickListener { applyAspect() }
         binding.btnLensApply.setOnClickListener { applyLens() }
         moreInfo(binding.infoLens, "Lens distortion",
             "Everything the app measures geometrically assumes a pinhole camera, in which a " +
@@ -308,7 +280,6 @@ class ImportActivity : BaseActivity() {
         )
         binding.overlay.clearAll()
         registration = null
-        showRegisteredRings(null)
         notifyUser(
             "Showing the last photo you scored. Pick another to replace it, or register and " +
                 "score this one again."
@@ -348,7 +319,8 @@ class ImportActivity : BaseActivity() {
                         "registration.").format(100 * (1 - fit.axisRatio))
             return
         }
-        setSliders(s.percentX / 100.0, s.percentY / 100.0)
+        binding.etAspectX.setText("%.1f".format(s.percentX))
+        binding.etAspectY.setText("%.1f".format(s.percentY))
         binding.tvAspect.text =
             ("The rings measure %.0f%% out of round along the picture's own axes. Width %.1f%%, " +
                 "height %.1f%% would make them round — press Apply to try it.")
@@ -373,8 +345,15 @@ class ImportActivity : BaseActivity() {
         val src = sourceShotBitmap ?: shotBitmap ?: run {
             notifyUser("Choose a photo first."); return
         }
-        val sx = sliderScale(binding.sbAspectX)
-        val sy = sliderScale(binding.sbAspectY)
+        val sx = AspectCorrection.parsePercent(binding.etAspectX.text.toString())
+        val sy = AspectCorrection.parsePercent(binding.etAspectY.text.toString())
+        if (sx == null || sy == null) {
+            notifyUser(
+                "Both figures must be percentages between %.0f and %.0f."
+                    .format(100.0 / AspectCorrection.MAX_STRETCH, 100.0 * AspectCorrection.MAX_STRETCH)
+            )
+            return
+        }
         if (!AspectCorrection.worthApplying(sx, sy)) {
             resetAspect(); return
         }
@@ -476,7 +455,8 @@ class ImportActivity : BaseActivity() {
         lensK = 0.0
         binding.etLensK.setText("0")
         binding.tvLens.text = ""
-        setSliders(1.0, 1.0)
+        binding.etAspectX.setText("100")
+        binding.etAspectY.setText("100")
         useBitmap(src)
         binding.tvAspect.text = "Original picture."
         notifyUser("Back to the original picture. Registering it again.")
@@ -496,7 +476,6 @@ class ImportActivity : BaseActivity() {
         )
         binding.overlay.clearAll()
         registration = null
-        showRegisteredRings(null)
         lastFit = null
         lastMarkRadiusPx = 0.0
         refreshStatus()
@@ -534,7 +513,8 @@ class ImportActivity : BaseActivity() {
             shotBitmap = bmp
             sourceShotBitmap = bmp
             aspectX = 1.0; aspectY = 1.0
-            setSliders(1.0, 1.0)
+            binding.etAspectX.setText("100")
+            binding.etAspectY.setText("100")
             binding.tvAspect.text = ""
             shotUri = uri
             rememberLastImage(uri)
@@ -547,7 +527,6 @@ class ImportActivity : BaseActivity() {
             )
             binding.overlay.clearAll()
             registration = null
-            showRegisteredRings(null)
             // IDENTIFY, not merely detect.
             //
             // This ran the aiming-mark path on load, which takes the scale
@@ -582,7 +561,7 @@ class ImportActivity : BaseActivity() {
 
         val face = currentFace()
         val frame = LumaFrame.fromBitmap(bmp)
-        val disc = BlackMarkDetector.detect(frame, binding.overlay.centreHint)
+        val disc = BlackMarkDetector.detect(frame)
 
         if (disc == null) {
             binding.overlay.setDefaultBox()
@@ -714,7 +693,6 @@ class ImportActivity : BaseActivity() {
             }
         }
         registration = reg
-        showRegisteredRings(reg)
         Logger.i(
             "ImportActivity",
             "registered %s: face '%s', rules '%s', gauge %.2f mm, %s".format(
@@ -1076,7 +1054,7 @@ class ImportActivity : BaseActivity() {
             if (!silent) notifyUser("No picture to work from yet.")
             return
         }
-        val mark = BlackMarkDetector.detect(frame, binding.overlay.centreHint)
+        val mark = BlackMarkDetector.detect(frame)
         val fit = RingFinder.find(
             frame,
             seedX = mark?.centreXPx ?: -1.0,
@@ -1164,7 +1142,6 @@ class ImportActivity : BaseActivity() {
             return
         }
         registration = reg
-        showRegisteredRings(reg)
         boxMeaning = TargetRegistration.BoxMeaning.OUTER_SCORING_RING
         showRingFamily(fit, face)
         offerAspect(fit)
@@ -1232,7 +1209,73 @@ class ImportActivity : BaseActivity() {
     private fun detectionFrame(): LumaFrame? =
         shotBitmap?.let { LumaFrame.fromBitmapForDetection(it) }
 
+    /**
+     * Draws the registered ring ladder over the photograph.
+     *
+     * WHAT THIS IS FOR. The overlay showed a box around the face, which says
+     * where the app thinks the card is and nothing about whether the SCALE is
+     * right — and an aspect error of a few per cent barely moves a corner
+     * while putting every ring off the printing. Drawing the ladder lets that
+     * be seen: if the drawn rings sit on the printed ones, the registration
+     * is good.
+     *
+     * WHAT IT IS NOT. It reads the registration and produces pixels. It does
+     * not alter the registration, the image, or anything the detector or the
+     * scoring uses. A check that changes what it is checking is worthless,
+     * and an earlier attempt at this changed the pipeline as well — which is
+     * why this one is deliberately inert.
+     *
+     * Each ring is sampled in MILLIMETRES and mapped through the same
+     * homography the scoring uses, so a card seen at an angle draws as the
+     * ellipse it actually is.
+     */
+    private fun showRegisteredRings() {
+        val reg = registration
+        if (reg == null) { binding.overlay.ringOutlines = emptyList(); return }
+        val face = reg.face
+        val steps = 96
+
+        fun outline(diameterMm: Double, emphasis: RegistrationOverlayView.RingOutline.Emphasis):
+            RegistrationOverlayView.RingOutline? {
+            if (diameterMm <= 0.0) return null
+            val r = diameterMm / 2.0
+            val pts = ArrayList<Pair<Double, Double>>(steps)
+            for (i in 0 until steps) {
+                val a = 2.0 * Math.PI * i / steps
+                val (x, y) = reg.homography.mmToPx(r * Math.cos(a), r * Math.sin(a))
+                if (!x.isNaN() && !y.isNaN()) pts.add(x to y)
+            }
+            return if (pts.size >= 3)
+                RegistrationOverlayView.RingOutline(pts, emphasis) else null
+        }
+
+        val outerMm = face.outerRadiusMm * 2.0
+        val out = ArrayList<RegistrationOverlayView.RingOutline>()
+        for (ring in face.rings) {
+            outline(
+                ring.diameterMm,
+                if (ring.diameterMm >= outerMm - 1e-6)
+                    RegistrationOverlayView.RingOutline.Emphasis.OUTER
+                else RegistrationOverlayView.RingOutline.Emphasis.NORMAL
+            )?.let { out.add(it) }
+        }
+        if (face.hasInnerTen) {
+            outline(face.innerTenDiameterMm,
+                RegistrationOverlayView.RingOutline.Emphasis.NORMAL)?.let { out.add(it) }
+        }
+        // The black last, so its dashes sit above a ring it may share an edge
+        // with.
+        outline(face.blackDiameterMm, RegistrationOverlayView.RingOutline.Emphasis.BLACK)
+            ?.let { out.add(it) }
+        binding.overlay.ringOutlines = out
+    }
+
     private fun refreshStatus() {
+        // Kept in step here rather than at each of the nine places the
+        // registration changes: this already runs after every one of them,
+        // and it reads the same field the rest of the screen reads.
+        runCatching { showRegisteredRings() }
+
         binding.tvStatus.text = buildString {
             append(if (shotBitmap == null) "No target photo" else "Target photo loaded")
             append("  |  ")
@@ -1312,7 +1355,6 @@ class ImportActivity : BaseActivity() {
         binding.lblTiltY.text = "Vertical tilt  %+.1f°".format(transform.tiltYDeg)
         // The registration was built from the old shape, so it is stale now.
         registration = null
-        showRegisteredRings(null)
         refreshStatus()
     }
 
@@ -1359,148 +1401,5 @@ class ImportActivity : BaseActivity() {
         shotBitmap = null
         sourceShotBitmap?.recycle(); sourceShotBitmap = null
         cleanBitmap?.recycle(); cleanBitmap = null
-    }
-
-    // ------------------------------------------------------------------
-    //  Aspect sliders
-    // ------------------------------------------------------------------
-    //
-    // Two numbers in boxes asked the shooter to guess a percentage, look at
-    // the result, and guess again. The rings either sit on the printing or
-    // they do not, and that is a judgement the eye makes instantly and
-    // arithmetic makes slowly.
-    //
-    // WHAT MOVES WHILE THE FINGER IS DOWN. Only the ImageView's own scale —
-    // scaleX and scaleY about its centre. The picture is NOT resampled and
-    // the registration is NOT re-run, because either would take hundreds of
-    // milliseconds per step and turn a smooth drag into a slideshow.
-    //
-    // The overlay deliberately does NOT scale with it. The rings stay where
-    // the last registration put them, so the shooter stretches the photograph
-    // until its printed rings line up with the drawn ones. Scaling both
-    // together would move the reference along with the thing being measured
-    // and show nothing at all.
-    //
-    // The real work happens on release: resample, then register again from
-    // the new pixels — the same path the Apply button used to run, unchanged,
-    // because the pipeline order matters and this is only a new way of
-    // choosing the number.
-
-    /** Slider position to a scale factor. 0.1% per step across the range the
-     *  stretch is allowed to cover, so 100% is exactly reachable. */
-    private fun sliderScale(bar: android.widget.SeekBar): Double {
-        val minPct = 100.0 / AspectCorrection.MAX_STRETCH
-        return (minPct * 10.0 + bar.progress) / 1000.0
-    }
-
-    private fun scaleToSlider(scale: Double): Int {
-        val minPct = 100.0 / AspectCorrection.MAX_STRETCH
-        return ((scale * 1000.0) - minPct * 10.0).toInt().coerceIn(0, 975)
-    }
-
-    private fun setSliders(sx: Double, sy: Double) {
-        binding.sbAspectX.progress = scaleToSlider(sx)
-        binding.sbAspectY.progress = scaleToSlider(sy)
-        showSliderValues()
-        previewAspect()
-    }
-
-    private fun showSliderValues() {
-        binding.tvAspectXVal.text = "%.1f%%".format(sliderScale(binding.sbAspectX) * 100)
-        binding.tvAspectYVal.text = "%.1f%%".format(sliderScale(binding.sbAspectY) * 100)
-    }
-
-    /**
-     * Live preview, expressed RELATIVE to what is already baked into the
-     * bitmap on screen. The committed picture has aspectX/aspectY in its
-     * pixels, so showing an absolute slider value would apply the stretch
-     * twice the moment anything had been committed.
-     */
-    private fun previewAspect() {
-        val sx = sliderScale(binding.sbAspectX)
-        val sy = sliderScale(binding.sbAspectY)
-        binding.image.pivotX = binding.image.width / 2f
-        binding.image.pivotY = binding.image.height / 2f
-        binding.image.scaleX = (sx / aspectX).toFloat()
-        binding.image.scaleY = (sy / aspectY).toFloat()
-    }
-
-    private fun clearPreview() {
-        binding.image.scaleX = 1f
-        binding.image.scaleY = 1f
-    }
-
-    private fun wireAspectSliders() {
-        val listener = object : android.widget.SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(bar: android.widget.SeekBar?, p: Int, fromUser: Boolean) {
-                showSliderValues()
-                if (fromUser) previewAspect()
-            }
-            override fun onStartTrackingTouch(bar: android.widget.SeekBar?) {}
-            override fun onStopTrackingTouch(bar: android.widget.SeekBar?) {
-                // Committed on release, once, rather than on every step.
-                clearPreview()
-                applyAspect()
-            }
-        }
-        binding.sbAspectX.setOnSeekBarChangeListener(listener)
-        binding.sbAspectY.setOnSeekBarChangeListener(listener)
-        setSliders(aspectX, aspectY)
-    }
-
-    /**
-     * Draws the registered ring ladder over the photograph.
-     *
-     * WHY THIS EXISTS. The box said where the app thought the card was, and
-     * nothing said whether the SCALE was right. An aspect error of a few per
-     * cent barely moves a corner while putting every ring visibly off the
-     * printing — so the one error the shooter most needs to see was the one
-     * the overlay could not show. With the ladder drawn, a bad registration
-     * is obvious at arm's length and the aspect sliders become something to
-     * aim with instead of guess at.
-     *
-     * Each ring is sampled in MILLIMETRES and mapped through the same
-     * homography the scoring uses. That matters: a circle on a card seen at
-     * an angle is not a circle on the sensor, and drawing it as one would
-     * show a perfect fit for a registration that is quietly wrong.
-     */
-    private fun showRegisteredRings(reg: TargetRegistration?) {
-        if (reg == null) { binding.overlay.ringOutlines = emptyList(); return }
-        val face = reg.face
-        val steps = 96          // smooth at any zoom, trivial to compute once
-
-        fun outline(diameterMm: Double, emphasis: RegistrationOverlayView.RingOutline.Emphasis):
-            RegistrationOverlayView.RingOutline? {
-            if (diameterMm <= 0.0) return null
-            val r = diameterMm / 2.0
-            val pts = ArrayList<Pair<Double, Double>>(steps)
-            for (i in 0 until steps) {
-                val a = 2.0 * Math.PI * i / steps
-                // Face coordinates are millimetres from the scoring centre,
-                // which is where the registration puts the origin.
-                val (x, y) = reg.homography.mmToPx(r * Math.cos(a), r * Math.sin(a))
-                if (!x.isNaN() && !y.isNaN()) pts.add(x to y)
-            }
-            return if (pts.size >= 3)
-                RegistrationOverlayView.RingOutline(pts, emphasis) else null
-        }
-
-        val outer = face.outerRadiusMm * 2.0
-        val out = ArrayList<RegistrationOverlayView.RingOutline>()
-        for (ring in face.rings) {
-            val emphasis = if (ring.diameterMm >= outer - 1e-6)
-                RegistrationOverlayView.RingOutline.Emphasis.OUTER
-            else RegistrationOverlayView.RingOutline.Emphasis.NORMAL
-            outline(ring.diameterMm, emphasis)?.let { out.add(it) }
-        }
-        // The aiming black last, so its dashes sit on top of the ring it
-        // shares an edge with on faces where the two coincide.
-        outline(face.blackDiameterMm, RegistrationOverlayView.RingOutline.Emphasis.BLACK)
-            ?.let { out.add(it) }
-        if (face.hasInnerTen) {
-            outline(face.innerTenDiameterMm,
-                RegistrationOverlayView.RingOutline.Emphasis.NORMAL)?.let { out.add(it) }
-        }
-        binding.overlay.ringOutlines = out
     }
 }
