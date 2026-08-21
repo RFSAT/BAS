@@ -48,6 +48,37 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.46.0 - the registered ring ladder is drawn over the photograph.
+        //
+        //          The overlay showed a BOX around the face and nothing else.
+        //          A box says where the app thinks the card is; it says
+        //          nothing about whether the SCALE is right - and an aspect
+        //          error of a few per cent barely moves a corner while putting
+        //          every ring visibly off the printing. So the one error the
+        //          shooter most needs to catch was the one thing the overlay
+        //          could not show.
+        //
+        //          Now every scoring ring is drawn, with the outer ring and
+        //          the aiming black picked out: if those two sit on the
+        //          printing, the scale is right. The black is dashed so it is
+        //          never mistaken for a scoring ring on faces where the two
+        //          nearly coincide, and the ladder is drawn UNDER the
+        //          detections so a marked shot is never hidden by a line.
+        //
+        //          SAMPLED IN MILLIMETRES AND MAPPED THROUGH THE SAME
+        //          HOMOGRAPHY THE SCORING USES - 96 points a ring, closed as
+        //          a path. Drawing plain circles instead would have been
+        //          easier and actively misleading: a circle on a card seen at
+        //          an angle is an ellipse on the sensor, so perfect circles
+        //          would show a perfect fit for a registration that is quietly
+        //          wrong. The test pins exactly that - a 10% stretch has to
+        //          come out as a 1.10 axis ratio, not as a circle.
+        //
+        //          This is what makes the aspect sliders aimable. Before, they
+        //          adjusted a picture against rings that were only drawn after
+        //          the fact; now the ladder is on screen while the photograph
+        //          stretches beneath it.
+        //
         // 1.45.0 - automatic weather fills the GAPS instead of stopping at
         //          Packaging note: excluding the guides from the archives, as
         //          asked, means a tree rebuilt from one has no guide to stamp
@@ -4864,8 +4895,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 84
-        versionName = "1.45.0"
+        versionCode = 85
+        versionName = "1.46.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

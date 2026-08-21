@@ -71,6 +71,37 @@ class RegistrationOverlayView @JvmOverloads constructor(
     var onCornersChanged: ((Int) -> Unit)? = null
 
     /**
+     * One ring of the registered face, as a closed curve in SOURCE pixels.
+     *
+     * A curve rather than a centre and a radius, because a registration may
+     * carry perspective: a circle on a card photographed from an angle is an
+     * ellipse on the sensor, and one photographed through a stretched aspect
+     * is an ellipse of a different sort again. Sampling the circle in
+     * millimetres and mapping each point through the same homography the
+     * scoring uses means the drawn ring is exactly where the app believes the
+     * printed one to be — which is the whole point of showing it.
+     */
+    class RingOutline(
+        val points: List<Pair<Double, Double>>,
+        val emphasis: Emphasis
+    ) {
+        enum class Emphasis { OUTER, BLACK, NORMAL }
+    }
+
+    /**
+     * The rings to draw over the photograph after a registration.
+     *
+     * This is the check the shooter could not previously make. A box around
+     * the face says where the app thinks the card is; it says nothing about
+     * whether the SCALE is right, and an aspect error of a few per cent moves
+     * no corner appreciably while putting every ring visibly off the
+     * printing. Drawing the ladder makes that error obvious at a glance and
+     * makes the aspect sliders something to aim with rather than guess at.
+     */
+    var ringOutlines: List<RingOutline> = emptyList()
+        set(value) { field = value; invalidate() }
+
+    /**
      * Where the shooter says the middle of the face is, in SOURCE pixels, or
      * null while they have not said.
      *
@@ -211,6 +242,10 @@ class RegistrationOverlayView @JvmOverloads constructor(
 
     fun clearAll() {
         taps.clear(); box = null
+        // The rings belong to a registration, so they go when it does. Left
+        // behind they would show a ladder for a mapping that no longer
+        // exists, which is worse than showing nothing.
+        ringOutlines = emptyList()
         onCornersChanged?.invoke(0); onBoxChanged?.invoke()
         invalidate()
     }
@@ -313,6 +348,7 @@ class RegistrationOverlayView @JvmOverloads constructor(
             Mode.CORNERS -> drawCorners(canvas)
             Mode.CENTRE -> drawCentre(canvas)
         }
+        drawRings(canvas)
         drawDetections(canvas)
     }
 
@@ -395,6 +431,47 @@ class RegistrationOverlayView @JvmOverloads constructor(
             canvas.drawText("${i + 1}", x + 28f, y - 8f, textPaint)
         }
         if (taps.size < 4) prompt(canvas, "Tap the ${cornerNames[taps.size]} corner of the card")
+    }
+
+    /**
+     * The registered ring ladder.
+     *
+     * Drawn UNDER the detections, so a marked shot is never hidden by a ring
+     * line, and in three weights: the outer ring and the aiming black carry
+     * the check — if those two sit on the printing the scale is right — while
+     * the rest are thin enough to read the card through.
+     */
+    private fun drawRings(canvas: Canvas) {
+        if (ringOutlines.isEmpty() || srcWidth <= 0) return
+        val accent = themeAccent()
+        val path = android.graphics.Path()
+        for (ring in ringOutlines) {
+            if (ring.points.size < 3) continue
+            val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                style = Paint.Style.STROKE
+                isDither = true
+                when (ring.emphasis) {
+                    RingOutline.Emphasis.OUTER -> { strokeWidth = 3f; color = accent }
+                    RingOutline.Emphasis.BLACK -> {
+                        strokeWidth = 2.5f
+                        color = alpha(accent, 230)
+                        // Dashed, so it is never mistaken for a scoring ring
+                        // it sits close to on faces where the black falls
+                        // between two of them.
+                        pathEffect = android.graphics.DashPathEffect(floatArrayOf(12f, 8f), 0f)
+                    }
+                    RingOutline.Emphasis.NORMAL -> { strokeWidth = 1.2f; color = alpha(accent, 140) }
+                }
+            }
+            path.reset()
+            var started = false
+            for ((sx, sy) in ring.points) {
+                if (sx.isNaN() || sy.isNaN()) continue
+                val (vx, vy) = sourceToView(sx, sy)
+                if (!started) { path.moveTo(vx, vy); started = true } else path.lineTo(vx, vy)
+            }
+            if (started) { path.close(); canvas.drawPath(path, paint) }
+        }
     }
 
     private fun drawDetections(canvas: Canvas) {

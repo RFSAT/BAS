@@ -163,7 +163,8 @@ class ImportActivity : BaseActivity() {
                 notifyUser("Target face switched to ${faces[idx].name} to match the rules.")
             }
             binding.etDistance.setText(fmt(UnitsManager.displayDistance(r.distanceM)))
-            registration = null      // the gauge changed, so the rectification did too
+            registration = null
+            showRegisteredRings(null)      // the gauge changed, so the rectification did too
             refreshStatus()
         }
 
@@ -175,7 +176,8 @@ class ImportActivity : BaseActivity() {
         binding.spTarget.onItemSelectedListener = onSelected { i ->
             if (i == pendingTargetSelection) { pendingTargetSelection = -1; return@onSelected }
             faces.getOrNull(i)?.let { TargetRepository(this).setActiveFace(it.id) }
-            registration = null      // a different face means a different mapping
+            registration = null
+            showRegisteredRings(null)      // a different face means a different mapping
             binding.overlay.clearCorners()
             refreshStatus()
         }
@@ -201,6 +203,7 @@ class ImportActivity : BaseActivity() {
             binding.btnIdentify.isEnabled = !corners
             setTransformControlsEnabled(!corners)
             registration = null
+            showRegisteredRings(null)
             refreshStatus()
         }
         binding.btnDetect.setOnClickListener { doDetect() }
@@ -305,6 +308,7 @@ class ImportActivity : BaseActivity() {
         )
         binding.overlay.clearAll()
         registration = null
+        showRegisteredRings(null)
         notifyUser(
             "Showing the last photo you scored. Pick another to replace it, or register and " +
                 "score this one again."
@@ -492,6 +496,7 @@ class ImportActivity : BaseActivity() {
         )
         binding.overlay.clearAll()
         registration = null
+        showRegisteredRings(null)
         lastFit = null
         lastMarkRadiusPx = 0.0
         refreshStatus()
@@ -542,6 +547,7 @@ class ImportActivity : BaseActivity() {
             )
             binding.overlay.clearAll()
             registration = null
+            showRegisteredRings(null)
             // IDENTIFY, not merely detect.
             //
             // This ran the aiming-mark path on load, which takes the scale
@@ -708,6 +714,7 @@ class ImportActivity : BaseActivity() {
             }
         }
         registration = reg
+        showRegisteredRings(reg)
         Logger.i(
             "ImportActivity",
             "registered %s: face '%s', rules '%s', gauge %.2f mm, %s".format(
@@ -1157,6 +1164,7 @@ class ImportActivity : BaseActivity() {
             return
         }
         registration = reg
+        showRegisteredRings(reg)
         boxMeaning = TargetRegistration.BoxMeaning.OUTER_SCORING_RING
         showRingFamily(fit, face)
         offerAspect(fit)
@@ -1304,6 +1312,7 @@ class ImportActivity : BaseActivity() {
         binding.lblTiltY.text = "Vertical tilt  %+.1f°".format(transform.tiltYDeg)
         // The registration was built from the old shape, so it is stale now.
         registration = null
+        showRegisteredRings(null)
         refreshStatus()
     }
 
@@ -1437,5 +1446,61 @@ class ImportActivity : BaseActivity() {
         binding.sbAspectX.setOnSeekBarChangeListener(listener)
         binding.sbAspectY.setOnSeekBarChangeListener(listener)
         setSliders(aspectX, aspectY)
+    }
+
+    /**
+     * Draws the registered ring ladder over the photograph.
+     *
+     * WHY THIS EXISTS. The box said where the app thought the card was, and
+     * nothing said whether the SCALE was right. An aspect error of a few per
+     * cent barely moves a corner while putting every ring visibly off the
+     * printing — so the one error the shooter most needs to see was the one
+     * the overlay could not show. With the ladder drawn, a bad registration
+     * is obvious at arm's length and the aspect sliders become something to
+     * aim with instead of guess at.
+     *
+     * Each ring is sampled in MILLIMETRES and mapped through the same
+     * homography the scoring uses. That matters: a circle on a card seen at
+     * an angle is not a circle on the sensor, and drawing it as one would
+     * show a perfect fit for a registration that is quietly wrong.
+     */
+    private fun showRegisteredRings(reg: TargetRegistration?) {
+        if (reg == null) { binding.overlay.ringOutlines = emptyList(); return }
+        val face = reg.face
+        val steps = 96          // smooth at any zoom, trivial to compute once
+
+        fun outline(diameterMm: Double, emphasis: RegistrationOverlayView.RingOutline.Emphasis):
+            RegistrationOverlayView.RingOutline? {
+            if (diameterMm <= 0.0) return null
+            val r = diameterMm / 2.0
+            val pts = ArrayList<Pair<Double, Double>>(steps)
+            for (i in 0 until steps) {
+                val a = 2.0 * Math.PI * i / steps
+                // Face coordinates are millimetres from the scoring centre,
+                // which is where the registration puts the origin.
+                val (x, y) = reg.homography.mmToPx(r * Math.cos(a), r * Math.sin(a))
+                if (!x.isNaN() && !y.isNaN()) pts.add(x to y)
+            }
+            return if (pts.size >= 3)
+                RegistrationOverlayView.RingOutline(pts, emphasis) else null
+        }
+
+        val outer = face.outerRadiusMm * 2.0
+        val out = ArrayList<RegistrationOverlayView.RingOutline>()
+        for (ring in face.rings) {
+            val emphasis = if (ring.diameterMm >= outer - 1e-6)
+                RegistrationOverlayView.RingOutline.Emphasis.OUTER
+            else RegistrationOverlayView.RingOutline.Emphasis.NORMAL
+            outline(ring.diameterMm, emphasis)?.let { out.add(it) }
+        }
+        // The aiming black last, so its dashes sit on top of the ring it
+        // shares an edge with on faces where the two coincide.
+        outline(face.blackDiameterMm, RegistrationOverlayView.RingOutline.Emphasis.BLACK)
+            ?.let { out.add(it) }
+        if (face.hasInnerTen) {
+            outline(face.innerTenDiameterMm,
+                RegistrationOverlayView.RingOutline.Emphasis.NORMAL)?.let { out.add(it) }
+        }
+        binding.overlay.ringOutlines = out
     }
 }
