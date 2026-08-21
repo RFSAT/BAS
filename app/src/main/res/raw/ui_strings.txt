@@ -1505,6 +1505,8 @@ detected and not used
 #FFC107
 Tap “Auto-detect”, or drag a box around the target
 Tap the ${cornerNames[taps.size]} corner of the card
+far better than
+Drag the crosshair onto the middle of the target face
 /stream0
 /live
 /video0

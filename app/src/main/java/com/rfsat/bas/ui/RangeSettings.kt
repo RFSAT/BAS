@@ -9,7 +9,11 @@ object RangeSettings {
     private var speak = false
     private var keepAwake = true
     private var autoReconnect = false
-    private var autoShowResults = false
+    /** Straight to Results once a card has been scored. ON by default: a
+     *  detection that produced shots is the end of the job on the scoring
+     *  screen, and the plot is where they are checked. Turned off in
+     *  Settings, under the hands-free options. */
+    private var autoShowResults = true
     private var autoCollect = false
     private var remoteTrigger = false
     private var skipConfirm = false
@@ -19,7 +23,7 @@ object RangeSettings {
         speak = p.getBoolean("speak", false)
         keepAwake = p.getBoolean("keep_awake", true)
         autoReconnect = p.getBoolean("auto_reconnect", false)
-        autoShowResults = p.getBoolean("auto_show_results", false)
+        autoShowResults = p.getBoolean("auto_show_results", true)
         autoCollect = p.getBoolean("auto_collect", false)
         remoteTrigger = p.getBoolean("remote_trigger", false)
         skipConfirm = p.getBoolean("skip_confirm", false)

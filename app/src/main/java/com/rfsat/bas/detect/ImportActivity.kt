@@ -881,6 +881,10 @@ class ImportActivity : BaseActivity() {
                             }
                             append("All are marked hand-placed: no position here was measured.")
                         })
+                        // Same rule as the app's own detection: the card is
+                        // scored, so the plot is where it gets checked — and
+                        // an AI-scored card needs checking more, not less.
+                        goToResults(result.opinion.spots.size)
                     }
                 }
             }
@@ -1033,6 +1037,26 @@ class ImportActivity : BaseActivity() {
             if (doubtful > 0) appendLine("$doubtful hole(s) were detected with low confidence.")
         }
         refreshStatus()
+        goToResults(holes.size)
+    }
+
+    /**
+     * Straight to Results once a card has been scored.
+     *
+     * The setting for this already existed and was already honoured by the
+     * live screen; the photograph screen simply never asked. So a shooter who
+     * had turned it on got it in one place and not the other, which reads as
+     * the setting being broken rather than absent.
+     *
+     * Only after shots were actually found. Advancing on a detection that
+     * found nothing would replace the message explaining why with an empty
+     * plot, which is the one moment the explanation is worth reading.
+     */
+    private fun goToResults(holesFound: Int) {
+        if (holesFound <= 0) return
+        if (!com.rfsat.bas.ui.RangeSettings.autoShowResults()) return
+        startActivity(android.content.Intent(this, ResultsActivity::class.java))
+        finish()
     }
 
     // ------------------------------------------------------------------

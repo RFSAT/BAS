@@ -48,6 +48,43 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.49.0 - straight to Results once a card is scored.
+        //
+        //          The setting existed, had a switch in Settings, and was
+        //          honoured by the LIVE screen only. The photograph screen
+        //          never asked — so a shooter who turned it on got it in one
+        //          place and not the other, which reads as a broken switch
+        //          rather than a missing feature. Both screens honour it now,
+        //          and it defaults ON, since a detection that found shots is
+        //          the end of the job on that screen and the plot is where
+        //          they get checked.
+        //
+        //          Only when shots were actually found. Advancing on a
+        //          detection that found nothing would replace the message
+        //          explaining why with an empty plot — the one moment that
+        //          explanation is worth reading. The AI-scoring path advances
+        //          on the same rule; an AI-scored card needs checking more,
+        //          not less.
+        //
+        //          NOT CHANGED, and worth writing down because it answers the
+        //          question that came with this: why Claude scores a card
+        //          worse than it reviews one.
+        //
+        //          They are not the same request. The import path asks with
+        //          scoreToo = true, which appends SCORING_EXTRA to the prompt
+        //          and adds a required \"ring\" to every hole in the schema —
+        //          so the model must find each hole AND judge which ring its
+        //          EDGE touches, which is a sub-millimetre call about a torn
+        //          hole against a printed line. The second opinion asks with
+        //          scoreToo = false: find the holes, nothing else, and the app
+        //          scores them from its own geometry.
+        //
+        //          The second difference is what happens to the answer. A
+        //          second opinion is RECONCILED — agreed, unsupported,
+        //          unconfirmed — so a poor position is surfaced. On the import
+        //          path it is taken whole and marked hand-placed. Same model,
+        //          harder question, and no safety net.
+        //
         // 1.48.1 - correction: half a feature was restored.
         //
         //          The centre crosshair lives in two files. 1.47.0 reverted
@@ -5007,8 +5044,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 88
-        versionName = "1.48.1"
+        versionCode = 89
+        versionName = "1.49.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two
