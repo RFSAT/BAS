@@ -48,6 +48,29 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.48.1 - correction: half a feature was restored.
+        //
+        //          The centre crosshair lives in two files. 1.47.0 reverted
+        //          RegistrationOverlayView, which removed Mode.CENTRE,
+        //          centreHint and the three functions around it; 1.48.0 put
+        //          the ImportActivity half back and not the overlay half. The
+        //          screen went on calling members that no longer existed.
+        //
+        //          Restored, and this time listed member by member against
+        //          the file that has to declare them before packaging.
+        //
+        //          A GATE FOR IT WAS WRITTEN AND WITHDRAWN. It caught the real
+        //          fault, and it also fired on correct code twice: once
+        //          because the id `crosshair` names two different classes in
+        //          two layouts (fixable, and fixed), and once because
+        //          binding.plot.layoutParams is INHERITED from
+        //          android.view.View. Separating \"not declared here\" from
+        //          \"inherited from the framework\" needs the Android API,
+        //          which a regex checker can only approximate with a
+        //          whitelist that will one day fire on something correct.
+        //          Wrong in both directions is worse than absent — the same
+        //          conclusion gate 15 reached, from the other side.
+        //
         // 1.48.0 - the revert was too wide. Restoring what was harmless,
         //          keeping out only what actually touched the detector.
         //
@@ -4984,8 +5007,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 87
-        versionName = "1.48.0"
+        versionCode = 88
+        versionName = "1.48.1"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

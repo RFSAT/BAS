@@ -686,5 +686,34 @@ if _declared_ids:
                         f"{os.path.basename(_f)}:{_n}  R.id.{_m.group(1)} is not declared in "
                         f"any resource")
 
+
+# ---------------------------------------------------------------- gate 17
+#
+# WITHDRAWN, like gate 15, and for a related reason. Kept as a note so the
+# same thing is not attempted a third time the same way.
+#
+# The intent was to catch binding.<view>.<member> where one of THIS PROJECT'S
+# own views declares no such member — the failure in 1.48.0, where a feature
+# living in two files had one half reverted and the other half restored, so a
+# screen went on calling centreHint and clearCentre on an overlay that no
+# longer had them.
+#
+# It caught that exactly. It also fired on correct code, twice, for two
+# different reasons:
+#
+#   * the id `crosshair` names capture.CrosshairOverlayView in one layout and
+#     ui.CrosshairView in another, so a map keyed by id alone resolves to
+#     whichever layout was read last. Fixable — skip ambiguous ids — and
+#     fixed.
+#   * binding.plot.layoutParams and .requestLayout are INHERITED from
+#     android.view.View. Telling "not declared here" from "inherited from the
+#     framework" needs the Android API, and the only way a regex checker gets
+#     it is a hand-written whitelist that will fire on correct code the first
+#     time somebody uses a View member nobody thought to list.
+#
+# That second one is not fixable at this level. Resolving members through a
+# superclass chain that leaves the project is type resolution, which is the
+# compiler's job — the same conclusion gate 15 reached from the other side.
+
 print(("PROBLEMS:\n  "+"\n  ".join(problems)) if problems else "No problems found.")
 sys.exit(1 if problems else 0)
