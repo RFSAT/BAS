@@ -569,6 +569,137 @@ object RuleCatalog {
 
     // =====================================================================
 
+
+    // =====================================================================
+    //  NRA conventional (bullseye) pistol
+    //
+    //  Written as STAGES rather than as one aggregate, because a rule set
+    //  names one face and a 900 aggregate is shot on three. Fire them in
+    //  order and the app scores each on the right card, which is what the
+    //  scoring needs; the aggregate is arithmetic the shooter does after.
+    // =====================================================================
+
+    val NRA_PISTOL_SLOW_50 = RuleSet(
+        id = "nra_pistol_slow_50yd",
+        name = "NRA Precision Pistol — Slow fire, 50 yd",
+        governingBody = "NRA",
+        discipline = "Pistol",
+        targetFaceId = TargetCatalog.NRA_B6_50YD.id,
+        distanceM = 45.72,
+        positionName = Position.STANDING.name,
+        matchShots = 10, shotsPerSeries = 10, sighters = 0,
+        timeLimitSec = 600,
+        gaugeDiameterMm = Gauge.RIMFIRE_5_6,
+        decimalScoring = false,
+        tieBreak = listOf("X count", "Countback"),
+        verified = false,
+        notes = "Ten shots in ten minutes on the B-6, one hand, unsupported. Gauge set for .22; change it for the centrefire and .45 stages of an aggregate."
+    )
+
+    val NRA_PISTOL_TIMED_25 = RuleSet(
+        id = "nra_pistol_timed_25yd",
+        name = "NRA Precision Pistol — Timed fire, 25 yd",
+        governingBody = "NRA",
+        discipline = "Pistol",
+        targetFaceId = TargetCatalog.NRA_B8_25YD.id,
+        distanceM = 22.86,
+        positionName = Position.STANDING.name,
+        matchShots = 10, shotsPerSeries = 5, sighters = 0,
+        seriesTimeLimitSec = 20,
+        gaugeDiameterMm = Gauge.RIMFIRE_5_6,
+        decimalScoring = false,
+        tieBreak = listOf("X count", "Countback"),
+        verified = false,
+        notes = "Two series of five, twenty seconds each, on the B-8."
+    )
+
+    val NRA_PISTOL_RAPID_25 = RuleSet(
+        id = "nra_pistol_rapid_25yd",
+        name = "NRA Precision Pistol — Rapid fire, 25 yd",
+        governingBody = "NRA",
+        discipline = "Pistol",
+        targetFaceId = TargetCatalog.NRA_B8_25YD.id,
+        distanceM = 22.86,
+        positionName = Position.STANDING.name,
+        matchShots = 10, shotsPerSeries = 5, sighters = 0,
+        seriesTimeLimitSec = 10,
+        gaugeDiameterMm = Gauge.RIMFIRE_5_6,
+        decimalScoring = false,
+        tieBreak = listOf("X count", "Countback"),
+        verified = false,
+        notes = "Two series of five, ten seconds each, on the B-8."
+    )
+
+    val NRA_PISTOL_SLOW_25 = RuleSet(
+        id = "nra_pistol_slow_25yd",
+        name = "NRA Precision Pistol — Slow fire, 25 yd",
+        governingBody = "NRA",
+        discipline = "Pistol",
+        targetFaceId = TargetCatalog.NRA_B16_25YD.id,
+        distanceM = 22.86,
+        positionName = Position.STANDING.name,
+        matchShots = 10, shotsPerSeries = 10, sighters = 0,
+        timeLimitSec = 600,
+        gaugeDiameterMm = Gauge.RIMFIRE_5_6,
+        decimalScoring = false,
+        tieBreak = listOf("X count", "Countback"),
+        verified = false,
+        notes = "Ten shots in ten minutes on the B-16, the reduced slow-fire face."
+    )
+
+    val NRA_PISTOL_GALLERY_50FT = RuleSet(
+        id = "nra_pistol_gallery_50ft",
+        name = "NRA Gallery Pistol — Slow fire, 50 ft",
+        governingBody = "NRA",
+        discipline = "Pistol",
+        targetFaceId = TargetCatalog.NRA_B2_50FT.id,
+        distanceM = 15.24,
+        positionName = Position.STANDING.name,
+        matchShots = 10, shotsPerSeries = 10, sighters = 0,
+        timeLimitSec = 600,
+        gaugeDiameterMm = Gauge.RIMFIRE_5_6,
+        decimalScoring = false,
+        verified = false,
+        notes = "The indoor course, on the B-2."
+    )
+
+    // =====================================================================
+    //  Biathlon practice
+    // =====================================================================
+
+    val BIATHLON_PRONE = RuleSet(
+        id = "biathlon_prone_practice",
+        name = "Biathlon — prone, 5 shots",
+        governingBody = "IBU",
+        discipline = "Biathlon",
+        targetFaceId = TargetCatalog.IBU_BIATHLON_PRONE.id,
+        distanceM = 50.0,
+        positionName = Position.PRONE.name,
+        matchShots = 5, shotsPerSeries = 5, sighters = 0,
+        gaugeDiameterMm = Gauge.RIMFIRE_5_6,
+        decimalScoring = false,
+        countInnerTens = false,
+        verified = false,
+        notes = "Hit or miss, five shots. A biathlon target does not score rings, so the " +
+            "result is a count of hits."
+    )
+
+    val BIATHLON_STANDING = RuleSet(
+        id = "biathlon_standing_practice",
+        name = "Biathlon — standing, 5 shots",
+        governingBody = "IBU",
+        discipline = "Biathlon",
+        targetFaceId = TargetCatalog.IBU_BIATHLON_STANDING.id,
+        distanceM = 50.0,
+        positionName = Position.STANDING.name,
+        matchShots = 5, shotsPerSeries = 5, sighters = 0,
+        gaugeDiameterMm = Gauge.RIMFIRE_5_6,
+        decimalScoring = false,
+        countInnerTens = false,
+        verified = false,
+        notes = "Hit or miss, five shots."
+    )
+
     val builtIns: List<RuleSet> = listOf(
         ISSF_AR60, ISSF_AP60, ISSF_AR_FINAL,
         ISSF_R50_PRONE, ISSF_R50_3P, ISSF_P50,
@@ -580,6 +711,9 @@ object RuleCatalog {
         IPSC_COMSTOCK, IDPA_STAGE,
         PZSS_PN10, PZSS_KPN10, PZSS_PSP20, PZSS_KSP20, PZSS_PCZ20,
         DSB_LG40, DSB_LP40, DSB_LG_AUFLAGE, BDS_KK100, BDS_ZF100,
+        NRA_PISTOL_SLOW_50, NRA_PISTOL_TIMED_25, NRA_PISTOL_RAPID_25,
+        NRA_PISTOL_SLOW_25, NRA_PISTOL_GALLERY_50FT,
+        BIATHLON_PRONE, BIATHLON_STANDING,
         TRAINING_FREE, TRAINING_GROUP
     )
 

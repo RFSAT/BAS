@@ -115,7 +115,46 @@ object BlackMarkDetector {
      * Finds the aiming mark, or returns null when nothing convincing is
      * there. Coordinates come back in [frame]'s own full-resolution pixels.
      */
-    fun detect(frame: LumaFrame): DetectedDisc? {
+    /**
+     * The original entry point, unchanged. Every existing caller reaches
+     * exactly the code it always did.
+     */
+    fun detect(frame: LumaFrame): DetectedDisc? = detectOriginal(frame)
+
+    /**
+     * As above, with a centre the shooter has marked — OPTIONAL, and null
+     * unless they tick the box.
+     *
+     * With a null hint this is [detectOriginal] and nothing else: there is no
+     * shared code path to get subtly wrong, because the hinted attempt is
+     * simply not made. That matters more than the feature does. A hint is
+     * meant to help a shooter whose card is competing with a dark bench for
+     * the histogram; it is not meant to alter what the detector does for
+     * everyone else.
+     *
+     * When a hint IS given, the hinted window must BEAT the unhinted attempt
+     * on confidence to be used, so a crosshair left somewhere careless cannot
+     * produce a worse answer than no crosshair at all.
+     */
+    fun detect(frame: LumaFrame, hint: Pair<Double, Double>?): DetectedDisc? {
+        if (hint == null) return detectOriginal(frame)
+        val (hx, hy) = hint
+        val half = (min(frame.width, frame.height) * 0.34).toInt()
+        val x0 = (hx - half).toInt().coerceIn(0, frame.width - 1)
+        val y0 = (hy - half).toInt().coerceIn(0, frame.height - 1)
+        val x1 = (hx + half).toInt().coerceIn(x0 + 1, frame.width)
+        val y1 = (hy + half).toInt().coerceIn(y0 + 1, frame.height)
+        val hinted = detectIn(frame, x0, y0, x1, y1)
+        val plain = detectOriginal(frame)
+        return when {
+            hinted == null -> plain
+            plain == null -> hinted
+            hinted.confidence >= plain.confidence -> hinted
+            else -> plain
+        }
+    }
+
+    private fun detectOriginal(frame: LumaFrame): DetectedDisc? {
         // Try the whole picture first, then just the middle of it.
         //
         // WHY THE RETRY. Otsu splits the image into a dark population and a

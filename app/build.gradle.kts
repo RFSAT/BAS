@@ -48,6 +48,48 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.48.0 - the revert was too wide. Restoring what was harmless,
+        //          keeping out only what actually touched the detector.
+        //
+        //          THE ASPECT SLIDERS were never a risk and should not have
+        //          gone. Releasing one runs applyAspect — the identical code
+        //          the Apply button ran — so the pipeline is the same and only
+        //          the way of choosing the number changed. Restored.
+        //
+        //          THE CENTRE CROSSHAIR is restored as opt-in, and rebuilt so
+        //          the claim can be checked rather than asserted: the original
+        //          detect() body is now detectOriginal(), byte for byte, and
+        //          the no-hint path calls it and nothing else. There is no
+        //          shared code to get subtly wrong.
+        //
+        //          THE NINE FACES are back, and the objection to holding them
+        //          out of identification was right: a face the app cannot
+        //          recognise is a face it cannot really offer. But they DO
+        //          collide — every one lands in a distance window already held
+        //          by three to five faces, and RingFinder's own comment says
+        //          the ratio cannot separate the catalogue without distance.
+        //
+        //          So: identification does not go hunting among them from
+        //          cold, and the face the shooter has SELECTED is always a
+        //          candidate. That second half is not a nicety. RingFinder's
+        //          sticky rule works by finding the selected face IN the
+        //          candidate list; leaving it out would not merely fail to
+        //          recognise a chosen B-8, it would raise a confident \"this
+        //          looks like a different face\" against a list that could not
+        //          contain the right answer. Choose the face and it is
+        //          recognised; do not, and the guess is exactly as reliable as
+        //          it was before these faces existed.
+        //
+        //          STILL OUT: the LensDistortion field-of-view gain. That one
+        //          changed how the detection pipeline resamples, for everyone,
+        //          unasked. The cropping it was meant to fix is real and worth
+        //          fixing — as a change to what is DISPLAYED, agreed first.
+        //
+        //          Audited rather than asserted: RingFinder, HoleDetector,
+        //          TargetRegistration, SourceHoleDetector, PunctureCheck and
+        //          LensDistortion are byte-identical to the build that was
+        //          verified working.
+        //
         // 1.47.0 - REVERT. The scoring pipeline goes back to what it was,
         //          and the ring overlay is re-done as a drawing and nothing
         //          more.
@@ -4942,8 +4984,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 86
-        versionName = "1.47.0"
+        versionCode = 87
+        versionName = "1.48.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

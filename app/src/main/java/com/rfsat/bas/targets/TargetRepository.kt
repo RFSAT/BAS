@@ -43,6 +43,28 @@ class TargetRepository(context: Context) {
     /** Everything the user can pick from, built-ins first. */
     fun allFaces(): List<TargetFace> = TargetCatalog.builtIns + customFaces()
 
+    /**
+     * The faces automatic identification may choose between — ALWAYS
+     * including the one already selected.
+     *
+     * Two things have to be true at once. Identification must not go hunting
+     * among faces that distance cannot separate from the established ones, or
+     * it gets worse for everybody. And a face the shooter has actually chosen
+     * must be recognised, or the app is offering cards it cannot read.
+     *
+     * Including [selectedId] does both. RingFinder's sticky rule works by
+     * finding the selected face IN the candidate list and keeping it unless a
+     * challenger is clearly better — so leaving it out would not merely fail
+     * to recognise it, it would produce a confident "this looks like a
+     * different face" against a list that could not contain the right answer.
+     */
+    fun identifiableFaces(selectedId: String? = null): List<TargetFace> {
+        val all = allFaces()
+        val out = all.filter { it.identifiable }
+        val selected = selectedId?.let { id -> all.firstOrNull { it.id == id } }
+        return if (selected != null && out.none { it.id == selected.id }) out + selected else out
+    }
+
     fun byId(id: String): TargetFace? = allFaces().firstOrNull { it.id == id }
 
     /**

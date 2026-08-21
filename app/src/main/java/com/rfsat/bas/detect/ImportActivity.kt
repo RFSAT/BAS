@@ -192,6 +192,7 @@ class ImportActivity : BaseActivity() {
             binding.overlay.clearAll(); registration = null; lastFit = null; lastMarkRadiusPx = 0.0; refreshStatus()
         }
         binding.cbCornerMode.setOnCheckedChangeListener { _, corners ->
+            if (corners) binding.cbCentreMode.isChecked = false
             binding.overlay.mode =
                 if (corners) RegistrationOverlayView.Mode.CORNERS
                 else RegistrationOverlayView.Mode.BOX
@@ -212,7 +213,29 @@ class ImportActivity : BaseActivity() {
             startActivity(android.content.Intent(this, ResultsActivity::class.java)); finish()
         }
         binding.overlay.onCornersChanged = { refreshStatus() }
-        binding.btnAspectApply.setOnClickListener { applyAspect() }
+
+        // OPT-IN, and off by default. With the box unticked the detector is
+        // handed no hint and behaves exactly as it always has — see
+        // BlackMarkDetector.detect, where the no-hint path is the original
+        // function, untouched.
+        binding.cbCentreMode.setOnCheckedChangeListener { _, marking ->
+            binding.overlay.mode = when {
+                marking -> RegistrationOverlayView.Mode.CENTRE
+                binding.cbCornerMode.isChecked -> RegistrationOverlayView.Mode.CORNERS
+                else -> RegistrationOverlayView.Mode.BOX
+            }
+            if (marking && binding.overlay.centreHint == null) {
+                sourceShotBitmap?.let {
+                    binding.overlay.setCentreFromSource(it.width / 2.0, it.height / 2.0)
+                }
+            }
+            if (!marking) binding.overlay.clearCentre()
+            refreshStatus()
+        }
+        binding.overlay.onCentreChanged = {
+            if (binding.cbCentreMode.isChecked) doIdentifyTarget(silent = true)
+        }
+        wireAspectSliders()
         binding.btnLensApply.setOnClickListener { applyLens() }
         moreInfo(binding.infoLens, "Lens distortion",
             "Everything the app measures geometrically assumes a pinhole camera, in which a " +
@@ -319,8 +342,7 @@ class ImportActivity : BaseActivity() {
                         "registration.").format(100 * (1 - fit.axisRatio))
             return
         }
-        binding.etAspectX.setText("%.1f".format(s.percentX))
-        binding.etAspectY.setText("%.1f".format(s.percentY))
+        setSliders(s.percentX / 100.0, s.percentY / 100.0)
         binding.tvAspect.text =
             ("The rings measure %.0f%% out of round along the picture's own axes. Width %.1f%%, " +
                 "height %.1f%% would make them round — press Apply to try it.")
@@ -345,15 +367,8 @@ class ImportActivity : BaseActivity() {
         val src = sourceShotBitmap ?: shotBitmap ?: run {
             notifyUser("Choose a photo first."); return
         }
-        val sx = AspectCorrection.parsePercent(binding.etAspectX.text.toString())
-        val sy = AspectCorrection.parsePercent(binding.etAspectY.text.toString())
-        if (sx == null || sy == null) {
-            notifyUser(
-                "Both figures must be percentages between %.0f and %.0f."
-                    .format(100.0 / AspectCorrection.MAX_STRETCH, 100.0 * AspectCorrection.MAX_STRETCH)
-            )
-            return
-        }
+        val sx = sliderScale(binding.sbAspectX)
+        val sy = sliderScale(binding.sbAspectY)
         if (!AspectCorrection.worthApplying(sx, sy)) {
             resetAspect(); return
         }
@@ -455,8 +470,7 @@ class ImportActivity : BaseActivity() {
         lensK = 0.0
         binding.etLensK.setText("0")
         binding.tvLens.text = ""
-        binding.etAspectX.setText("100")
-        binding.etAspectY.setText("100")
+        setSliders(1.0, 1.0)
         useBitmap(src)
         binding.tvAspect.text = "Original picture."
         notifyUser("Back to the original picture. Registering it again.")
@@ -513,8 +527,7 @@ class ImportActivity : BaseActivity() {
             shotBitmap = bmp
             sourceShotBitmap = bmp
             aspectX = 1.0; aspectY = 1.0
-            binding.etAspectX.setText("100")
-            binding.etAspectY.setText("100")
+            setSliders(1.0, 1.0)
             binding.tvAspect.text = ""
             shotUri = uri
             rememberLastImage(uri)
@@ -561,7 +574,7 @@ class ImportActivity : BaseActivity() {
 
         val face = currentFace()
         val frame = LumaFrame.fromBitmap(bmp)
-        val disc = BlackMarkDetector.detect(frame)
+        val disc = BlackMarkDetector.detect(frame, binding.overlay.centreHint)
 
         if (disc == null) {
             binding.overlay.setDefaultBox()
@@ -715,6 +728,9 @@ class ImportActivity : BaseActivity() {
         runCatching { measureGeometryIfNeeded() }
         lastFit?.let { f ->
             val all = TargetRepository(this).allFaces()
+            // Identification gets the subset it can actually separate; `all`
+            // stays whole for everything else that uses it.
+            val identifiable = TargetRepository(this).identifiableFaces(face.id)
 
             // Two checks, because they fail on different things.
             //
@@ -739,7 +755,7 @@ class ImportActivity : BaseActivity() {
                 }
 
             if (lastMarkRadiusPx > 0.0) {
-                val ranked = RingFinder.identify(f, lastMarkRadiusPx, all, distanceFromField(), face.id)
+                val ranked = RingFinder.identify(f, lastMarkRadiusPx, identifiable, distanceFromField(), face.id)
                 val best = ranked.firstOrNull()
                 val mine = ranked.firstOrNull { it.face.id == face.id }
                 if (best != null && best.face.id != face.id &&
@@ -1054,7 +1070,7 @@ class ImportActivity : BaseActivity() {
             if (!silent) notifyUser("No picture to work from yet.")
             return
         }
-        val mark = BlackMarkDetector.detect(frame)
+        val mark = BlackMarkDetector.detect(frame, binding.overlay.centreHint)
         val fit = RingFinder.find(
             frame,
             seedX = mark?.centreXPx ?: -1.0,
@@ -1073,7 +1089,7 @@ class ImportActivity : BaseActivity() {
         lastMarkRadiusPx = mark?.radiusPx ?: 0.0
         val matches = if (mark != null)
             RingFinder.identify(
-                fit, mark.radiusPx, TargetRepository(this).allFaces(),
+                fit, mark.radiusPx, TargetRepository(this).identifiableFaces(currentFace().id),
                 distanceFromField(), currentFace().id
             )
         else emptyList()
@@ -1401,5 +1417,76 @@ class ImportActivity : BaseActivity() {
         shotBitmap = null
         sourceShotBitmap?.recycle(); sourceShotBitmap = null
         cleanBitmap?.recycle(); cleanBitmap = null
+    }
+
+    // ------------------------------------------------------------------
+    //  Aspect sliders
+    // ------------------------------------------------------------------
+    //
+    // A different way of choosing the SAME number. Releasing a slider runs
+    // applyAspect, which is the identical code the Apply button ran: resample,
+    // then register again from the new pixels. Nothing in the pipeline below
+    // this changed.
+    //
+    // While the finger is down only the ImageView's own scale moves, about its
+    // centre. The bitmap is not resampled and the registration is not re-run —
+    // either would cost hundreds of milliseconds per step. The overlay does
+    // not scale with it, so the ring ladder stays where the last registration
+    // put it and the photograph can be stretched onto it.
+
+    private fun sliderScale(bar: android.widget.SeekBar): Double {
+        val minPct = 100.0 / AspectCorrection.MAX_STRETCH
+        return (minPct * 10.0 + bar.progress) / 1000.0
+    }
+
+    private fun scaleToSlider(scale: Double): Int {
+        val minPct = 100.0 / AspectCorrection.MAX_STRETCH
+        return ((scale * 1000.0) - minPct * 10.0).toInt().coerceIn(0, 975)
+    }
+
+    private fun setSliders(sx: Double, sy: Double) {
+        binding.sbAspectX.progress = scaleToSlider(sx)
+        binding.sbAspectY.progress = scaleToSlider(sy)
+        showSliderValues()
+        previewAspect()
+    }
+
+    private fun showSliderValues() {
+        binding.tvAspectXVal.text = "%.1f%%".format(sliderScale(binding.sbAspectX) * 100)
+        binding.tvAspectYVal.text = "%.1f%%".format(sliderScale(binding.sbAspectY) * 100)
+    }
+
+    /** Relative to what is already baked into the bitmap on screen, or the
+     *  stretch would be applied twice once anything had been committed. */
+    private fun previewAspect() {
+        val sx = sliderScale(binding.sbAspectX)
+        val sy = sliderScale(binding.sbAspectY)
+        binding.image.pivotX = binding.image.width / 2f
+        binding.image.pivotY = binding.image.height / 2f
+        binding.image.scaleX = (sx / aspectX).toFloat()
+        binding.image.scaleY = (sy / aspectY).toFloat()
+    }
+
+    private var syncingSliders = false
+
+    private fun wireAspectSliders() {
+        val listener = object : android.widget.SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(bar: android.widget.SeekBar?, p: Int, fromUser: Boolean) {
+                showSliderValues()
+                if (fromUser && !syncingSliders) previewAspect()
+            }
+            override fun onStartTrackingTouch(bar: android.widget.SeekBar?) {}
+            override fun onStopTrackingTouch(bar: android.widget.SeekBar?) {
+                if (syncingSliders) return
+                binding.image.scaleX = 1f
+                binding.image.scaleY = 1f
+                applyAspect()
+            }
+        }
+        binding.sbAspectX.setOnSeekBarChangeListener(listener)
+        binding.sbAspectY.setOnSeekBarChangeListener(listener)
+        syncingSliders = true
+        setSliders(aspectX, aspectY)
+        syncingSliders = false
     }
 }

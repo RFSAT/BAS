@@ -1484,6 +1484,8 @@ class SessionActivity : BaseActivity() {
         val frame = latestFrame.get() ?: return
         val face = runCatching { currentFace() }.getOrNull() ?: return
         val all = runCatching { TargetRepository(this).allFaces() }.getOrNull() ?: return
+        val identifiable = runCatching { TargetRepository(this).identifiableFaces(face.id) }
+            .getOrNull() ?: all
         if (faceCheckRunning) return
 
         // Do not compete with live detection. While a string is being scored
@@ -1510,7 +1512,7 @@ class SessionActivity : BaseActivity() {
                 if (markPx <= 0.0) return@runCatching null
                 val ratio = TargetGeometryCheck.faceMismatch(face, markPx, fit.pitchPx, all)
                 val ranked = RingFinder.identify(
-                    fit, markPx, all, currentRules().distanceM, face.id
+                    fit, markPx, identifiable, currentRules().distanceM, face.id
                 ).firstOrNull()
                 val named = if (ranked != null && ranked.face.id != face.id &&
                     ranked.relativeError < IDENTIFY_TOLERANCE
@@ -1640,7 +1642,7 @@ class SessionActivity : BaseActivity() {
 
         val matches = if (mark != null)
             RingFinder.identify(
-                fit, mark.radiusPx, TargetRepository(this).allFaces(),
+                fit, mark.radiusPx, TargetRepository(this).identifiableFaces(currentFace().id),
                 currentRules().distanceM, currentFace().id
             )
         else emptyList()

@@ -353,12 +353,211 @@ object TargetCatalog {
     val STEEL_IPSC_FULL = steel("steel_ipsc_full", "Full-size IPSC steel", 450.0, 300.0, "PRS")
     val STEEL_300MM = steel("steel_300mm", "300 mm round steel", 300.0, 400.0, "PRS")
 
+
+    // ---------------------------------------------------------------------
+    //  NRA conventional (bullseye) pistol faces
+    //
+    //  Ring ladders from the NRA conventional pistol rulebook, as tabulated
+    //  at indecorous.com/bullseye/rings.html. Diameters in inches; the app
+    //  works in millimetres, so each is multiplied by IN at the point of use
+    //  rather than pre-converted, which keeps the published figure readable
+    //  in the source.
+    //
+    //  BLACK DIAMETERS ARE THE WEAK PART and are marked unverified. Sources
+    //  disagree about the B-6/B-8 black: some call it the 9 ring (5.54 in),
+    //  others say the black is eight inches across. The larger figure is used
+    //  because an aiming mark that is too small makes the detector look for a
+    //  disc that is not there, while one slightly too large still contains
+    //  it. Measure your own card and edit the face if it matters.
+    // ---------------------------------------------------------------------
+
+    private fun ringsIn(vararg pairs: Pair<Int, Double>): List<Ring> =
+        pairs.map { (v, inches) -> Ring(v, inches * IN) }
+
+    /** NRA B-2, 50 ft slow fire pistol. */
+    val NRA_B2_50FT = TargetFace(
+        id = "nra_b2_50ft",
+        name = "NRA B-2 — 50 ft Slow Fire Pistol",
+        governingBody = "NRA",
+        discipline = "Pistol",
+        nominalDistanceM = 15.24,
+        faceWidthMm = 9.5 * IN, faceHeightMm = 9.5 * IN,
+        rings = ringsIn(10 to 0.90, 9 to 1.54, 8 to 2.23, 7 to 3.07,
+                        6 to 4.16, 5 to 5.56, 4 to 7.33),
+        blackDiameterMm = 0.0,
+        scoringMode = ScoringMode.RING_INTEGER,
+        identifiable = false,   // see TargetFace.identifiable
+        verified = false,
+        notes = "10 0.90\", 9 1.54\", 8 2.23\", 7 3.07\", 6 4.16\", 5 5.56\", 4 7.33\". " +
+            "No X ring. Black diameter not recorded — set it from your own card if auto-detect " +
+            "struggles."
+    )
+
+    /** NRA B-3, 50 ft timed and rapid fire pistol. */
+    val NRA_B3_50FT = TargetFace(
+        id = "nra_b3_50ft",
+        name = "NRA B-3 — 50 ft Timed/Rapid Pistol",
+        governingBody = "NRA",
+        discipline = "Pistol",
+        nominalDistanceM = 15.24,
+        faceWidthMm = 10.5 * IN, faceHeightMm = 10.5 * IN,
+        rings = ringsIn(10 to 1.80, 9 to 3.06, 8 to 4.46, 7 to 6.14, 6 to 8.32),
+        blackDiameterMm = 0.0,
+        innerTenDiameterMm = 0.90 * IN,
+        innerTenLabel = "X",
+        scoringMode = ScoringMode.RING_INTEGER,
+        identifiable = false,   // see TargetFace.identifiable
+        verified = false,
+        notes = "X 0.90\", 10 1.80\", 9 3.06\", 8 4.46\", 7 6.14\", 6 8.32\"."
+    )
+
+    /** NRA B-4, 20 yd slow fire pistol. */
+    val NRA_B4_20YD = TargetFace(
+        id = "nra_b4_20yd",
+        name = "NRA B-4 — 20 yd Slow Fire Pistol",
+        governingBody = "NRA",
+        discipline = "Pistol",
+        nominalDistanceM = 18.29,
+        faceWidthMm = 11.5 * IN, faceHeightMm = 11.5 * IN,
+        rings = ringsIn(10 to 1.12, 9 to 1.88, 8 to 2.72, 7 to 3.73,
+                        6 to 5.04, 5 to 6.72, 4 to 8.84),
+        blackDiameterMm = 0.0,
+        scoringMode = ScoringMode.RING_INTEGER,
+        identifiable = false,   // see TargetFace.identifiable
+        verified = false,
+        notes = "10 1.12\", 9 1.88\", 8 2.72\", 7 3.73\", 6 5.04\", 5 6.72\", 4 8.84\"."
+    )
+
+    /** NRA B-5, 20 yd timed and rapid fire pistol. */
+    val NRA_B5_20YD = TargetFace(
+        id = "nra_b5_20yd",
+        name = "NRA B-5 — 20 yd Timed/Rapid Pistol",
+        governingBody = "NRA",
+        discipline = "Pistol",
+        nominalDistanceM = 18.29,
+        faceWidthMm = 12.5 * IN, faceHeightMm = 12.5 * IN,
+        rings = ringsIn(10 to 2.25, 9 to 3.76, 8 to 5.44, 7 to 7.46, 6 to 10.08),
+        blackDiameterMm = 0.0,
+        innerTenDiameterMm = 1.12 * IN,
+        innerTenLabel = "X",
+        scoringMode = ScoringMode.RING_INTEGER,
+        identifiable = false,   // see TargetFace.identifiable
+        verified = false,
+        notes = "X 1.12\", 10 2.25\", 9 3.76\", 8 5.44\", 7 7.46\", 6 10.08\"."
+    )
+
+    /** NRA B-6, 50 yd slow fire pistol. Same ladder as the B-8. */
+    val NRA_B6_50YD = TargetFace(
+        id = "nra_b6_50yd",
+        name = "NRA B-6 — 50 yd Slow Fire Pistol",
+        governingBody = "NRA",
+        discipline = "Pistol",
+        nominalDistanceM = 45.72,
+        faceWidthMm = 24.0 * IN, faceHeightMm = 24.0 * IN,
+        rings = ringsIn(10 to 3.36, 9 to 5.54, 8 to 8.00, 7 to 11.00,
+                        6 to 14.80, 5 to 19.68),
+        blackDiameterMm = 8.00 * IN,
+        innerTenDiameterMm = 1.695 * IN,
+        innerTenLabel = "X",
+        scoringMode = ScoringMode.RING_INTEGER,
+        identifiable = false,   // see TargetFace.identifiable
+        verified = false,
+        notes = "X 1.695\", 10 3.36\", 9 5.54\", 8 8.00\", 7 11.00\", 6 14.80\", 5 19.68\". " +
+            "Black taken as the 8 ring; sources also describe it as the 9 ring."
+    )
+
+    /** NRA B-8, 25 yd timed and rapid fire pistol — the same rings as the
+     *  B-6, shot at half the distance. */
+    val NRA_B8_25YD = TargetFace(
+        id = "nra_b8_25yd",
+        name = "NRA B-8 — 25 yd Timed/Rapid Pistol",
+        governingBody = "NRA",
+        discipline = "Pistol",
+        nominalDistanceM = 22.86,
+        faceWidthMm = 21.0 * IN, faceHeightMm = 24.0 * IN,
+        rings = ringsIn(10 to 3.36, 9 to 5.54, 8 to 8.00, 7 to 11.00,
+                        6 to 14.80, 5 to 19.68),
+        blackDiameterMm = 8.00 * IN,
+        innerTenDiameterMm = 1.695 * IN,
+        innerTenLabel = "X",
+        scoringMode = ScoringMode.RING_INTEGER,
+        identifiable = false,   // see TargetFace.identifiable
+        verified = false,
+        notes = "Identical rings to the B-6. X 1.695\", 10 3.36\", 9 5.54\", 8 8.00\", " +
+            "7 11.00\", 6 14.80\", 5 19.68\"."
+    )
+
+    /** NRA B-16, 25 yd slow fire pistol. */
+    val NRA_B16_25YD = TargetFace(
+        id = "nra_b16_25yd",
+        name = "NRA B-16 — 25 yd Slow Fire Pistol",
+        governingBody = "NRA",
+        discipline = "Pistol",
+        nominalDistanceM = 22.86,
+        faceWidthMm = 12.0 * IN, faceHeightMm = 12.0 * IN,
+        rings = ringsIn(10 to 1.51, 9 to 2.60, 8 to 3.82, 7 to 5.32,
+                        6 to 7.22, 5 to 9.66),
+        blackDiameterMm = 5.3125 * IN,
+        innerTenDiameterMm = 0.67 * IN,
+        innerTenLabel = "X",
+        scoringMode = ScoringMode.RING_INTEGER,
+        identifiable = false,   // see TargetFace.identifiable
+        verified = false,
+        notes = "X 0.67\", 10 1.51\", 9 2.60\", 8 3.82\", 7 5.32\", 6 7.22\", 5 9.66\". " +
+            "Black 5 5/16\", which is the 7 ring."
+    )
+
+    // ---------------------------------------------------------------------
+    //  Biathlon
+    //
+    //  Scored HIT_MISS because that is what biathlon is: the metal target
+    //  falls or it does not, and a shot 1 mm inside the edge counts the same
+    //  as one through the middle. Paper faces of these diameters are sold for
+    //  practice, which is what this app can score.
+    // ---------------------------------------------------------------------
+
+    /** IBU biathlon, prone: 45 mm at 50 m. */
+    val IBU_BIATHLON_PRONE = TargetFace(
+        id = "ibu_biathlon_prone",
+        name = "Biathlon — prone (45 mm)",
+        governingBody = "IBU",
+        discipline = "Biathlon",
+        nominalDistanceM = 50.0,
+        faceWidthMm = 120.0, faceHeightMm = 120.0,
+        rings = listOf(Ring(1, 45.0)),
+        blackDiameterMm = 45.0,
+        scoringMode = ScoringMode.HIT_MISS,
+        identifiable = false,   // see TargetFace.identifiable
+        verified = false,
+        notes = "45 mm ±0.3 mm at 50 m. A hit anywhere inside counts; there is no ring value " +
+            "in biathlon."
+    )
+
+    /** IBU biathlon, standing: 115 mm at 50 m. */
+    val IBU_BIATHLON_STANDING = TargetFace(
+        id = "ibu_biathlon_standing",
+        name = "Biathlon — standing (115 mm)",
+        governingBody = "IBU",
+        discipline = "Biathlon",
+        nominalDistanceM = 50.0,
+        faceWidthMm = 200.0, faceHeightMm = 200.0,
+        rings = listOf(Ring(1, 115.0)),
+        blackDiameterMm = 115.0,
+        scoringMode = ScoringMode.HIT_MISS,
+        identifiable = false,   // see TargetFace.identifiable
+        verified = false,
+        notes = "115 mm at 50 m. A hit anywhere inside counts."
+    )
+
     // =====================================================================
 
     val builtIns: List<TargetFace> = listOf(
         ISSF_AR10, ISSF_AP10, ISSF_R50, ISSF_P25_PRECISION, ISSF_P25_RAPID, ISSF_R300,
         NRA_SR_200, NRA_MR1_600, NRA_LR_1000, FCLASS_600, FCLASS_1000,
         NRA_A17_50FT, NRA_A23_50YD,
+        NRA_B2_50FT, NRA_B3_50FT, NRA_B4_20YD, NRA_B5_20YD,
+        NRA_B6_50YD, NRA_B8_25YD, NRA_B16_25YD,
+        IBU_BIATHLON_PRONE, IBU_BIATHLON_STANDING,
         DE_100M, DE_KK_50M,
         IPSC_CLASSIC, IPSC_MINI, IDPA_TARGET,
         STEEL_2MOA_100, STEEL_IPSC_FULL, STEEL_300MM

@@ -158,6 +158,23 @@ data class TargetFace(
     val scoringMode: ScoringMode = ScoringMode.RING_INTEGER,
     /** True only for figures taken from a governing body's published table. */
     val verified: Boolean = false,
+    /**
+     * May automatic identification consider this face?
+     *
+     * NOT about the face being wrong. It is about what identification can
+     * actually do: RingFinder separates the catalogue by black-radius-over-
+     * ring-pitch, which collides all over the place, and then by DISTANCE,
+     * which resolves those collisions. A face added at a distance where
+     * others already sit gives the ratio more work than it can do — the NRA
+     * B-2 and B-3 land on the A-17 at 50 ft, the B-6 on the A-23/5 at 50 yd,
+     * the B-8 and B-16 on the ISSF precision pistol face at 25.
+     *
+     * So those faces are offered for the shooter to CHOOSE and withheld from
+     * the automatic guess. Choosing one costs a tap; having identification
+     * become less reliable for everyone costs far more, and the shooter who
+     * needs the new face is exactly the one who already knows which it is.
+     */
+    val identifiable: Boolean = true,
     /** User-created or user-edited copy. */
     val custom: Boolean = false,
     /** content:// or file:// of a user-supplied face photograph or scan.

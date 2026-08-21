@@ -224,9 +224,10 @@ Register
 Reset
 Image aspect
 Stretches the picture itself so the printed rings come out round. Use it when the drawn circles sit over the printing on one axis but not the other. The picture is re-registered afterwards.
-Width %
-Height %
-Apply and re-register
+Width
+Height
+Mark the centre of the face
+Optional. Drag the crosshair onto the middle of the face to tell the detector where to look. Leave it off and detection is exactly as before.
 Original picture
 Lens distortion
 Straightens a picture bowed by a wide lens. Measured from the printed rings; matters at close range and hardly at all down a range.
@@ -1111,6 +1112,21 @@ everything else is a miss. Edit the diameter to match the plate in use.
 Steel plate 2 MOA @ 100 m
 Full-size IPSC steel
 300 mm round steel
+NRA B-2 — 50 ft Slow Fire Pistol
+Pistol
+NRA B-3 — 50 ft Timed/Rapid Pistol
+NRA B-4 — 20 yd Slow Fire Pistol
+NRA B-5 — 20 yd Timed/Rapid Pistol
+NRA B-6 — 50 yd Slow Fire Pistol
+Black taken as the 8 ring; sources also describe it as the 9 ring.
+NRA B-8 — 25 yd Timed/Rapid Pistol
+NRA B-16 — 25 yd Slow Fire Pistol
+Black 5 5/16", which is the 7 ring.
+Biathlon — prone (45 mm)
+Biathlon
+in biathlon.
+Biathlon — standing (115 mm)
+115 mm at 50 m. A hit anywhere inside counts.
 WEATHER:
 without keys
 ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})
@@ -1293,7 +1309,6 @@ The rings measure round; no stretch needed.
 height %.1f%% would make them round — press Apply to try it.
 stretch that would correct it — nothing has been applied.
 Choose a photo first.
-Both figures must be percentages between %.0f and %.0f.
 The picture could not be resized — it may be too large for this device.
 Stretched to width %.1f%%, height %.1f%% of the original.
 Picture stretched to %.1f%% by %.1f%%. Registering again from the new pixels.
@@ -2333,6 +2348,20 @@ Training practice
 the mode to use when the point is the group and the correction, not the total.
 Training — group and zero
 centre and the click correction the Results screen derives from it.
+NRA Precision Pistol — Slow fire, 50 yd
+Ten shots in ten minutes on the B-6, one hand, unsupported. Gauge set for .22; change it for the centrefire and .45 stages of an aggregate.
+NRA Precision Pistol — Timed fire, 25 yd
+Two series of five, twenty seconds each, on the B-8.
+NRA Precision Pistol — Rapid fire, 25 yd
+Two series of five, ten seconds each, on the B-8.
+NRA Precision Pistol — Slow fire, 25 yd
+Ten shots in ten minutes on the B-16, the reduced slow-fire face.
+NRA Gallery Pistol — Slow fire, 50 ft
+The indoor course, on the B-2.
+Biathlon — prone, 5 shots
+result is a count of hits.
+Biathlon — standing, 5 shots
+Hit or miss, five shots.
 No usable wind estimate from the trail (none, or mostly implausible samples) — this is a zero-wind solution.
 check camera FOV, boresight calibration and shot-break time. Falling back to a zero-wind solution.
 Confidence ${(windConf * 100).toInt()}% below threshold (${(MIN_USABLE_CONFIDENCE * 100).toInt()}%) — zero-wind solution.
