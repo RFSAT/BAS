@@ -35,18 +35,59 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
-        //          WIND FROM THE SERVICES, checked one by one: Open-Meteo
-        //          (wind_speed_10m / _direction_10m / _gusts_10m),
-        //          OpenWeatherMap (wind.speed/deg/gust), Windy (U/V surface
-        //          components) and Google Weather all report it — the request
-        //          BAS makes already asks for it. Netatmo is the exception: its
-        //          public stations carry wind only where the owner has fitted
-        //          an anemometer module, so it is labelled as such in the
-        //          picker. Every fetch now logs what each provider returned per
-        //          quantity, with wind marked NOT PROVIDED when the service
-        //          itself omitted it, and the status line says "no wind from
-        //          <service>" rather than the ambiguous "wind not measured",
-        //          which could not be told apart from a still impeller.
+        // 1.49.2 - the second opinion can be switched on, and a refusal
+        //          says why.
+        //
+        //          THE CHECKBOX UNDID ITSELF. Switching the second opinion on
+        //          was refused whenever the CHOSEN service held no key: the
+        //          tick went back off and the shooter was told the button
+        //          "would have nothing to call". That was wrong twice over.
+        //          Another offered service may already hold a key, and the
+        //          setting is a preference about the app rather than a
+        //          statement about today's credentials - a shooter who means
+        //          to add a key in a minute has no way to say so. The switch
+        //          is now the shooter's to make, and where the chosen service
+        //          has no key it says which key is missing and where it comes
+        //          from, instead of quietly reversing the tap.
+        //
+        //          FREE ONLY, BY DEFAULT, WHEN NOTHING IS CONFIGURED. With no
+        //          key anywhere, the only models that could ever answer are
+        //          the free ones, so that is what the box starts on. The
+        //          default is WRITTEN the first time it is read rather than
+        //          left implicit, because an implicit default would flip the
+        //          moment a paid key was entered and start spending credit on
+        //          a request the shooter still believed was free.
+        //
+        //          TO BE PLAIN ABOUT WHAT "FREE" MEANS: OpenRouter's ":free"
+        //          models cost nothing per request but still need an
+        //          OpenRouter key, issued at no charge. There is no route to
+        //          an answer with no key at all, and the app now says so in
+        //          those words rather than implying otherwise by letting the
+        //          button sit there.
+        //
+        //          "THE REQUEST WAS REFUSED:" FOLLOWED BY NOTHING. Only
+        //          OpenAI's error shape was understood - {"error":{"message"}}
+        //          - so Mistral, which answers with a bare {"message"}, put an
+        //          empty string where the reason should have been. Worse,
+        //          NOTHING WAS LOGGED on a refusal at all: only thrown
+        //          exceptions reached the Log, so a service that answered
+        //          politely with 403 left no trace whatever. Every refusal now
+        //          logs the code and the body, and the reason is read from any
+        //          of the four shapes these services use, falling back to the
+        //          raw text - an unparsed reason is worth more than a polished
+        //          empty string.
+        //
+        //          200 OK IS NOT THE SAME AS ANSWERED. A service can return
+        //          success and still not answer the question: credit
+        //          exhausted, a model retired, a gateway substituting its own
+        //          JSON, a safety refusal wearing the shape of a reply. This
+        //          was reported against Claude, where an unexpected payload -
+        //          most likely an exhausted balance - produced only "the reply
+        //          came back in a form this app could not read". An error
+        //          object arriving with a success code is now recognised and
+        //          its sentence shown, and EVERY giving-up path writes the raw
+        //          reply to the Log with the service named, so the cause is
+        //          readable after the fact rather than guessed at.
         //
         // 1.49.1 - say what happened before moving, and stop covering the
         //          tabs while saying it.
@@ -256,12 +297,6 @@ android {
         //          stretches beneath it.
         //
         // 1.45.0 - automatic weather fills the GAPS instead of stopping at
-        //          Packaging note: excluding the guides from the archives, as
-        //          asked, means a tree rebuilt from one has no guide to stamp
-        //          - and the packager refuses to ship, which is what it is
-        //          for. The guides are deliverables now, not repository
-        //          content; any copies still in docs/ on GitHub should be
-        //          deleted, because nothing will update them there again.
         //          the first source that answers.
         //
         //          The chain was phone, then meter, then online, and it ended
@@ -297,6 +332,19 @@ android {
         //          The explicit tiers are left strict on purpose. Choosing
         //          \"External device\" means use the device; silently going
         //          online would make that choice a suggestion.
+        //
+        //          WIND FROM THE SERVICES, checked one by one: Open-Meteo
+        //          (wind_speed_10m / _direction_10m / _gusts_10m),
+        //          OpenWeatherMap (wind.speed/deg/gust), Windy (U/V surface
+        //          components) and Google Weather all report it — the request
+        //          BAS makes already asks for it. Netatmo is the exception: its
+        //          public stations carry wind only where the owner has fitted
+        //          an anemometer module, so it is labelled as such in the
+        //          picker. Every fetch now logs what each provider returned per
+        //          quantity, with wind marked NOT PROVIDED when the service
+        //          itself omitted it, and the status line says "no wind from
+        //          <service>" rather than the ambiguous "wind not measured",
+        //          which could not be told apart from a still impeller.
         //
         // 1.44.1 - correction: R.id.nav_targets does not exist.
         //
@@ -395,6 +443,13 @@ android {
         //
         //          The prose is still written by hand. A release note is not
         //          a user guide and no script can tell the difference.
+        //
+        //          Packaging note: excluding the guides from the archives, as
+        //          asked, means a tree rebuilt from one has no guide to stamp
+        //          - and the packager refuses to ship, which is what it is
+        //          for. The guides are deliverables now, not repository
+        //          content; any copies still in docs/ on GitHub should be
+        //          deleted, because nothing will update them there again.
         //
         //          This release's guide adds 6.2 Squaring up the picture -
         //          the aspect sliders, the centre crosshair, the lens
@@ -5071,8 +5126,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 90
-        versionName = "1.49.1"
+        versionCode = 91
+        versionName = "1.49.2"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

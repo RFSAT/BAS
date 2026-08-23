@@ -463,10 +463,23 @@ class ResultsActivity : BaseActivity() {
      * never present a suggested shot as a measured one.
      */
     private fun askSecondOpinion() {
-        if (!CloudSettings.configured(this)) {
+        if (!CloudSettings.enabled(this)) {
+            notifyUser("Switch the second opinion on in Settings first.")
+            return
+        }
+        // Named, rather than "set an API key" in the abstract: a shooter who
+        // has just switched the feature on needs to know WHICH key, and that
+        // a free one will do.
+        val chosen = CloudSettings.opinionProvider(this)
+        if (CloudSettings.apiKey(this, chosen).isBlank()) {
+            val free = CloudSettings.freeRoute()
             notifyUser(
-                "Set an API key for the service the second opinion asks, in Settings, and " +
-                    "switch the second opinion on."
+                "${chosen.label} has no API key yet — set one in Settings, from " +
+                    "${chosen.console}." +
+                    if (free != null && free != chosen)
+                        " ${free.label} is the cheapest route: its key is free and its free " +
+                            "models cost nothing per request."
+                    else " Even its free models need a key; the key itself is free."
             )
             return
         }

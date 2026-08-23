@@ -344,19 +344,32 @@ class ProfileActivity : BaseActivity() {
             )
         }
 
+        // Switching this on is the shooter's decision, not the app's. It
+        // used to be refused outright whenever the CHOSEN service had no
+        // key, which was wrong twice over: another offered service may
+        // already hold one, and even where none does, the honest answer is
+        // to say which key is needed rather than to undo the tap and leave
+        // the reason to be guessed at.
         binding.cbCloud.setOnClickListener {
             val want = binding.cbCloud.isChecked
+            CloudSettings.setEnabled(this, want)
+            if (!want) { notifyUser("The second opinion button is hidden."); return@setOnClickListener }
+
             val p = CloudSettings.opinionProvider(this)
-            if (want && CloudSettings.apiKey(this, p).isBlank()) {
-                binding.cbCloud.isChecked = false
-                notifyUser("${p.label} has no key — the button would have nothing to call.")
-            } else {
-                CloudSettings.setEnabled(this, want)
-                notifyUser(
-                    if (want) "A \u201cSecond opinion\u201d button will appear on the Results screen."
-                    else "The second opinion button is hidden."
-                )
-            }
+            val free = CloudSettings.freeRoute()
+            notifyUser(
+                when {
+                    CloudSettings.apiKey(this, p).isNotBlank() ->
+                        "A \u201cSecond opinion\u201d button will appear on the Results screen."
+                    free != null && free != p ->
+                        "Ready — but ${p.label} has no key yet. ${free.label} is the cheapest " +
+                            "route: its key is free and its free models cost nothing per request."
+                    else ->
+                        "Ready — but ${p.label} has no key yet. Even its free models need one, " +
+                            "issued at ${p.console} at no charge."
+                }
+            )
+            refreshCloud()
         }
 
         // ---- which service the second opinion asks ----

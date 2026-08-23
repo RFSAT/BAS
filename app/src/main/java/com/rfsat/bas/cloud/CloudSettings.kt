@@ -272,6 +272,19 @@ object CloudSettings {
      * Applied on the way OUT as well as in, so a key stored by an earlier
      * version is repaired rather than failing for ever.
      */
+    /** True when at least one offered service has a key. Asked before
+     *  deciding what to default, and before telling the shooter that a key
+     *  is what stands between them and a second opinion. */
+    fun hasAnyKey(context: Context): Boolean =
+        AiProvider.OFFERED.any { apiKey(context, it).isNotBlank() }
+
+    /** The provider a keyless shooter should be pointed at: the only one
+     *  whose free tier is a matter of choosing MODELS rather than choosing
+     *  an account. A key is still required — OpenRouter authenticates even
+     *  its ":free" models — it just costs nothing. */
+    fun freeRoute(): AiProvider? =
+        AiProvider.OFFERED.firstOrNull { it.freeAccess == FreeAccess.SELECTABLE }
+
     private fun sanitise(v: String): String = v.filterNot { it.isWhitespace() }
 
     /**
@@ -311,9 +324,23 @@ object CloudSettings {
      * or, worse, leave it set on a service where it means nothing and let the
      * shooter believe requests are free.
      */
-    fun freeOnly(context: Context, p: AiProvider): Boolean =
-        p.freeAccess == FreeAccess.SELECTABLE &&
-            (store(context)?.getBoolean(KEY_FREE + "_" + p.name, false) ?: false)
+    fun freeOnly(context: Context, p: AiProvider): Boolean {
+        if (p.freeAccess != FreeAccess.SELECTABLE) return false
+        val s = store(context) ?: return false
+        val key = KEY_FREE + "_" + p.name
+        // With no key anywhere, free models are the only ones that could
+        // ever answer, so that is what the box starts on. The default is
+        // WRITTEN the first time it is asked for, deliberately: were it left
+        // implicit, entering a paid key later would silently flip the choice
+        // and start spending credit on a request the shooter still believed
+        // was free.
+        if (!s.contains(key)) {
+            val start = !hasAnyKey(context)
+            s.edit().putBoolean(key, start).apply()
+            return start
+        }
+        return s.getBoolean(key, false)
+    }
 
     fun setFreeOnly(context: Context, p: AiProvider, value: Boolean) {
         store(context)?.edit()?.putBoolean(KEY_FREE + "_" + p.name, value)?.apply()

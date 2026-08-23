@@ -640,9 +640,10 @@ Model for ${CloudSettings.setupProvider(this).label}:
 Imports will be scored by the app's own algorithms.
 imports use the embedded algorithms.
 Imports will be scored by ${p.label}.
-${p.label} has no key — the button would have nothing to call.
-A \u201cSecond opinion\u201d button will appear on the Results screen.
 The second opinion button is hidden.
+A \u201cSecond opinion\u201d button will appear on the Results screen.
+route: its key is free and its free models cost nothing per request.
+issued at ${p.console} at no charge.
 ${p.console}.
 The second opinion will ask ${p.label}.
 several millimetres, so added shots are marked hand-placed \u2014 check them.
@@ -1720,48 +1721,59 @@ image/jpeg
 content-type
 anthropic-version
 x-api-key
+Claude (Anthropic) request failed: ${it.javaClass.simpleName}: ${it.message}
 Ranges often have no signal — this needs a connection.
 data:image/jpeg;base64,$jpegBase64
 Bearer $apiKey
 x-title
 BAS — Ballistics and Scoring
-not a password for the service's chat website — the two are different things.
+${provider.label} request failed: ${it.javaClass.simpleName}: ${it.message}
+: $detail.
+is enabled for the model you chose.
+: $detail
+and gave no reason. See the Log.
 This model may not accept the token limit the app sends; try another model.
 models listed for ${provider.label}.
 That model was not found on this account: $detail
 Rate limited, or the account is out of credit. $detail
 The service is having trouble ($code). Try again shortly.
-The service returned $code. $detail
+. See the Log for the reply.
+The service did not answer with JSON at all.
+reading: $it
 The reply held no answer at all.
 The model declined to answer: $it
 Try a smaller image or a different model.
 (stopped: $finish).
+. The full reply is in the Log.
 The reply was not valid JSON.
 :generateContent
 x-goog-api-key
+Google Gemini request failed: ${t.javaClass.simpleName}: ${t.message}
 Could not reach the Gemini API: ${t.message ?: t.javaClass.simpleName}.
+Google Gemini
 The key must come from aistudio.google.com.
 for it: $detail
 the current list at ai.google.dev and set it under \u201cOther\u201d. ($detail)
 wait a moment and try again.
 Gemini returned HTTP $code
-: $detail
 Gemini declined to look at the image (reason: $it).
+The request was refused:
+(empty)
+).take(limit).ifBlank {
+Claude (Anthropic)
 Console, not your Claude.ai password — the two are different things.
-The request was refused: $detail
 Rate limited. Wait a moment and try again.
 on the account. $detail
+The service returned $code. $detail
 room. Try a smaller image or a different model.
 (stopped: $stop).
 , -1.0); val y = h.optDouble(
 :free
 OpenAI-compatible
-Claude (Anthropic)
 sk-ant-…
 xAI (Grok)
 xai-…
 Mistral
-Google Gemini
 AIza…
 openrouter.ai/keys
 cannot read a photograph
@@ -2443,7 +2455,10 @@ Shot ${shot.index} — ${shot.displayValue}
 placed by hand
 Make it count
 Mark as sighter
-switch the second opinion on.
+Switch the second opinion on in Settings first.
+set an API key
+models cost nothing per request.
+Even its free models need a key; the key itself is free.
 picture, so it has nothing to work from on a session scored by hand.
 Asking ${provider.label}…
 Scored by $service: ${opinion.spots.size} shots.

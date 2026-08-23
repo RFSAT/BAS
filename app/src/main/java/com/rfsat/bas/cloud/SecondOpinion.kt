@@ -249,7 +249,8 @@ object SecondOpinion {
             if (code !in 200..299) return Result.Failed(explain(code, text))
             parse(text)
         }.getOrElse {
-            Logger.w("SecondOpinion", "request failed: ${it.javaClass.simpleName}")
+            Logger.w("SecondOpinion",
+                "Claude (Anthropic) request failed: ${it.javaClass.simpleName}: ${it.message}")
             Result.Failed("Could not reach the Claude API: ${it.message ?: it.javaClass.simpleName}. " +
                 "Ranges often have no signal — this needs a connection.")
         }
@@ -354,9 +355,10 @@ object SecondOpinion {
                 ?.bufferedReader()?.use(BufferedReader::readText).orEmpty()
             conn.disconnect()
             if (code !in 200..299) return Result.Failed(explainOpenAi(provider, code, reply))
-            parseOpenAi(reply)
+            parseOpenAi(reply, provider.label)
         }.getOrElse {
-            Logger.w("SecondOpinion", "OpenAI request failed: ${it.javaClass.simpleName}")
+            Logger.w("SecondOpinion",
+                "${provider.label} request failed: ${it.javaClass.simpleName}: ${it.message}")
             Result.Failed("Could not reach the OpenAI API: ${it.message ?: it.javaClass.simpleName}. " +
                 "Ranges often have no signal — this needs a connection.")
         }
@@ -366,13 +368,16 @@ object SecondOpinion {
      *  and pointing a DeepSeek user at platform.openai.com would be worse
      *  than saying nothing. */
     private fun explainOpenAi(provider: AiProvider, code: Int, body: String): String {
-        val detail = runCatching {
-            JSONObject(body).getJSONObject("error").getString("message")
-        }.getOrDefault("")
+        logRefusal(provider.label, code, body)
+        val detail = reasonFrom(body)
         return when (code) {
-            401 -> "The API key was rejected. It must be an API key from ${provider.console}, " +
-                "not a password for the service's chat website — the two are different things."
-            400 -> "The request was refused: $detail" +
+            401, 403 -> "${provider.label} rejected the key" +
+                (if (detail.isNotBlank()) ": $detail." else ".") +
+                " It must be an API key from ${provider.console}, not a password for that " +
+                "service's chat website — the two are different things. Check also that the key " +
+                "is enabled for the model you chose."
+            400 -> "${provider.label} refused the request" +
+                (if (detail.isNotBlank()) ": $detail" else " and gave no reason. See the Log.") +
                 (if (detail.contains("max_completion_tokens") || detail.contains("max_tokens"))
                     " This model may not accept the token limit the app sends; try another model."
                  else if (detail.contains("json_schema") || detail.contains("response_format"))
@@ -382,32 +387,40 @@ object SecondOpinion {
             404 -> "That model was not found on this account: $detail"
             429 -> "Rate limited, or the account is out of credit. $detail"
             in 500..599 -> "The service is having trouble ($code). Try again shortly."
-            else -> "The service returned $code. $detail"
+            else -> "${provider.label} returned HTTP $code" +
+                (if (detail.isNotBlank()) ": $detail" else ". See the Log for the reply.")
         }
     }
 
-    private fun parseOpenAi(response: String): Result {
-        val root = JSONObject(response)
+    private fun parseOpenAi(response: String, who: String): Result {
+        val root = runCatching { JSONObject(response) }.getOrElse {
+            return failed(who, "The service did not answer with JSON at all.", response)
+        }
+        payloadError(root).takeIf { it.isNotBlank() }?.let {
+            return failed(who, "The service answered OK but sent an error instead of a " +
+                "reading: $it", response)
+        }
         val usage = root.optJSONObject("usage")
         val choice = root.optJSONArray("choices")?.optJSONObject(0)
-            ?: return Result.Failed("The reply held no answer at all.")
+            ?: return failed(who, "The reply held no answer at all.", response)
         val finish = choice.optString("finish_reason")
         val message = choice.optJSONObject("message")
         message?.optString("refusal")?.takeIf { it.isNotBlank() && it != "null" }?.let {
-            return Result.Failed("The model declined to answer: $it")
+            return failed(who, "The model declined to answer: $it", response)
         }
         val content = message?.optString("content").orEmpty()
         if (content.isBlank()) {
-            return Result.Failed(
+            return failed(who,
                 if (finish == "length")
                     "The reply was cut off before it finished — the model ran out of room. " +
                         "Try a smaller image or a different model."
                 else "The reply came back empty" +
-                    (if (finish.isNotBlank()) " (stopped: $finish)." else ".")
-            )
+                    (if (finish.isNotBlank()) " (stopped: $finish)." else "") +
+                    ". The full reply is in the Log.",
+                response)
         }
         val obj = runCatching { JSONObject(content) }.getOrElse {
-            return Result.Failed("The reply was not valid JSON.")
+            return failed(who, "The reply was not valid JSON.", content)
         }
         return build(obj,
             usage?.optInt("prompt_tokens") ?: 0,
@@ -484,15 +497,15 @@ object SecondOpinion {
             if (code !in 200..299) return Result.Failed(explainGemini(code, reply))
             parseGemini(reply)
         } catch (t: Throwable) {
-            Logger.w("SecondOpinion", "Gemini request failed: ${t.javaClass.simpleName}")
+            Logger.w("SecondOpinion",
+                "Google Gemini request failed: ${t.javaClass.simpleName}: ${t.message}")
             Result.Failed("Could not reach the Gemini API: ${t.message ?: t.javaClass.simpleName}.")
         }
     }
 
     private fun explainGemini(code: Int, body: String): String {
-        val detail = runCatching {
-            JSONObject(body).getJSONObject("error").getString("message")
-        }.getOrDefault("")
+        logRefusal("Google Gemini", code, body)
+        val detail = reasonFrom(body)
         return when (code) {
             400 -> "Gemini rejected the request: $detail" +
                 (if (detail.contains("API key", true))
@@ -508,30 +521,38 @@ object SecondOpinion {
     }
 
     private fun parseGemini(response: String): Result {
-        val root = JSONObject(response)
+        val who = "Google Gemini"
+        val root = runCatching { JSONObject(response) }.getOrElse {
+            return failed(who, "The service did not answer with JSON at all.", response)
+        }
+        payloadError(root).takeIf { it.isNotBlank() }?.let {
+            return failed(who, "The service answered OK but sent an error instead of a " +
+                "reading: $it", response)
+        }
         // A blocked prompt has no candidates at all, and the reason lives
         // somewhere else entirely — reported as its own case, because "no
         // answer" and "refused to answer" are different problems.
         root.optJSONObject("promptFeedback")?.optString("blockReason")
             ?.takeIf { it.isNotBlank() && it != "null" }?.let {
-                return Result.Failed("Gemini declined to look at the image (reason: $it).")
+                return failed(who, "Gemini declined to look at the image (reason: $it).", response)
             }
         val candidate = root.optJSONArray("candidates")?.optJSONObject(0)
-            ?: return Result.Failed("The reply held no answer at all.")
+            ?: return failed(who, "The reply held no answer at all.", response)
         val finish = candidate.optString("finishReason")
         val content = candidate.optJSONObject("content")
             ?.optJSONArray("parts")?.optJSONObject(0)?.optString("text").orEmpty()
         if (content.isBlank()) {
-            return Result.Failed(
+            return failed(who,
                 if (finish == "MAX_TOKENS")
                     "The reply was cut off before it finished — the model ran out of room. " +
                         "Try a smaller image or a different model."
                 else "The reply came back empty" +
-                    (if (finish.isNotBlank()) " (stopped: $finish)." else ".")
-            )
+                    (if (finish.isNotBlank()) " (stopped: $finish)." else "") +
+                    ". The full reply is in the Log.",
+                response)
         }
         val obj = runCatching { JSONObject(content) }.getOrElse {
-            return Result.Failed("The reply was not valid JSON.")
+            return failed(who, "The reply was not valid JSON.", content)
         }
         val usage = root.optJSONObject("usageMetadata")
         return build(obj,
@@ -539,15 +560,94 @@ object SecondOpinion {
             usage?.optInt("candidatesTokenCount") ?: 0)
     }
 
+
+    /**
+     * The human-readable reason out of an error body, whatever shape it is in.
+     *
+     * Only OpenAI's own shape was understood — {"error":{"message":...}} — so
+     * a service using any other put nothing in `detail` and the shooter got
+     * "The request was refused:" followed by nothing at all. Mistral answers
+     * with a bare {"message":...}, some services with {"detail":...}, some
+     * with a list of field errors, and a proxy in front of any of them may
+     * answer with plain text.
+     *
+     * Falls back to the raw body, trimmed. An unparsed reason is worth far
+     * more than a polished empty string.
+     */
+    private fun reasonFrom(body: String): String {
+        if (body.isBlank()) return ""
+        runCatching {
+            val root = JSONObject(body)
+            root.optJSONObject("error")?.let { e ->
+                e.optString("message").takeIf { it.isNotBlank() }?.let { return it }
+                e.optString("code").takeIf { it.isNotBlank() }?.let { return it }
+            }
+            root.optString("error").takeIf { it.isNotBlank() && it != "null" }?.let { return it }
+            root.optString("message").takeIf { it.isNotBlank() && it != "null" }?.let { return it }
+            val d = root.opt("detail")
+            if (d is String && d.isNotBlank()) return d
+            if (d is JSONArray && d.length() > 0) {
+                val first = d.optJSONObject(0)
+                val msg = first?.optString("msg").orEmpty().ifBlank { first?.optString("message").orEmpty() }
+                if (msg.isNotBlank()) return msg
+            }
+        }
+        // Not JSON, or JSON this does not know: give back what arrived.
+        return excerpt(body, 300).let { if (it == "(empty)") "" else it }
+    }
+
+    /** A body cut to size for a log line: one line, bounded, never blank. */
+    private fun excerpt(body: String, limit: Int = 600): String =
+        body.trim().replace(Regex("\\s+"), " ").take(limit).ifBlank { "(empty)" }
+
+    /** Every refusal goes to the log with its status and its body. Without
+     *  this a 400 was invisible: only thrown exceptions were recorded, and an
+     *  HTTP error is a perfectly normal return, not an exception. */
+    private fun logRefusal(who: String, code: Int, body: String) {
+        Logger.w("SecondOpinion", "$who refused with HTTP $code; body: ${excerpt(body)}")
+    }
+
+    /**
+     * Every giving-up path goes through here, so that the Log always holds
+     * the reply the app could not use — not merely the app's opinion of it.
+     *
+     * A service can answer 200 OK and still not answer the QUESTION: credit
+     * exhausted, a model retired, a proxy substituting its own JSON, a
+     * safety refusal wearing the shape of a success. The shooter saw "the
+     * reply came back in a form this app could not read" and the Log held
+     * nothing further, which left no way to tell those apart. It now holds
+     * the raw reply, so the cause is readable after the fact.
+     */
+    private fun failed(who: String, message: String, body: String): Result.Failed {
+        Logger.w("SecondOpinion", "$who: $message | raw reply: ${excerpt(body)}")
+        return Result.Failed(message)
+    }
+
+    /**
+     * An error payload arriving WITH a success code. Anthropic sends
+     * {"type":"error","error":{...}} and several gateways pass an upstream
+     * error through as 200 with the error object intact; without this the
+     * reply merely looked malformed and the actual sentence — "your credit
+     * balance is too low" — was thrown away unread.
+     */
+    private fun payloadError(root: JSONObject): String {
+        val looksWrong = root.optString("type") == "error" ||
+            root.opt("error") != null ||
+            (root.has("message") && !root.has("choices") && !root.has("content") &&
+                !root.has("candidates"))
+        if (!looksWrong) return ""
+        return reasonFrom(root.toString())
+    }
+
     /** Turns an HTTP status into something a shooter can act on. */
     private fun explain(code: Int, body: String): String {
-        val detail = runCatching {
-            JSONObject(body).getJSONObject("error").getString("message")
-        }.getOrDefault("")
+        logRefusal("Claude (Anthropic)", code, body)
+        val detail = reasonFrom(body)
         return when (code) {
             401 -> "The API key was rejected. Note that this must be a key from the Anthropic " +
                 "Console, not your Claude.ai password — the two are different things."
-            400 -> "The request was refused: $detail"
+            400 -> "Claude refused the request" +
+                (if (detail.isNotBlank()) ": $detail" else " and gave no reason. See the Log.")
             429 -> "Rate limited. Wait a moment and try again."
             in 500..599 -> "The service is having trouble ($code). Try again shortly."
             402, 403 -> "The key is valid but the request was not allowed — usually no credit " +
@@ -557,7 +657,14 @@ object SecondOpinion {
     }
 
     private fun parse(response: String): Result {
-        val root = JSONObject(response)
+        val who = "Claude (Anthropic)"
+        val root = runCatching { JSONObject(response) }.getOrElse {
+            return failed(who, "The service did not answer with JSON at all.", response)
+        }
+        payloadError(root).takeIf { it.isNotBlank() }?.let {
+            return failed(who, "The service answered OK but sent an error instead of a " +
+                "reading: $it", response)
+        }
         val usage = root.optJSONObject("usage")
         val stop = root.optString("stop_reason")
         val content = root.optJSONArray("content")
@@ -575,16 +682,17 @@ object SecondOpinion {
                     ?.optString("text").orEmpty()
                 val a = text.indexOf('{'); val b = text.lastIndexOf('}')
                 if (a < 0 || b <= a) {
-                    return Result.Failed(
+                    return failed(who,
                         if (stop == "max_tokens")
                             "The reply was cut off before it finished — the model ran out of " +
                                 "room. Try a smaller image or a different model."
                         else "The reply came back in a form this app could not read" +
-                            (if (stop.isNotBlank()) " (stopped: $stop)." else ".")
-                    )
+                            (if (stop.isNotBlank()) " (stopped: $stop)." else "") +
+                            ". The full reply is in the Log.",
+                        response)
                 }
                 runCatching { JSONObject(text.substring(a, b + 1)) }
-                    .getOrElse { return Result.Failed("The reply was not valid JSON.") }
+                    .getOrElse { return failed(who, "The reply was not valid JSON.", response) }
             }
 
         return build(obj,
