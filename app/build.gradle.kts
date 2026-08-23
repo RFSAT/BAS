@@ -48,6 +48,33 @@ android {
         //          <service>" rather than the ambiguous "wind not measured",
         //          which could not be told apart from a still impeller.
         //
+        // 1.49.1 - say what happened before moving, and stop covering the
+        //          tabs while saying it.
+        //
+        //          THE SUMMARY WAS BEING WRITTEN AND NEVER SEEN. 1.49.0 wrote
+        //          the count, the total and the low-confidence warning into
+        //          the screen and then replaced the screen in the same frame.
+        //          Results now opens after a pause long enough to read a line
+        //          and a number, and the pause is named rather than a bare
+        //          number in a call.
+        //
+        //          WAITING ON A SERVICE LOOKS LIKE BEING IGNORED. Scoring
+        //          through an AI service is several seconds of network with
+        //          nothing changing on screen, and the usual answer to a
+        //          screen that ignored a tap is to tap again — which sends a
+        //          second card and pays for it twice. The screen now says
+        //          what it is waiting for and disables Detect until the
+        //          answer arrives. Success replaces it with the same summary
+        //          the app's own detection writes; failure replaces it with
+        //          why, and points back at the local detector.
+        //
+        //          MESSAGES NO LONGER LAND ON THE BOTTOM BAR. Snackbars were
+        //          anchored to the content root, so on every screen with tabs
+        //          they covered them — including Results, which is the button
+        //          the shooter wants the moment the message appears. Both
+        //          notifyUser and notifyUndoable now anchor above the bar
+        //          where one exists, and behave as before where it does not.
+        //
         // 1.49.0 - straight to Results once a card is scored.
         //
         //          The setting existed, had a switch in Settings, and was
@@ -5044,8 +5071,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 89
-        versionName = "1.49.0"
+        versionCode = 90
+        versionName = "1.49.1"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

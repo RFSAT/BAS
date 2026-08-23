@@ -1346,10 +1346,20 @@ and does not fit these proportions
 Registered. Now detect the hits.
 The card could not be flattened for scoring; falling back to the app's own detection.
 Scoring with ${provider.label}…
+Asking ${provider.label} to score this card…
+usually takes a few seconds, and longer on a slow connection.
+The answer will replace this message.
+${provider.label} could not score this card.
+The app's own detection is still available — tap Detect.
 ${provider.label} scored ${result.opinion.spots.size} shots.
 $disagreed disagree with the ring the geometry gives at
 that position — check those on the plot.
 All are marked hand-placed: no position here was measured.
+${provider.label}.
+.format(aiRes.maxScore)}
+Inner tens ${aiRes.innerTens}
+with the geometry at that position — check those first.
+Check them on the plot.
 Register the card first.
 on import
 No holes were found, and any previously recorded shots have been cleared.
@@ -1365,6 +1375,7 @@ Total ${res.displayTotal}
 Inner tens ${res.innerTens}
 and delete anything the detector invented.
 $doubtful hole(s) were detected with low confidence.
+Scored. Opening Results…
 No shots recorded.
 No picture to work from yet.
 contrast, or photographed at too steep an angle. Falling back to the aiming mark.

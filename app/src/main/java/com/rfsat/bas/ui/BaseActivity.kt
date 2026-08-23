@@ -100,6 +100,13 @@ open class BaseActivity : AppCompatActivity() {
             val tv = android.util.TypedValue()
             return if (theme.resolveAttribute(attr, tv, true)) tv.data else fallback
         }
+        // ABOVE the bottom bar, never across it. A message that covers the
+        // tabs hides the thing the shooter reaches for next, and on the
+        // scoring screens it lands exactly on Results — the button they want
+        // the moment the message appears.
+        runCatching {
+            findViewById<android.view.View>(R.id.bottomNav)?.let { sb.anchorView = it }
+        }
         sb.view.setBackgroundColor(
             attrColor(com.google.android.material.R.attr.colorSurface, 0xFF202020.toInt())
         )
@@ -132,6 +139,13 @@ open class BaseActivity : AppCompatActivity() {
         fun attrColor(attr: Int, fallback: Int): Int {
             val tv = android.util.TypedValue()
             return if (theme.resolveAttribute(attr, tv, true)) tv.data else fallback
+        }
+        // ABOVE the bottom bar, never across it. A message that covers the
+        // tabs hides the thing the shooter reaches for next, and on the
+        // scoring screens it lands exactly on Results — the button they want
+        // the moment the message appears.
+        runCatching {
+            findViewById<android.view.View>(R.id.bottomNav)?.let { sb.anchorView = it }
         }
         sb.view.setBackgroundColor(
             attrColor(com.google.android.material.R.attr.colorSurface, 0xFF202020.toInt())

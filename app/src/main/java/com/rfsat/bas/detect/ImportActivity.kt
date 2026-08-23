@@ -836,6 +836,20 @@ class ImportActivity : BaseActivity() {
         val uMin = reg.uMinMm; val uMax = reg.uMaxMm
         val vMin = reg.vMinMm; val vMax = reg.vMaxMm
         notifyUser("Scoring with ${provider.label}…")
+        // A REQUEST OVER THE NETWORK, several seconds of it, with nothing on
+        // screen changing. Without this the screen looks like it ignored the
+        // tap, and the usual answer to that is to tap again — which sends a
+        // second card and pays for it twice.
+        binding.tvResult.text = buildString {
+            appendLine("Asking ${provider.label} to score this card…")
+            appendLine()
+            appendLine("The card has been flattened onto its scoring grid and sent. This " +
+                "usually takes a few seconds, and longer on a slow connection.")
+            appendLine()
+            append("The answer will replace this message.")
+        }
+        binding.btnDetect.isEnabled = false
+        binding.hdrDistribution.visibility = View.GONE
         Thread {
             val out = java.io.ByteArrayOutputStream()
             val longest = maxOf(rect.width, rect.height)
@@ -846,7 +860,17 @@ class ImportActivity : BaseActivity() {
             val result = SecondOpinion.ask(provider, key, model, b64, scoreToo = true)
             runOnUiThread {
                 when (result) {
-                    is SecondOpinion.Result.Failed -> notifyUser(result.message)
+                    is SecondOpinion.Result.Failed -> {
+                        binding.btnDetect.isEnabled = true
+                        binding.tvResult.text = buildString {
+                            appendLine("${provider.label} could not score this card.")
+                            appendLine()
+                            appendLine(result.message)
+                            appendLine()
+                            append("The app's own detection is still available — tap Detect.")
+                        }
+                        notifyUser(result.message)
+                    }
                     is SecondOpinion.Result.Ok -> {
                         if (binding.cbReplace.isChecked) {
                             ScoringSession.startNew(face, rules, distanceFromField())
@@ -881,6 +905,29 @@ class ImportActivity : BaseActivity() {
                             }
                             append("All are marked hand-placed: no position here was measured.")
                         })
+                        binding.btnDetect.isEnabled = true
+
+                        // The same summary the app's own detection writes, so
+                        // the waiting message is replaced by an answer rather
+                        // than by the screen changing under the shooter.
+                        val aiRes = ScoringSession.result(this)
+                        binding.tvResult.text = buildString {
+                            appendLine("${result.opinion.spots.size} shot(s) scored by " +
+                                "${provider.label}.")
+                            appendLine()
+                            appendLine("Total ${aiRes.displayTotal}" +
+                                (if (aiRes.maxScore > 0) " / ${"%.0f".format(aiRes.maxScore)}" else ""))
+                            if (rules.countInnerTens && aiRes.innerTens > 0)
+                                appendLine("Inner tens ${aiRes.innerTens}")
+                            if (disagreed > 0) {
+                                appendLine()
+                                appendLine("$disagreed shot(s) were given a ring that disagrees " +
+                                    "with the geometry at that position — check those first.")
+                            }
+                            appendLine()
+                            append("Every position here was placed by the service, not measured. " +
+                                "Check them on the plot.")
+                        }
                         // Same rule as the app's own detection: the card is
                         // scored, so the plot is where it gets checked — and
                         // an AI-scored card needs checking more, not less.
@@ -1052,11 +1099,24 @@ class ImportActivity : BaseActivity() {
      * found nothing would replace the message explaining why with an empty
      * plot, which is the one moment the explanation is worth reading.
      */
+    /** How long the scored summary stays on screen before Results opens. */
+    private val RESULTS_PAUSE_MS = 2600L
+
     private fun goToResults(holesFound: Int) {
         if (holesFound <= 0) return
         if (!com.rfsat.bas.ui.RangeSettings.autoShowResults()) return
-        startActivity(android.content.Intent(this, ResultsActivity::class.java))
-        finish()
+        notifyUser("Scored. Opening Results…")
+        // AFTER A PAUSE, not immediately. The summary this screen has just
+        // written — how many holes, the total, any low-confidence ones — is
+        // the reason the shooter looked at this screen at all, and replacing
+        // it in the same frame means it was never shown. Long enough to read
+        // a line and a number, short enough not to feel stuck.
+        binding.root.postDelayed({
+            if (!isFinishing && !isDestroyed) {
+                startActivity(android.content.Intent(this, ResultsActivity::class.java))
+                finish()
+            }
+        }, RESULTS_PAUSE_MS)
     }
 
     // ------------------------------------------------------------------
