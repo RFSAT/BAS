@@ -35,6 +35,66 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.49.3 - an answer that was never read is no longer plotted as
+        //          shots.
+        //
+        //          REPORTED: Mistral, asked for a second opinion on a card
+        //          whose shots were all inside the 9 and 10 rings, answered
+        //          with holes strung evenly along the diagonal from corner to
+        //          corner. The question asked was whether the request was
+        //          malformed or the reply misread.
+        //
+        //          NEITHER, AND THIS IS PROVABLE. Everything between the
+        //          reply and the plot is a scale and a flip -
+        //          OpinionReconciler maps x across uMin..uMax and reads y
+        //          down from vMax - and no scale or flip turns a tight
+        //          cluster into a line across the whole face. Had the app
+        //          been misreading coordinates, a 10-ring group would appear
+        //          as a group somewhere wrong, mirrored or offset, never as
+        //          an even line. The numbers themselves were invented. The
+        //          request is well formed: the same body, the same schema and
+        //          the same prompt go to every OpenAI-shaped service, and the
+        //          others answer with groups.
+        //
+        //          IT IS A KNOWN FAILURE. A schema guarantees the SHAPE of a
+        //          reply and says nothing about whether the model looked.
+        //          Pixtral under structured generation on image input is
+        //          documented as degrading this way, and a model that cannot
+        //          ground its answer still has to emit well-formed holes -
+        //          what comes out is a sweep, coordinates that march across
+        //          the frame in step because they were enumerated rather than
+        //          seen.
+        //
+        //          AnswerSanity rejects that one pattern: five or more holes,
+        //          collinear to |r| >= 0.99, spanning over 55% of the frame,
+        //          with the gaps between them varying by under 25%. The
+        //          thresholds were measured, not chosen. Across 20,000
+        //          simulated groups - centres anywhere on the card, spreads
+        //          from a tight 10-ring cluster out to a 35% scatter - it
+        //          rejects none; against a diagonal walked by recoil, 200 of
+        //          200 pass; against fabricated ramps it catches every clean
+        //          one and every one jittered by a per cent. A ramp jittered
+        //          by three per cent gets through, which is the deliberate
+        //          side to err on: discarding a real answer is worse than
+        //          passing a bad one the shooter can see for themselves.
+        //          Eleven cases are pinned in AnswerSanityTest, all written
+        //          out rather than seeded.
+        //
+        //          WHAT CAME BACK IS NOW IN THE LOG, every time: the service,
+        //          the count and each fractional coordinate, with how far the
+        //          furthest hole sits from the group's own centre. This is
+        //          what makes a report like the one above checkable without
+        //          guessing. Coordinates only - never the picture, never the
+        //          key.
+        //
+        //          AND HOLES OUTSIDE THE FRAME ARE COUNTED RATHER THAN
+        //          SILENTLY DROPPED. Anything outside 0..1 was discarded
+        //          without a word, so a model answering in PIXELS or in PER
+        //          CENT - both of which happen - had every hole thrown away
+        //          and the shooter was told the service saw nothing at all.
+        //          That is a different fault with a different remedy, and it
+        //          now says which, having looked at the magnitudes.
+        //
         // 1.49.2 - the second opinion can be switched on, and a refusal
         //          says why.
         //
@@ -5126,8 +5186,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 91
-        versionName = "1.49.2"
+        versionCode = 92
+        versionName = "1.49.3"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

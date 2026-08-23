@@ -1,6 +1,7 @@
 package com.rfsat.bas.cloud
 
 import com.rfsat.bas.log.Logger
+import kotlin.math.abs
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -424,7 +425,7 @@ object SecondOpinion {
         }
         return build(obj,
             usage?.optInt("prompt_tokens") ?: 0,
-            usage?.optInt("completion_tokens") ?: 0)
+            usage?.optInt("completion_tokens") ?: 0, who)
     }
 
 
@@ -557,7 +558,7 @@ object SecondOpinion {
         val usage = root.optJSONObject("usageMetadata")
         return build(obj,
             usage?.optInt("promptTokenCount") ?: 0,
-            usage?.optInt("candidatesTokenCount") ?: 0)
+            usage?.optInt("candidatesTokenCount") ?: 0, who)
     }
 
 
@@ -697,7 +698,7 @@ object SecondOpinion {
 
         return build(obj,
             usage?.optInt("input_tokens") ?: 0,
-            usage?.optInt("output_tokens") ?: 0)
+            usage?.optInt("output_tokens") ?: 0, who)
     }
 
     /**
@@ -706,16 +707,47 @@ object SecondOpinion {
      * treated identically either way — a schema guarantees the SHAPE of a
      * reply and nothing about whether the numbers in it make sense.
      */
-    private fun build(obj: JSONObject, inTok: Int, outTok: Int): Result {
+    private fun build(obj: JSONObject, inTok: Int, outTok: Int, who: String): Result {
         val spots = ArrayList<Spot>()
+        var offScale = 0
+        var worst = 0.0
         obj.optJSONArray("holes")?.let { arr ->
             for (i in 0 until arr.length()) {
                 val h = arr.optJSONObject(i) ?: continue
                 val x = h.optDouble("x", -1.0); val y = h.optDouble("y", -1.0)
-                if (x < 0 || y < 0 || x > 1 || y > 1) continue
+                if (x.isNaN() || y.isNaN()) { offScale++; continue }
+                if (x < 0 || y < 0 || x > 1 || y > 1) {
+                    // Dropped, and COUNTED. A model answering in pixels or in
+                    // per cent has every hole thrown away here, and the
+                    // shooter used to be told the service saw nothing at all
+                    // - which is a different problem with a different remedy.
+                    offScale++
+                    worst = maxOf(worst, maxOf(abs(x), abs(y)))
+                    continue
+                }
                 spots += Spot(x, y, h.optString("note"), h.optInt("ring", -1))
             }
         }
+
+        val points = spots.map { it.xFrac to it.yFrac }
+        Logger.i("SecondOpinion", "$who answered: ${AnswerSanity.describe(points)}" +
+            (if (offScale > 0) "; $offScale outside 0..1 and dropped" else ""))
+
+        if (spots.isEmpty() && offScale > 0) {
+            val scale = when {
+                worst > 100 -> "They look like PIXELS. "
+                worst > 1.5 -> "They look like PERCENTAGES. "
+                else -> ""
+            }
+            return failed(who,
+                "$who reported $offScale holes and put every one of them outside the picture. " +
+                    scale + "The app asks for fractions of the frame, 0 to 1. Nothing has been " +
+                    "plotted. Another model will usually answer this correctly.",
+                obj.toString())
+        }
+
+        AnswerSanity.sweep(points)?.let { return failed(who, "$who: $it", obj.toString()) }
+
         return Result.Ok(
             Opinion(
                 faceName = obj.optString("face", "unknown"),

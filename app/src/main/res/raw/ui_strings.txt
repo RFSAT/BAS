@@ -1768,6 +1768,17 @@ The service returned $code. $detail
 room. Try a smaller image or a different model.
 (stopped: $stop).
 , -1.0); val y = h.optDouble(
+; $offScale outside 0..1 and dropped
+They look like PIXELS.
+They look like PERCENTAGES.
+plotted. Another model will usually answer this correctly.
+$who: $it
+than plotted. Try a stronger model, or use the app's own detection.
+the centre
+no holes
++ fmt(it.first) +
++ fmt(it.second) +
+; furthest from their own centre
 :free
 OpenAI-compatible
 sk-ant-…
