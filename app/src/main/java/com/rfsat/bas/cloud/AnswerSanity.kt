@@ -1,117 +1,159 @@
 package com.rfsat.bas.cloud
 
 import kotlin.math.abs
-import kotlin.math.atan2
-import kotlin.math.cos
 import kotlin.math.hypot
-import kotlin.math.sin
-import kotlin.math.sqrt
+import kotlin.math.roundToInt
 
 /**
  * Is the answer a reading of the picture, or a shape the model filled in?
  *
- * WHY THIS EXISTS. Mistral was asked for a second opinion on a card whose
- * shots were all inside the 9 and 10 rings, and answered with holes strung
- * evenly along the diagonal, corner to corner. That answer cannot be a
- * misreading on this side: everything downstream is a scale and a flip -
- * OpinionReconciler maps x across uMin..uMax and y down from vMax - and no
- * scale or flip turns a tight cluster into a line across the whole face. The
+ * WHY THIS EXISTS. Mistral, asked about a card whose shots were in the black
+ * and strung out to the 5 ring, answered with holes marching evenly from the
+ * bottom-left corner to the top-right one. That cannot be a misreading on
+ * this side: everything between the reply and the plot is a scale and a flip
+ * - OpinionReconciler maps x across uMin..uMax and reads y down from vMax -
+ * and no scale or flip turns a group into a line across the whole face. The
  * numbers themselves were invented.
  *
  * It is a documented failure of vision models under a forced schema. The
  * schema guarantees the SHAPE of a reply and says nothing about whether the
- * model looked; a model that cannot ground its answer in the image still has
- * to emit well-formed holes, and what comes out is a sweep - coordinates
- * that march across the frame in step, because they were enumerated rather
- * than seen.
+ * model looked; one that cannot ground its answer in the image still has to
+ * emit well-formed holes, and what comes out is a sweep - coordinates that
+ * march across the frame in step, because they were enumerated rather than
+ * seen.
  *
- * WHAT THIS IS NOT. It is not a judgement of accuracy, and it does not touch
- * the app's own detection. It rejects one specific, recognisable pattern that
- * no card ever shot produces, and lets everything else through untouched. A
- * merely poor answer is still an answer, and the shooter decides.
+ * WHAT IS TESTED, AND WHY IT IS A SUBSET. The first version of this asked
+ * whether the WHOLE answer was a ramp, and the answer that prompted the
+ * second look was a MIXTURE: eight or so plausible holes in the black,
+ * PLUS a dozen strung across the card. Taken together those are not
+ * collinear, so a whole-answer test passes them and the invented ones land
+ * on the plot. What is looked for now is the largest set of points lying on
+ * an evenly STEPPED line, a + k·s, which is what a fabricated answer
+ * literally is, and finds it whether or not real holes are mixed in.
+ *
+ * WHAT THIS IS NOT. It is not a judgement of accuracy and it does not touch
+ * the app's own detection. It recognises one pattern that no card ever shot
+ * produces, and lets everything else through untouched.
  */
 object AnswerSanity {
 
-    /** Below this a sweep cannot be told from a line of shots. Four points
-     *  are collinear surprisingly often; a fabricated ramp is usually the
-     *  whole string, five or more. */
-    private const val MIN_POINTS = 5
+    /** How far off the step line a point may sit and still count as on it. */
+    private const val TOL = 0.035
 
-    /** How straight, and how evenly spaced, are set from measurement rather
-     *  than taste. Over 20,000 simulated groups - centres anywhere on the
-     *  card, spreads from a tight 10-ring cluster to a 35% scatter - these
-     *  two reject none. Against a diagonal walked by recoil, 200 of 200 pass.
-     *  Against a fabricated ramp they catch every clean one and every one
-     *  jittered by a per cent. A ramp jittered by three per cent gets
-     *  through, and that is the deliberate side to err on: throwing away a
-     *  real answer is worse than passing a bad one, which the shooter can
-     *  see for themselves. */
-    private const val STRAIGHT = 0.99
+    /** Enough points to be certain, at which the answer is refused. */
+    private const val REJECT_POINTS = 8
 
-    /** How far across the frame, as a fraction of its width. A cluster in the
-     *  9 and 10 rings spans a tenth of the card; the fabricated answers run
-     *  corner to corner. */
+    /** Enough to be worth saying, at which the answer is passed with the
+     *  warning attached. Six or seven points can be a coincidence often
+     *  enough that throwing the answer away would be the greater harm. */
+    private const val WARN_POINTS = 6
+
+    /** How far across the frame the line must run. A group - even a poor one
+     *  - does not span this; the fabricated answers run corner to corner. */
     private const val SPAN = 0.55
 
-    /** How evenly spaced, as the coefficient of variation of the gaps
-     *  between consecutive points along the line. Enumerated coordinates
-     *  step uniformly; shots do not. */
-    private const val EVEN = 0.25
+    /** Step sizes worth testing, as a fraction of the frame. */
+    private const val MIN_STEP = 0.03
+    private const val MAX_STEP = 0.5
+
+    /** A run may skip at most this many steps. A fabricated sweep is
+     *  contiguous; allowing a gap of two covers a model that omitted one. */
+    private const val MAX_SKIP = 2
+
+    data class Finding(
+        /** How many holes lie on the stepped line. */
+        val count: Int,
+        /** How far it runs, as a fraction of the frame. */
+        val span: Double,
+        /** True when the answer should be refused outright. */
+        val reject: Boolean,
+        val message: String
+    )
 
     /**
-     * Returns null when the answer looks like a reading, or a sentence saying
-     * what is wrong with it when it does not.
+     * Returns null when nothing about the answer says "not read", or a
+     * finding when a run of evenly stepped holes was located.
      *
      * [points] are fractional image coordinates, x left-to-right and y
      * top-to-bottom, exactly as the services are asked for them.
      */
-    fun sweep(points: List<Pair<Double, Double>>): String? {
-        if (points.size < MIN_POINTS) return null
+    fun sweep(points: List<Pair<Double, Double>>): Finding? {
+        if (points.size < WARN_POINTS) return null
 
-        val n = points.size
-        val mx = points.sumOf { it.first } / n
-        val my = points.sumOf { it.second } / n
-        var sxx = 0.0
-        var syy = 0.0
-        var sxy = 0.0
-        for (p in points) {
-            val dx = p.first - mx
-            val dy = p.second - my
-            sxx += dx * dx
-            syy += dy * dy
-            sxy += dx * dy
+        var bestCount = 0
+        var bestSpan = 0.0
+        var bestLo = 0.0 to 0.0
+        var bestHi = 0.0 to 0.0
+
+        for (i in points.indices) for (j in points.indices) {
+            if (i == j) continue
+            val ax = points[i].first; val ay = points[i].second
+            val sx = points[j].first - ax; val sy = points[j].second - ay
+            val step = hypot(sx, sy)
+            if (step < MIN_STEP || step > MAX_STEP) continue
+            // The pair only STARTS the search. Anchoring on two holes carries
+            // their own error into every step, which loses a real ramp that
+            // the model jittered by a per cent; so the line is collected
+            // once, refitted to everything it caught by least squares, and
+            // collected again. Measured, on ramps jittered by 1%: 62% found
+            // without the refit, 88% with it, and the rate at which real
+            // answers are discarded stays at 4 in 10,000.
+            var ox = ax; var oy = ay
+            var dx = sx; var dy = sy
+            var hit = HashMap<Int, Pair<Double, Double>>()
+            for (pass in 0..1) {
+                val sq = dx * dx + dy * dy
+                if (sq <= 1e-9) break
+                // One point per step index: two holes rounding to the same k
+                // are one position on the line, not two, and counting both
+                // would let a cluster inflate the run.
+                hit = HashMap()
+                for (p in points) {
+                    val kr = (((p.first - ox) * dx + (p.second - oy) * dy) / sq).roundToInt()
+                    if (hypot(p.first - (ox + kr * dx), p.second - (oy + kr * dy)) <= TOL)
+                        hit.getOrPut(kr) { p }
+                }
+                if (hit.size < WARN_POINTS || pass == 1) break
+
+                val kk = hit.keys.toList()
+                val km = kk.sumOf { it }.toDouble() / kk.size
+                val den = kk.sumOf { (it - km) * (it - km) }
+                if (den <= 1e-9) break
+                val pxm = kk.sumOf { hit[it]!!.first } / kk.size
+                val pym = kk.sumOf { hit[it]!!.second } / kk.size
+                dx = kk.sumOf { (it - km) * (hit[it]!!.first - pxm) } / den
+                dy = kk.sumOf { (it - km) * (hit[it]!!.second - pym) } / den
+                ox = pxm - km * dx
+                oy = pym - km * dy
+            }
+            if (hit.size < WARN_POINTS || hit.size <= bestCount) continue
+
+            val ks = hit.keys.sorted()
+            val span = (ks.last() - ks.first()) * hypot(dx, dy)
+            if (span < SPAN) continue
+            if ((1 until ks.size).any { ks[it] - ks[it - 1] > MAX_SKIP }) continue
+
+            bestCount = hit.size
+            bestSpan = span
+            bestLo = hit[ks.first()]!!
+            bestHi = hit[ks.last()]!!
         }
-        // A file of points exactly vertical or exactly horizontal has no
-        // correlation to measure. Left alone deliberately: a row of shots
-        // along one axis is a thing people do on test cards, and a diagonal
-        // sweep is what was actually seen.
-        if (sxx <= 1e-12 || syy <= 1e-12) return null
-        val r = sxy / sqrt(sxx * syy)
-        if (abs(r) < STRAIGHT) return null
 
-        // Projected onto the PRINCIPAL axis rather than the regression line,
-        // so a steep ramp is measured the same way as a shallow one.
-        val theta = 0.5 * atan2(2 * sxy, sxx - syy)
-        val ux = cos(theta)
-        val uy = sin(theta)
-        val along = points.map { (it.first - mx) * ux + (it.second - my) * uy }
-        val t = along.sorted()
-        val span = t.last() - t.first()
-        if (span < SPAN) return null
-
-        val gaps = (1 until n).map { t[it] - t[it - 1] }
-        val gm = gaps.average()
-        if (gm <= 1e-9) return null
-        val gsd = sqrt(gaps.sumOf { (it - gm) * (it - gm) } / gaps.size)
-        if (gsd / gm > EVEN) return null
-
-        val lo = points[along.indexOf(along.min())]
-        val hi = points[along.indexOf(along.max())]
-        return "The reply lists $n holes spaced evenly along a straight line from " +
-            "${corner(lo)} to ${corner(hi)}, spanning ${(span * 100).toInt()}% of the picture. " +
-            "That is not a group of shots - it is what a vision model produces when it fills in " +
-            "the answer's shape without reading the image. The answer has been discarded rather " +
-            "than plotted. Try a stronger model, or use the app's own detection."
+        if (bestCount < WARN_POINTS) return null
+        val reject = bestCount >= REJECT_POINTS
+        val where = "$bestCount holes spaced evenly along a straight line from " +
+            "${corner(bestLo)} to ${corner(bestHi)}, running ${(bestSpan * 100).roundToInt()}% " +
+            "of the way across the picture"
+        val msg = if (reject)
+            "The reply puts $where. That is not a group of shots — it is what a vision model " +
+                "produces when it fills in the answer's shape without reading the image. The " +
+                "answer has been discarded rather than plotted. Try a stronger model, or use " +
+                "the app's own detection."
+        else
+            "CHECK THIS ANSWER: it puts $where, which is more often invented than shot. It is " +
+                "shown as it came, and it is worth comparing against the app's own detection " +
+                "before accepting any of it."
+        return Finding(bestCount, bestSpan, reject, msg)
     }
 
     /** Where a point is, in the words a shooter would use. */
@@ -133,5 +175,5 @@ object AnswerSanity {
             "; furthest from their own centre " + fmt(spread)
     }
 
-    private fun fmt(v: Double): String = ((v * 1000).toInt() / 1000.0).toString()
+    private fun fmt(v: Double): String = (abs(v * 1000).toInt() / 1000.0).toString()
 }

@@ -309,15 +309,27 @@ object SecondOpinion {
             .put("required", JSONArray().put("face").put("usable").put("comment").put("holes"))
 
         val text = if (scoreToo) PROMPT + "\n\n" + SCORING_EXTRA else PROMPT
-        val body = JSONObject().apply {
+
+        // TWO WAYS OF ASKING FOR JSON, because not every model accepts the
+        // better one. json_schema constrains DECODING to the schema, so the
+        // reply cannot come back malformed; json_object only promises that
+        // some JSON arrives, and the shape has to be asked for in words. The
+        // first is tried, and the second used only where the service says it
+        // does not know the first — reported against pixtral-large-latest,
+        // which refuses the request outright rather than ignoring the field.
+        fun bodyFor(strictSchema: Boolean): String = JSONObject().apply {
             put("model", model)
             put(provider.tokenLimitField, MAX_TOKENS)
-            put("response_format", JSONObject()
-                .put("type", "json_schema")
-                .put("json_schema", JSONObject()
-                    .put("name", TOOL_NAME)
-                    .put("strict", true)
-                    .put("schema", schema)))
+            if (strictSchema) {
+                put("response_format", JSONObject()
+                    .put("type", "json_schema")
+                    .put("json_schema", JSONObject()
+                        .put("name", TOOL_NAME)
+                        .put("strict", true)
+                        .put("schema", schema)))
+            } else {
+                put("response_format", JSONObject().put("type", "json_object"))
+            }
             put("messages", JSONArray().put(JSONObject().apply {
                 put("role", "user")
                 put("content", JSONArray()
@@ -328,12 +340,14 @@ object SecondOpinion {
                     })
                     .put(JSONObject().apply {
                         put("type", "text")
-                        put("text", text)
+                        put("text", if (strictSchema) text else
+                            text + "\n\nReply with a single JSON object and nothing else, " +
+                                "exactly to this schema:\n" + schema.toString())
                     }))
             }))
         }.toString()
 
-        return runCatching {
+        fun post(payload: String): Pair<Int, String> {
             val conn = (URL(endpoint).openConnection() as HttpsURLConnection).apply {
                 requestMethod = "POST"
                 connectTimeout = TIMEOUT_MS
@@ -350,11 +364,24 @@ object SecondOpinion {
                     setRequestProperty("x-title", "BAS — Ballistics and Scoring")
                 }
             }
-            conn.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
+            conn.outputStream.use { it.write(payload.toByteArray(Charsets.UTF_8)) }
             val code = conn.responseCode
             val reply = (if (code in 200..299) conn.inputStream else conn.errorStream)
                 ?.bufferedReader()?.use(BufferedReader::readText).orEmpty()
             conn.disconnect()
+            return code to reply
+        }
+
+        return runCatching {
+            var (code, reply) = post(bodyFor(true))
+            if (code == 400 && rejectsSchema(reply)) {
+                Logger.i("SecondOpinion",
+                    "$model does not accept a strict JSON schema; asking again in JSON mode " +
+                        "with the schema written into the prompt")
+                val second = post(bodyFor(false))
+                code = second.first
+                reply = second.second
+            }
             if (code !in 200..299) return Result.Failed(explainOpenAi(provider, code, reply))
             parseOpenAi(reply, provider.label)
         }.getOrElse {
@@ -363,6 +390,22 @@ object SecondOpinion {
             Result.Failed("Could not reach the OpenAI API: ${it.message ?: it.javaClass.simpleName}. " +
                 "Ranges often have no signal — this needs a connection.")
         }
+    }
+
+    /**
+     * Does this 400 mean "I do not support that way of asking", rather than
+     * something about the request's content?
+     *
+     * Deliberately narrow. A retry on any 400 would send a second picture -
+     * and a second charge - for every malformed request, so it has to be the
+     * response_format field that the service objected to.
+     */
+    private fun rejectsSchema(body: String): Boolean {
+        val b = body.lowercase()
+        if (!b.contains("response_format") && !b.contains("json_schema") &&
+            !b.contains("response format")) return false
+        return b.contains("unsupported") || b.contains("not supported") ||
+            b.contains("invalid") || b.contains("unknown") || b.contains("unrecognized")
     }
 
     /** Takes the provider because these messages name a console and a model,
@@ -746,15 +789,26 @@ object SecondOpinion {
                 obj.toString())
         }
 
-        AnswerSanity.sweep(points)?.let { return failed(who, "$who: $it", obj.toString()) }
+        val finding = AnswerSanity.sweep(points)
+        if (finding != null) {
+            Logger.w("SecondOpinion",
+                "$who: ${finding.count} holes on an even line spanning " +
+                    "${(finding.span * 100).toInt()}% of the frame" +
+                    (if (finding.reject) " — answer discarded" else " — passed with a warning"))
+            if (finding.reject) return failed(who, "$who: ${finding.message}", obj.toString())
+        }
 
+        val comment = obj.optString("comment")
         return Result.Ok(
             Opinion(
                 faceName = obj.optString("face", "unknown"),
                 holeCount = spots.size,
                 spots = spots,
                 usable = obj.optBoolean("usable", true),
-                comment = obj.optString("comment")
+                // The warning leads, because it changes how everything after
+                // it should be read.
+                comment = if (finding != null) finding.message +
+                    (if (comment.isBlank()) "" else " — $comment") else comment
             ),
             inputTokens = inTok,
             outputTokens = outTok

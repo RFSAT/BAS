@@ -35,6 +35,63 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.49.4 - the fabricated run is found even when real holes are
+        //          mixed in with it, and Pixtral Large stops refusing.
+        //
+        //          THE CHECK ADDED IN 1.49.3 WAS THE WRONG SHAPE. It asked
+        //          whether the WHOLE answer was a ramp. The answer that came
+        //          back next was a MIXTURE: eight or so plausible holes in
+        //          the black, plus a dozen marched from the bottom-left
+        //          corner to the top-right one. Taken together those are not
+        //          collinear at all, so the test passed them and the invented
+        //          ones went onto the plot beside the real ones. Screenshots
+        //          of the card, of Claude's answer and of Mistral's settled
+        //          it: Claude's crosshairs sit on the holes, Mistral's run
+        //          diagonally across the rings.
+        //
+        //          WHAT IS LOOKED FOR NOW is the largest set of holes lying
+        //          on an evenly STEPPED line, a + k*s - which is what a
+        //          fabricated answer literally is - so it is found whether or
+        //          not real holes surround it. One position per step index,
+        //          so a cluster cannot inflate a run.
+        //
+        //          THE PAIR ONLY STARTS THE SEARCH. Anchoring on two holes
+        //          carries their error into every step and loses a ramp the
+        //          model jittered by a per cent, so the line is collected,
+        //          refitted to everything it caught by least squares, and
+        //          collected again. Measured on ramps jittered by 1%: 62%
+        //          found without the refit, 88% with it.
+        //
+        //          EIGHT TO DISCARD, SIX TO WARN. Eight holes on a stepped
+        //          line spanning over half the frame is refused outright; six
+        //          or seven can be coincidence, so the answer is passed with
+        //          the warning at the head of its comment and the shooter
+        //          decides. Over 30,000 simulated answers - centres anywhere,
+        //          spreads from a tight 10-ring cluster out to a 35% scatter
+        //          - 0.043% are discarded and 0.57% warned about. The card in
+        //          the photograph, cluster and outlying string together,
+        //          passes untouched. Twelve cases in AnswerSanityTest,
+        //          including the mixed answer that prompted this.
+        //
+        //          PIXTRAL LARGE REFUSED EVERY REQUEST. Reported, and it is
+        //          the response_format field: json_schema constrains DECODING
+        //          to the schema, and pixtral-large-latest does not implement
+        //          it - it returns 400 rather than ignoring the field, as
+        //          Mistral's own users have found through other clients. The
+        //          request is now retried once, exactly once, in json_object
+        //          mode with the schema written into the prompt instead, and
+        //          only when the body of the 400 names response_format. A
+        //          retry on any 400 would send a second picture, and a second
+        //          charge, for every malformed request.
+        //
+        //          MISTRAL'S MODELS ARE LABELLED FOR WHAT THEY DO HERE.
+        //          "Pixtral Large - vision (recommended)" was the maker's
+        //          description; on this task neither model locates holes
+        //          reliably, and both now say "poor at locating shots" where
+        //          they are chosen. They stay available - one report should
+        //          not remove a service that works for someone else - but
+        //          nothing recommends them any more.
+        //
         // 1.49.3 - an answer that was never read is no longer plotted as
         //          shots.
         //
@@ -5186,8 +5243,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 92
-        versionName = "1.49.3"
+        versionCode = 93
+        versionName = "1.49.4"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

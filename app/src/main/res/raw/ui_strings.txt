@@ -1724,10 +1724,15 @@ x-api-key
 Claude (Anthropic) request failed: ${it.javaClass.simpleName}: ${it.message}
 Ranges often have no signal — this needs a connection.
 data:image/jpeg;base64,$jpegBase64
+exactly to this schema:\n
 Bearer $apiKey
 x-title
 BAS — Ballistics and Scoring
+with the schema written into the prompt
 ${provider.label} request failed: ${it.javaClass.simpleName}: ${it.message}
+I do not support that way of asking
+response format
+not supported
 : $detail.
 is enabled for the model you chose.
 : $detail
@@ -1772,8 +1777,13 @@ room. Try a smaller image or a different model.
 They look like PIXELS.
 They look like PERCENTAGES.
 plotted. Another model will usually answer this correctly.
-$who: $it
-than plotted. Try a stronger model, or use the app's own detection.
+— answer discarded
+— passed with a warning
+$who: ${finding.message}
+not read
+of the way across the picture
+the app's own detection.
+before accepting any of it.
 the centre
 no holes
 + fmt(it.first) +
@@ -1831,9 +1841,9 @@ gemini-3.1-pro
 gemini-2.5-flash
 2.5 Flash — older, GA until Oct 2026
 pixtral-large-latest
-Pixtral Large — vision (recommended)
+Pixtral Large — vision, poor at locating shots
 mistral-medium-latest
-Mistral Medium — newer, vision
+Mistral Medium — vision, poor at locating shots
 deepseek-v4-flash
 V4 Flash — faster, cheaper
 deepseek-v4-pro

@@ -1,8 +1,10 @@
 package com.rfsat.sts
 
 import com.rfsat.bas.cloud.AnswerSanity
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -16,18 +18,36 @@ import org.junit.Test
  */
 class AnswerSanityTest {
 
-    /** What Mistral actually returned: evenly spaced, corner to corner. */
-    @Test fun reportedDiagonalIsRejected() {
+    // ---------------------------------------------------- must be rejected
+
+    /** A fabricated sweep on its own: evenly spaced, corner to corner. */
+    @Test fun pureRampIsRejected() {
         val pts = (0 until 10).map { i ->
             val f = 0.05 + i * 0.1
             f to (1.0 - f)                       // bottom left to top right on screen
         }
-        assertNotNull(AnswerSanity.sweep(pts))
+        val f = AnswerSanity.sweep(pts)
+        assertNotNull(f)
+        assertTrue(f!!.reject)
+        assertEquals(10, f.count)
     }
 
-    @Test fun theOtherDiagonalIsRejectedToo() {
-        val pts = (0 until 8).map { i -> (0.08 + i * 0.12) to (0.08 + i * 0.12) }
-        assertNotNull(AnswerSanity.sweep(pts))
+    /**
+     * THE CASE THAT PROMPTED THE SECOND LOOK. Mistral returned real-looking
+     * holes in the black AND a dozen strung across the card. Taken together
+     * these are not collinear at all, so a test asking whether the WHOLE
+     * answer is a ramp passes them - which is exactly what happened.
+     */
+    @Test fun rampMixedWithARealGroupIsStillRejected() {
+        val ramp = (0 until 12).map { i -> (0.09 + i * 0.067) to (0.87 - i * 0.067) }
+        val group = listOf(
+            0.47 to 0.44, 0.52 to 0.41, 0.49 to 0.50, 0.55 to 0.47,
+            0.44 to 0.52, 0.58 to 0.45, 0.51 to 0.55, 0.46 to 0.39
+        )
+        val f = AnswerSanity.sweep(ramp + group)
+        assertNotNull(f)
+        assertTrue(f!!.reject)
+        assertTrue("found only ${f.count} of the 12 planted", f.count >= 10)
     }
 
     /** A ramp with a little noise on it is still a ramp. */
@@ -37,10 +57,34 @@ class AnswerSanityTest {
             (f + if (i % 2 == 0) 0.008 else -0.008) to
                 (1.0 - f + if (i % 3 == 0) 0.008 else -0.006)
         }
-        assertNotNull(AnswerSanity.sweep(pts))
+        assertTrue(AnswerSanity.sweep(pts)!!.reject)
     }
 
-    /** The case that prompted all this: everything inside the 9 and 10 rings. */
+    // ------------------------------------------- warned about, but not lost
+
+    /** Six or seven can be a coincidence. Said out loud, and kept. */
+    @Test fun aShortRunIsWarnedAboutRatherThanDiscarded() {
+        val ramp = (0 until 6).map { i -> (0.12 + i * 0.13) to (0.88 - i * 0.13) }
+        val f = AnswerSanity.sweep(ramp)
+        assertNotNull(f)
+        assertEquals(false, f!!.reject)
+        assertTrue(f.message.startsWith("CHECK THIS ANSWER"))
+    }
+
+    // -------------------------------------------------- must be left alone
+
+    /** The card in the photograph: a cluster in the black and a string out to
+     *  the 5 and 6 rings. A real answer, and a wide one. */
+    @Test fun theRealCardIsKept() {
+        val pts = listOf(
+            0.50 to 0.36, 0.53 to 0.34, 0.54 to 0.40, 0.51 to 0.47, 0.52 to 0.48,
+            0.60 to 0.46, 0.62 to 0.45, 0.63 to 0.48, 0.55 to 0.59, 0.70 to 0.53,
+            0.69 to 0.61, 0.64 to 0.66, 0.53 to 0.71, 0.41 to 0.72, 0.53 to 0.78
+        )
+        assertNull(AnswerSanity.sweep(pts))
+    }
+
+    /** Everything inside the 9 and 10 rings. */
     @Test fun tightGroupIsKept() {
         val pts = listOf(
             0.492 to 0.505, 0.511 to 0.488, 0.503 to 0.517, 0.487 to 0.494,
@@ -61,8 +105,7 @@ class AnswerSanityTest {
     }
 
     /** A group strung out diagonally - recoil walking the point of aim - with
-     *  the uneven spacing and the lateral scatter real shooting has. This is
-     *  the case the thresholds were tightened for. */
+     *  the uneven spacing and the lateral scatter real shooting has. */
     @Test fun walkedGroupIsKept() {
         val pts = listOf(
             0.18 to 0.24, 0.27 to 0.31, 0.31 to 0.41, 0.44 to 0.44,
@@ -74,13 +117,13 @@ class AnswerSanityTest {
     /** Evenly spaced and dead straight, but confined to the middle of the
      *  card: a sighting string, not a fabricated sweep. */
     @Test fun shortEvenLineIsKept() {
-        val pts = (0 until 6).map { i -> (0.45 + i * 0.02) to (0.45 + i * 0.02) }
+        val pts = (0 until 8).map { i -> (0.44 + i * 0.015) to (0.44 + i * 0.015) }
         assertNull(AnswerSanity.sweep(pts))
     }
 
-    /** Too few to tell. Four points fall on a line often enough by chance. */
-    @Test fun fourPointsAreNeverRejected() {
-        val pts = listOf(0.1 to 0.9, 0.35 to 0.65, 0.6 to 0.4, 0.85 to 0.15)
+    /** Too few to say anything about. */
+    @Test fun fivePointsAreNeverFlagged() {
+        val pts = listOf(0.1 to 0.9, 0.3 to 0.7, 0.5 to 0.5, 0.7 to 0.3, 0.9 to 0.1)
         assertNull(AnswerSanity.sweep(pts))
     }
 
@@ -90,7 +133,7 @@ class AnswerSanityTest {
 
     @Test fun describeNamesTheCountAndTheCoordinates() {
         val d = AnswerSanity.describe(listOf(0.25 to 0.75, 0.5 to 0.5))
-        assert(d.startsWith("2 holes at")) { d }
-        assert(d.contains("(0.25,0.75)")) { d }
+        assertTrue(d, d.startsWith("2 holes at"))
+        assertTrue(d, d.contains("(0.25,0.75)"))
     }
 }

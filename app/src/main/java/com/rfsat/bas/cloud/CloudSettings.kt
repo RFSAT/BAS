@@ -106,9 +106,17 @@ object CloudSettings {
             "gemini-3.1-pro" to "3.1 Pro — strongest reasoning",
             "gemini-2.5-flash" to "2.5 Flash — older, GA until Oct 2026"
         ),
+        // LABELLED FROM MEASUREMENT, not from the maker's description. Both
+        // read images; neither locates holes on a card reliably. Asked about
+        // a card with the shots in the black and a string out to the 5 ring,
+        // Mistral Medium answered with a dozen holes marched evenly from one
+        // corner to the other, and Pixtral Large would not take the request
+        // at all until the JSON-mode fallback was added. Left available
+        // because a service that works for someone should not be removed on
+        // one report - but not recommended, and said so where it is chosen.
         AiProvider.MISTRAL to listOf(
-            "pixtral-large-latest" to "Pixtral Large — vision (recommended)",
-            "mistral-medium-latest" to "Mistral Medium — newer, vision"
+            "pixtral-large-latest" to "Pixtral Large — vision, poor at locating shots",
+            "mistral-medium-latest" to "Mistral Medium — vision, poor at locating shots"
         ),
 
         // Unreachable while DEEPSEEK is not offered, kept correct so that
