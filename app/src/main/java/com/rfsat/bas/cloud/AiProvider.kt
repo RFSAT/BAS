@@ -64,19 +64,24 @@ enum class AiProvider(
      * look supported when it was not.
      */
     val tokenLimitField: String = "max_tokens",
-    val freeAccess: FreeAccess = FreeAccess.NONE
+    val freeAccess: FreeAccess = FreeAccess.NONE,
+    /**
+     * What testing on a real card found, in the shooter's own words, or "".
+     *
+     * Not a rating and not the maker's description: this carries only what
+     * has been OBSERVED here. A service is never removed for failing — it is
+     * labelled, kept, and left to the shooter, because a service that fails
+     * on this card may work on another and removing it hides that.
+     */
+    val caution: String = ""
 ) {
-    ANTHROPIC("Claude (Anthropic)", "sk-ant-…", "console.anthropic.com"),
-    OPENAI("OpenAI", "sk-…", "platform.openai.com",
-        tokenLimitField = "max_completion_tokens"),
-
-    /** Grok. OpenAI-compatible down to the path, with vision models and
-     *  structured outputs. */
-    XAI("xAI (Grok)", "xai-…", "console.x.ai"),
-
-    /** Pixtral and its successors. Also OpenAI-shaped, and Mistral supports
-     *  json_schema with strict mode, which is what this app needs. */
-    MISTRAL("Mistral", "…", "console.mistral.ai", freeAccess = FreeAccess.ACCOUNT),
+    // ORDER IS PICKER ORDER, and it is ordered by what testing on a real
+    // card found rather than by capability on paper. On one 15-shot card:
+    // Claude and Gemini 3.5/3.6 Flash put every hole in the right place;
+    // Mistral invented positions on all three of its models; OpenRouter's
+    // two free entries no longer exist.
+    ANTHROPIC("Claude (Anthropic)", "sk-ant-…", "console.anthropic.com",
+        caution = "Found all 15 holes correctly on the test card."),
 
     /**
      * The one provider here that is not OpenAI-shaped: Gemini has its own
@@ -84,13 +89,67 @@ enum class AiProvider(
      * it has a transport of its own in SecondOpinion rather than an endpoint
      * constant.
      *
-     * Worth that extra code for one reason above the others: the free tier is
-     * usable. A shooter who will not put a card on file for an API can still
-     * get a second opinion, which is the difference between a feature that
-     * exists and a feature that gets used.
+     * Worth that extra code for two reasons. The free tier is usable, so a
+     * shooter who will not put a card on file can still get a second
+     * opinion; and 3.5 and 3.6 Flash both scored the test card correctly,
+     * which puts it level with Claude on the only evidence that matters here.
      */
     GEMINI("Google Gemini", "AIza…", "aistudio.google.com",
-        freeAccess = FreeAccess.ACCOUNT),
+        freeAccess = FreeAccess.ACCOUNT,
+        caution = "3.5 and 3.6 Flash found all 15 holes on the test card. " +
+            "3.7 Flash is frequently busy; Flash-Lite was close but not accurate."),
+
+    /** Grok. OpenAI-compatible down to the path, with vision models and
+     *  structured outputs. Not yet tested here on a card. */
+    XAI("xAI (Grok)", "xai-…", "console.x.ai",
+        caution = "Not yet tested on a card."),
+
+    OPENAI("OpenAI", "sk-…", "platform.openai.com",
+        tokenLimitField = "max_completion_tokens",
+        caution = "Not yet tested on a card."),
+
+    /**
+     * OpenAI-shaped, supports json_schema with strict mode, and answers every
+     * request — with invented positions.
+     *
+     * All three of its current vision models were tried on one card whose
+     * fifteen shots were in and around the black. Medium 3.5 returned holes
+     * marching from the centre to the top-right corner; Large 3 put them
+     * around the centre but nowhere near the shots; Small 4 drew a diagonal
+     * cross over the black. AnswerSanity catches the first and third; the
+     * second is simply wrong rather than patterned, and nothing but the
+     * shooter's eye will catch that.
+     *
+     * Kept and labelled. A service that fails on this card may work on
+     * another, and removing it would hide that from anyone who wants to try.
+     */
+    MISTRAL("Mistral", "…", "console.mistral.ai", freeAccess = FreeAccess.ACCOUNT,
+        caution = "INACCURATE on the test card: all three vision models invented " +
+            "shot positions. Not recommended until it can be shown to work."),
+
+    /**
+     * Vision arrived on 21 August 2026 with deepseek-v4-flash-vision-exp,
+     * which is why this is no longer hidden. It takes images through the same
+     * chat-completions endpoint the text models use.
+     *
+     * OFFERED WITH A WARNING, not a recommendation. DeepSeek caps an image at
+     * 384 tokens and normalises to roughly 800x800, which is a coarse look at
+     * a target card — a 5 mm hole on a 170 mm face is about four pixels
+     * across at that size. It may well not resolve holes at all. It is also
+     * an experimental model with no published weights or technical report.
+     * There is one further thing a shooter should know before choosing it,
+     * and it is not technical: the request and the photograph are processed
+     * on servers in China, under that jurisdiction.
+     *
+     * Still no json_schema on this route — response_format is text or
+     * json_object only — so the JSON-mode fallback added in 1.49.4 is what
+     * makes it answerable at all.
+     */
+    DEEPSEEK(
+        "DeepSeek", "sk-…", "platform.deepseek.com",
+        caution = "Experimental vision, and images are reduced to about 800x800 — " +
+            "likely too coarse for shot holes. Processed in China."
+    ),
 
     /**
      * One key, most of the field. OpenRouter proxies the OpenAI
@@ -98,47 +157,29 @@ enum class AiProvider(
      * vendor, so a shooter who wants a second opinion from a model this app
      * does not integrate directly can simply name it.
      *
-     * The catch is that OpenRouter's catalogue is a superset of what this app
-     * can use: not every model behind it reads images, and not every one
-     * honours a strict json_schema. Choosing a text-only model there produces
-     * the same failure DeepSeek would have — which is why the models listed
-     * for it are ones that do both, and why "Other" carries a warning.
+     * PLACED LAST BECAUSE ITS FREE TIER IS NOT DEPENDABLE. Both free models
+     * this app named were gone from OpenRouter's own catalogue by August
+     * 2026 — one answered 404 "unavailable for free", the other "not found
+     * on this account". The free lineup rotates constantly, so no free
+     * identifier written here can stay right; they are discovered from the
+     * catalogue instead. A PAID OpenRouter key reaches the whole field and
+     * works normally.
      */
     OPENROUTER("OpenRouter", "sk-or-v1-…", "openrouter.ai/keys",
-        freeAccess = FreeAccess.SELECTABLE),
-
-    /**
-     * NOT OFFERED. Kept because the transport is correct and the day DeepSeek
-     * ships vision this is a one-word change, but hidden from the pickers
-     * because it cannot do this app's job at all.
-     *
-     * This is not an inference from third-party articles — those disagree
-     * with each other. It is what api-docs.deepseek.com publishes for
-     * POST /chat/completions:
-     *
-     *   * a user message's `content` is a STRING. There is no content-part
-     *     list, so there is no way to attach an image. Every question this
-     *     app asks is about a photograph.
-     *   * `response_format.type` is one of `text` or `json_object`. There is
-     *     no `json_schema`, so the schema-constrained answering this app
-     *     depends on is unavailable on that route. (Tool calls do support
-     *     strict mode, which would be the way in — if images were possible.)
-     *   * the token limit is `max_tokens`, not `max_completion_tokens`.
-     *
-     * The models are `deepseek-v4-flash` and `deepseek-v4-pro`; the
-     * `deepseek-chat` / `deepseek-reasoner` identifiers shipped in 1.36.0
-     * were already out of date, which is its own argument for not offering
-     * a service nobody here can test against.
-     */
-    DEEPSEEK(
-        "DeepSeek", "sk-…", "platform.deepseek.com",
-        readsImages = false, selectable = false
-    );
+        freeAccess = FreeAccess.SELECTABLE,
+        caution = "The free lineup rotates and both models this app used to name are gone. " +
+            "Press Refresh to discover what is free today; a paid key works normally.");
 
     /** What the Settings pickers show. Every task here is a question about a
      *  photograph, so "cannot read a photograph" is the single most useful
      *  thing to know before choosing one. */
-    val pickerLabel: String get() = if (readsImages) label else "$label — text only"
+    val pickerLabel: String get() = when {
+        !readsImages -> "$label — text only"
+        caution.startsWith("INACCURATE") -> "$label — inaccurate here"
+        this == OPENROUTER -> "$label — free tier unreliable"
+        this == DEEPSEEK -> "$label — experimental, coarse images"
+        else -> label
+    }
 
     /** What to say under the free-models checkbox for this service. */
     val freeAccessNote: String get() = when (freeAccess) {

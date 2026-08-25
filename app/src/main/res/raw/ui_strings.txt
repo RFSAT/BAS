@@ -645,8 +645,6 @@ The second opinion button is hidden.
 A \u201cSecond opinion\u201d button will appear on the Results screen.
 route: its key is free and its free models cost nothing per request.
 issued at ${p.console} at no charge.
-${p.console}.
-The second opinion will ask ${p.label}.
 several millimetres, so added shots are marked hand-placed \u2014 check them.
 The second opinion will offer changes rather than make them.
 image/*
@@ -661,6 +659,10 @@ ${p.label} needs its key first — the list is per account.
 Asking ${p.label} which models this key has…
 ; $n can read a picture.
 none is marked.
+Service to set up
+${p.console}.
+The second opinion will ask ${p.label}.
+${p.caution}
 Every model in this list can be used with the key that is set.
 Greyed-out models
 Other
@@ -1758,6 +1760,8 @@ models listed for ${provider.label}.
 That model was not found on this account: $detail
 ${provider.console}; waiting will not help. $detail
 Rate limited by ${provider.label}. Wait a moment and try again.
+The service is having trouble
+model from the list.
 The service is having trouble ($code). Try again shortly.
 . See the Log for the reply.
 The service did not answer with JSON at all.
@@ -1778,6 +1782,8 @@ The key must come from aistudio.google.com.
 for it: $detail
 the current list at ai.google.dev and set it under \u201cOther\u201d. ($detail)
 wait a moment and try again.
+test card correctly.
+Gemini is having trouble ($code). Try again shortly.
 Gemini returned HTTP $code
 Gemini declined to look at the image (reason: $it).
 The request was refused:
@@ -1812,33 +1818,46 @@ no holes
 + fmt(it.first) +
 + fmt(it.second) +
 ; furthest from their own centre
-text only
 not on this key
+text only
 No catalogue to ask.
 ${provider.label} needs its key before it can say which models this account has.
-).take(300).ifBlank {
-is still there, and “Other” still takes a typed identifier.
+list is still there, and “Other” still takes a typed identifier.
 ${provider.label} model list failed: ${it.javaClass.simpleName}: ${it.message}
 ${it.message ?: it.javaClass.simpleName}.
+$base&after_id=$it
+$base&pageToken=$it
 ${provider.label} answered with no model list in it.
 models/gemini-3.6-flash
 ).ifBlank { m.optString(
 models/
 $shown  ($id)
+:free
 ${provider.label} listed no models.
 $label  [text only]
+$l  [free]
 ; ${visual.size} can be asked about a picture
 ; the service does not say which read images
-:free
+; ${freeIds.size} cost nothing per request
 OpenAI-compatible
 sk-ant-…
+Found all 15 holes correctly on the test card.
+AIza…
+3.7 Flash is frequently busy; Flash-Lite was close but not accurate.
 xAI (Grok)
 xai-…
+Not yet tested on a card.
 Mistral
-AIza…
+shot positions. Not recommended until it can be shown to work.
+likely too coarse for shot holes. Processed in China.
+unavailable for free
 openrouter.ai/keys
+Press Refresh to discover what is free today; a paid key works normally.
 cannot read a photograph
 $label — text only
+$label — inaccurate here
+$label — free tier unreliable
+$label — experimental, coarse images
 answering this app needs — so a free model may fail where a paid one succeeds.
 applies automatically within its limits and there is nothing here to switch on.
 $label is paid only. Every request spends credit on the key.
@@ -1895,29 +1914,33 @@ Grok 4.6 — newest
 not found for API version v1beta
 no longer available to new users; use 3.6 Flash
 gemini-3.6-flash
-3.6 Flash — stable (recommended)
-gemini-3.7-flash
-3.7 Flash — newest
+3.6 Flash — correct on the test card (recommended)
 gemini-3.5-flash
-3.5 Flash — older, proven here
+3.5 Flash — also correct on the test card
 gemini-3.5-flash-lite
-3.5 Flash-Lite — cheapest
+3.5 Flash-Lite — cheapest, but less accurate here
+gemini-3.7-flash
+3.7 Flash — newest, but frequently busy (503)
+Ministral 3 14B
 mistral-medium-latest
-Mistral Medium 3.5 — vision, poor at locating shots
+Mistral Medium 3.5 — invented positions on the test card
 mistral-large-latest
-Mistral Large 3 — vision, untested here
+Mistral Large 3 — wrong positions on the test card
 mistral-small-latest
-Mistral Small 4 — vision, untested here
-ministral-3-14b-latest
-Ministral 3 14B — vision, small and cheap
+Mistral Small 4 — invented positions on the test card
+deepseek-v4-flash-vision-exp
+V4 Flash Vision — experimental, reads images
 deepseek-v4-flash
-V4 Flash — faster, cheaper
+V4 Flash — text only, cannot score a card
 deepseek-v4-pro
-V4 Pro — more capable
-qwen/qwen2.5-vl-72b-instruct:free
-Qwen2.5-VL 72B (free, via OpenRouter)
-meta-llama/llama-3.2-11b-vision-instruct:free
-Llama 3.2 11B Vision (free, via OpenRouter)
+V4 Pro — text only, cannot score a card
+and meta-llama/llama-3.2-11b-vision-instruct:free
+thinkingmachines/inkling:free
+Inkling (free, via OpenRouter)
+thinkingmachines/inkling-small:free
+Inkling Small (free, via OpenRouter)
+dots-studio/dots-3-note-preview:free
+Dots 3 Note preview (free, via OpenRouter)
 should not
 current key
 + p.name,
@@ -1927,6 +1950,8 @@ Bearer sk-proj-...
 id\tlabel
 ) { it.first +
 [text only]
+[free]
+This model is free but cannot read a picture.
 cannot score a card.
 $label  [not on this key]
 ${p.console}. Set that key, then ask again.

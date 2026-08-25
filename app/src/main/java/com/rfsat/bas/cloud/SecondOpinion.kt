@@ -483,6 +483,13 @@ object SecondOpinion {
                 "${provider.label} has no credit left on this key. Top the account up at " +
                     "${provider.console}; waiting will not help. $detail"
             else "Rate limited by ${provider.label}. Wait a moment and try again."
+            // 503 IS ITS OWN CASE. "The service is having trouble" invites a
+            // shooter to doubt their key or their card; a 503 says only that
+            // the model is busy. Gemini 3.7 Flash answers it more often than
+            // it answers the question.
+            503 -> "That model is busy — it answers 503 when demand is high, which says nothing " +
+                "about your key or your picture. Try again in a minute, or choose a steadier " +
+                "model from the list."
             in 500..599 -> "The service is having trouble ($code). Try again shortly."
             else -> "${provider.label} returned HTTP $code" +
                 (if (detail.isNotBlank()) ": $detail" else ". See the Log for the reply.")
@@ -619,6 +626,12 @@ object SecondOpinion {
                 "the current list at ai.google.dev and set it under \u201cOther\u201d. ($detail)"
             429 -> "Gemini is rate-limiting this key. The free tier has per-minute limits; " +
                 "wait a moment and try again."
+            // Gemini 3.7 Flash answers this more often than it answers the
+            // question. Reported as what it is rather than as a fault.
+            503 -> "That Gemini model is busy — 503 means high demand, not a problem with your " +
+                "key or your picture. 3.6 Flash and 3.5 Flash are steadier, and both scored the " +
+                "test card correctly."
+            in 500..599 -> "Gemini is having trouble ($code). Try again shortly."
             else -> "Gemini returned HTTP $code" + (if (detail.isNotBlank()) ": $detail" else ".")
         }
     }
@@ -771,6 +784,13 @@ object SecondOpinion {
                 "Claude has no credit left on this key. Top the account up at " +
                     "console.anthropic.com; waiting will not help. $detail"
             else "Rate limited by Claude. Wait a moment and try again."
+            // 503 IS ITS OWN CASE. "The service is having trouble" invites a
+            // shooter to doubt their key or their card; a 503 says only that
+            // the model is busy. Gemini 3.7 Flash answers it more often than
+            // it answers the question.
+            503 -> "That model is busy — it answers 503 when demand is high, which says nothing " +
+                "about your key or your picture. Try again in a minute, or choose a steadier " +
+                "model from the list."
             in 500..599 -> "The service is having trouble ($code). Try again shortly."
             402, 403 -> "The key is valid but the request was not allowed — usually no credit " +
                 "on the account. $detail"

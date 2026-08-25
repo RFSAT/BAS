@@ -35,6 +35,103 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.52.0 - feature: the service list is ordered by what actually
+        //          scored a card, and DeepSeek is offered.
+        //
+        //          FIELD RESULTS ON ONE 15-SHOT CARD, which is now what
+        //          orders the picker. Claude found every hole. Gemini 3.6 and
+        //          3.5 Flash found every hole. Gemini 3.5 Flash-Lite was
+        //          close but not close enough to accept; 3.7 Flash answers
+        //          503 "high demand" more often than it answers. All three
+        //          Mistral vision models invented positions: Medium 3.5
+        //          marched holes from the centre to the top-right corner,
+        //          Small 4 drew a diagonal cross over the black, and Large 3
+        //          put them near the centre but nowhere near the shots.
+        //
+        //          Order is now Claude, Gemini, xAI, OpenAI, Mistral,
+        //          DeepSeek, OpenRouter. Mistral carries "inaccurate here" in
+        //          the picker and the reason in its entry. Nothing is
+        //          removed: a service that fails on this card may work on
+        //          another, and deleting it hides that from anyone who wants
+        //          to find out. AiProvider gained a `caution` field that
+        //          carries only what has been OBSERVED, never a maker's
+        //          description.
+        //
+        //          LARGE 3 IS THE INSTRUCTIVE FAILURE. Its holes were wrong
+        //          but not PATTERNED - no ramp, no lattice - so AnswerSanity
+        //          passes it and always will. The check catches fabrication,
+        //          not inaccuracy, and only the shooter's eye catches the
+        //          second. The ring overlay is what that eye needs.
+        //
+        //          ministral-3-14b-latest WAS INVENTED IN THIS FILE. It was
+        //          written from a docs page listing "Ministral 3 14B" as a
+        //          model NAME, and the alias guessed from it. Mistral answered
+        //          invalid_model, exactly as it should have. Aliases are not
+        //          derivable from display names, and that is now written where
+        //          the next person will read it.
+        //
+        //          ARE OPENROUTER'S FREE MODELS REAL? Yes, and both the ones
+        //          this app named are gone. Checked against OpenRouter's own
+        //          catalogue: neither qwen/qwen2.5-vl-72b-instruct:free nor
+        //          meta-llama/llama-3.2-11b-vision-instruct:free is listed any
+        //          more, which is the 404 and the "not found on this account"
+        //          exactly. Free means $0 per token on a $0 balance with no
+        //          card, capped at 20 requests a minute and 50 a DAY unless
+        //          $10 of credit has been bought at some point, which lifts
+        //          the daily cap to 1000. The lineup rotates constantly, so
+        //          the free list is the one thing here that CANNOT be kept
+        //          right by editing it: free is now read from the catalogue's
+        //          own PRICE - prompt and completion both zero - rather than
+        //          from the ":free" suffix, which is a naming convention and
+        //          not a fact. A paid OpenRouter key works normally, which is
+        //          why it is placed last rather than withdrawn.
+        //
+        //          DEEPSEEK IS OFFERED, having been hidden since 1.36.0 for
+        //          the correct reason that it could not see. Vision arrived on
+        //          21 August 2026 as deepseek-v4-flash-vision-exp. It is
+        //          offered with warnings rather than a recommendation: images
+        //          are capped at 384 tokens and normalised to about 800x800,
+        //          which on a 170 mm card leaves a 5 mm hole about four pixels
+        //          across, so it may not resolve holes at all. It is
+        //          experimental, with no published weights or report. And the
+        //          request and the photograph are processed on servers in
+        //          China, under that jurisdiction - which is not a technical
+        //          matter and is stated plainly where the service is chosen,
+        //          because it is the shooter's decision to make rather than
+        //          this app's.
+        //
+        //          Still no json_schema on that route, so the JSON-mode
+        //          fallback added in 1.49.4 - for the wrong reason at the time
+        //          - is what makes DeepSeek answerable at all.
+        //
+        //          THE MODEL CATALOGUE, CORRECTED. Two of the six services
+        //          paginate and were being read short in silence, which looks
+        //          like a small account rather than half an answer: Anthropic
+        //          on has_more/last_id, Gemini on nextPageToken, both now
+        //          followed and bounded at five pages. Worth knowing that the
+        //          six do not answer the same question - five report what THIS
+        //          KEY reaches, while OpenRouter's catalogue is public and
+        //          global, so "not on this key" cannot be inferred there. What
+        //          it gives instead is pricing, which is what the free
+        //          discovery reads.
+        //
+        //          503 IS ITS OWN CASE. "The service is having trouble"
+        //          invites a shooter to doubt their key or their card. A 503
+        //          says only that the model is busy, and now says so, naming
+        //          the two Gemini models that scored the card as the steadier
+        //          choice.
+        //
+        //          THE SETUP LIST FOLLOWS THE SECOND-OPINION CHOICE, as asked.
+        //          Choosing who gives the second opinion is almost always
+        //          followed by setting that service's key or picking its
+        //          model, and both of those read "Service to set up" - which
+        //          stayed pointing elsewhere, so the next key typed went to
+        //          the wrong service and failed for no visible reason. That
+        //          listener had to move down the file to do it: it calls
+        //          refreshModels(), Kotlin does not hoist local functions, and
+        //          a call above the declaration does not compile. The same
+        //          trap gate 15 was written for and withdrawn over.
+        //
         // 1.51.1 - the version identity catches up with the label already
         //          published.
         //
@@ -5426,8 +5523,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 97
-        versionName = "1.51.1"
+        versionCode = 98
+        versionName = "1.52.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

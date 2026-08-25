@@ -125,11 +125,15 @@ object CloudSettings {
         // answered "no longer available to new users; use 3.6 Flash". 3.5
         // Flash still works and stays, because it is the one that has been
         // seen to answer correctly on a card.
+        // ORDERED BY WHAT SCORED THE TEST CARD. 3.6 and 3.5 Flash both found
+        // all fifteen holes in the right places. 3.7 Flash answers 503 "high
+        // demand" more often than it answers; Flash-Lite was close but not
+        // close enough to accept.
         AiProvider.GEMINI to listOf(
-            "gemini-3.6-flash" to "3.6 Flash — stable (recommended)",
-            "gemini-3.7-flash" to "3.7 Flash — newest",
-            "gemini-3.5-flash" to "3.5 Flash — older, proven here",
-            "gemini-3.5-flash-lite" to "3.5 Flash-Lite — cheapest"
+            "gemini-3.6-flash" to "3.6 Flash — correct on the test card (recommended)",
+            "gemini-3.5-flash" to "3.5 Flash — also correct on the test card",
+            "gemini-3.5-flash-lite" to "3.5 Flash-Lite — cheapest, but less accurate here",
+            "gemini-3.7-flash" to "3.7 Flash — newest, but frequently busy (503)"
         ),
         // TWO SEPARATE FAULTS, BOTH SEEN IN THE FIELD.
         //
@@ -145,20 +149,27 @@ object CloudSettings {
         // card whose group was in the black, it returned holes marched evenly
         // out from the exact centre in two, and on another attempt four,
         // directions. Left available, labelled for what it does here.
+        // ministral-3-14b-latest WAS INVENTED HERE and does not exist. It was
+        // written from a docs page listing "Ministral 3 14B" as a model NAME
+        // and guessing the alias; Mistral answered invalid_model. Aliases are
+        // not derivable from display names, and nothing in this file should be
+        // written from a guess again.
+        //
+        // The three that do exist were all tried on one card and all three
+        // invented positions — see AiProvider.MISTRAL for what each did.
         AiProvider.MISTRAL to listOf(
-            "mistral-medium-latest" to "Mistral Medium 3.5 — vision, poor at locating shots",
-            "mistral-large-latest" to "Mistral Large 3 — vision, untested here",
-            "mistral-small-latest" to "Mistral Small 4 — vision, untested here",
-            "ministral-3-14b-latest" to "Ministral 3 14B — vision, small and cheap"
+            "mistral-medium-latest" to "Mistral Medium 3.5 — invented positions on the test card",
+            "mistral-large-latest" to "Mistral Large 3 — wrong positions on the test card",
+            "mistral-small-latest" to "Mistral Small 4 — invented positions on the test card"
         ),
 
-        // Unreachable while DEEPSEEK is not offered, kept correct so that
-        // re-enabling it does not also resurrect wrong identifiers. These are
-        // the models api-docs.deepseek.com lists; the ones shipped in 1.36.0
-        // were out of date.
+        // Vision arrived on 21 August 2026, which is why DeepSeek is offered
+        // now. The text models stay listed because an account may still be
+        // pointed at one, and they now fail clearly rather than mysteriously.
         AiProvider.DEEPSEEK to listOf(
-            "deepseek-v4-flash" to "V4 Flash — faster, cheaper",
-            "deepseek-v4-pro" to "V4 Pro — more capable"
+            "deepseek-v4-flash-vision-exp" to "V4 Flash Vision — experimental, reads images",
+            "deepseek-v4-flash" to "V4 Flash — text only, cannot score a card",
+            "deepseek-v4-pro" to "V4 Pro — text only, cannot score a card"
         )
     )
 
@@ -175,18 +186,35 @@ object CloudSettings {
      * app depends on. A free model failing where a paid one works is
      * expected behaviour, not a bug in the app.
      */
+    /**
+     * BOTH ENTRIES THAT USED TO LIVE HERE ARE GONE from OpenRouter's own
+     * catalogue: qwen/qwen2.5-vl-72b-instruct:free answered 404 "unavailable
+     * for free" and meta-llama/llama-3.2-11b-vision-instruct:free "not found
+     * on this account". Checked against the catalogue directly — neither is
+     * listed any more.
+     *
+     * The free lineup rotates constantly, which makes this the one list in
+     * this file that CANNOT be kept right by editing it. These are free
+     * image-capable models present at the time of writing, and a starting
+     * point only: press "Ask the service" and the app discovers whatever is
+     * free today from the catalogue's own pricing, marked [free].
+     *
+     * Free is genuinely free — no card, $0 balance — but capped at 20
+     * requests a minute and 50 a DAY unless $10 of credit has been bought at
+     * some point, which raises the daily cap to 1000.
+     */
     val FREE_MODELS: Map<AiProvider, List<Pair<String, String>>> = mapOf(
         AiProvider.OPENROUTER to listOf(
-            "qwen/qwen2.5-vl-72b-instruct:free" to "Qwen2.5-VL 72B (free, via OpenRouter)",
-            "meta-llama/llama-3.2-11b-vision-instruct:free"
-                to "Llama 3.2 11B Vision (free, via OpenRouter)"
+            "thinkingmachines/inkling:free" to "Inkling (free, via OpenRouter)",
+            "thinkingmachines/inkling-small:free" to "Inkling Small (free, via OpenRouter)",
+            "dots-studio/dots-3-note-preview:free" to "Dots 3 Note preview (free, via OpenRouter)"
         )
     )
 
     val DEFAULT_MODEL: Map<AiProvider, String> = mapOf(
         AiProvider.ANTHROPIC to "claude-sonnet-5",
         AiProvider.OPENAI to "gpt-5.6-terra",
-        AiProvider.DEEPSEEK to "deepseek-v4-flash",
+        AiProvider.DEEPSEEK to "deepseek-v4-flash-vision-exp",
         AiProvider.OPENROUTER to "anthropic/claude-sonnet-5",
         AiProvider.XAI to "grok-4.3",
         AiProvider.MISTRAL to "mistral-medium-latest",
@@ -420,8 +448,15 @@ object CloudSettings {
      */
     fun modelOptions(context: Context, p: AiProvider, freeOnly: Boolean = false):
         List<ModelOption> {
-        if (freeOnly && p.freeAccess == FreeAccess.SELECTABLE)
-            return FREE_MODELS[p].orEmpty().map { ModelOption(it.first, it.second, true, "") }
+        if (freeOnly && p.freeAccess == FreeAccess.SELECTABLE) {
+            // Prefer what the catalogue said costs nothing TODAY over the
+            // seed list, which is the one list here that cannot stay right.
+            val free = fetchedModels(context, p).filter { it.second.contains("[free]") }
+            val list = if (free.isNotEmpty()) free else FREE_MODELS[p].orEmpty()
+            return list.map { ModelOption(it.first, it.second, !it.second.contains(TEXT_ONLY),
+                if (it.second.contains(TEXT_ONLY))
+                    "This model is free but cannot read a picture." else "") }
+        }
 
         val fetched = fetchedModels(context, p)
         val curated = MODELS[p].orEmpty()

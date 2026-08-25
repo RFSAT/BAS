@@ -372,26 +372,6 @@ class ProfileActivity : BaseActivity() {
             refreshCloud()
         }
 
-        // ---- which service the second opinion asks ----
-        //
-        // Independent of the import choice on purpose: asking the other
-        // service is exactly what makes a second opinion worth having.
-        binding.spOpinion.adapter = android.widget.ArrayAdapter(
-            this, R.layout.spinner_item, AiProvider.OFFERED.map { it.pickerLabel }
-        ).also { it.setDropDownViewResource(R.layout.spinner_dropdown_item) }
-        binding.spOpinion.setSelection(
-            AiProvider.OFFERED.indexOf(CloudSettings.opinionProvider(this)))
-        binding.spOpinion.onItemSelectedListener = onSelectedIndex { i ->
-            val p = AiProvider.OFFERED.getOrNull(i) ?: return@onSelectedIndex
-            CloudSettings.setOpinionProvider(this, p)
-            refreshCloud()
-            notifyUser(
-                if (CloudSettings.apiKey(this, p).isBlank())
-                    "The second opinion will ask ${p.label}, which needs its own key from " +
-                        "${p.console}."
-                else "The second opinion will ask ${p.label}."
-            )
-        }
 
         binding.cbCloudOverride.isChecked = CloudSettings.overrideApp(this)
         binding.cbCloudOverride.setOnClickListener {
@@ -580,6 +560,46 @@ class ProfileActivity : BaseActivity() {
                     }
                 }
             }.start()
+        }
+
+        // ATTACHED HERE, NOT WHERE THE OTHER PICKERS ARE SET UP, because
+        // this listener calls refreshModels() and Kotlin does not hoist local
+        // functions — a call above the declaration does not compile. That is
+        // the same trap gate 15 was written for and withdrawn over, so the
+        // reason is written down instead.
+        // ---- which service the second opinion asks ----
+        //
+        // Independent of the import choice on purpose: asking the other
+        // service is exactly what makes a second opinion worth having.
+        binding.spOpinion.adapter = android.widget.ArrayAdapter(
+            this, R.layout.spinner_item, AiProvider.OFFERED.map { it.pickerLabel }
+        ).also { it.setDropDownViewResource(R.layout.spinner_dropdown_item) }
+        binding.spOpinion.setSelection(
+            AiProvider.OFFERED.indexOf(CloudSettings.opinionProvider(this)))
+        binding.spOpinion.onItemSelectedListener = onSelectedIndex { i ->
+            val p = AiProvider.OFFERED.getOrNull(i) ?: return@onSelectedIndex
+            CloudSettings.setOpinionProvider(this, p)
+            // THE SETUP LIST FOLLOWS. Choosing who gives the second opinion is
+            // almost always followed by setting that service's key or picking
+            // its model, and both of those read "Service to set up" — which
+            // was left pointing somewhere else, so the next key typed went to
+            // the wrong service and failed with no obvious reason. Moving it
+            // costs nothing: the setup choice is a pointer at a form, not a
+            // setting the app acts on.
+            if (CloudSettings.setupProvider(this) != p) {
+                CloudSettings.setSetupProvider(this, p)
+                binding.spProvider.setSelection(AiProvider.OFFERED.indexOf(p))
+                refreshModels()
+            }
+            refreshCloud()
+            notifyUser(
+                (if (CloudSettings.apiKey(this, p).isBlank())
+                    "The second opinion will ask ${p.label}, which needs its own key from " +
+                        "${p.console}."
+                else "The second opinion will ask ${p.label}.") +
+                    " Key and model below now apply to ${p.label}." +
+                    (if (p.caution.isNotBlank()) " ${p.caution}" else "")
+            )
         }
 
         binding.cbFreeModels.setOnCheckedChangeListener { _, checked ->
