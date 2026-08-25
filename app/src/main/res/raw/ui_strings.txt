@@ -1701,6 +1701,7 @@ pre-33 callback; fine at minSdk 26
 }) dir=${dir ?:
 How many holes are there, and roughly where?
 the reply was not in the expected form
+the reply was not valid JSON
 JSON and nothing else
 <the competition target face this looks like, or 'unknown'>
 : <0..1 left-to-right>,
@@ -1731,6 +1732,8 @@ BAS — Ballistics and Scoring
 with the schema written into the prompt
 ${provider.label} request failed: ${it.javaClass.simpleName}: ${it.message}
 I do not support that way of asking
+) && !t.startsWith(
+no credits
 response format
 not supported
 : $detail.
@@ -1738,9 +1741,12 @@ is enabled for the model you chose.
 : $detail
 and gave no reason. See the Log.
 This model may not accept the token limit the app sends; try another model.
+Invalid model
+\u201cOther\u201d.
 models listed for ${provider.label}.
 That model was not found on this account: $detail
-Rate limited, or the account is out of credit. $detail
+${provider.console}; waiting will not help. $detail
+Rate limited by ${provider.label}. Wait a moment and try again.
 The service is having trouble ($code). Try again shortly.
 . See the Log for the reply.
 The service did not answer with JSON at all.
@@ -1750,6 +1756,7 @@ The model declined to answer: $it
 Try a smaller image or a different model.
 (stopped: $finish).
 . The full reply is in the Log.
+room to answer.
 The reply was not valid JSON.
 :generateContent
 x-goog-api-key
@@ -1767,13 +1774,15 @@ The request was refused:
 ).take(limit).ifBlank {
 Claude (Anthropic)
 Console, not your Claude.ai password — the two are different things.
-Rate limited. Wait a moment and try again.
+wait a moment and try again
 on the account. $detail
 The service returned $code. $detail
 room. Try a smaller image or a different model.
 (stopped: $stop).
+The reply was cut off part-way through.
 , -1.0); val y = h.optDouble(
 ; $offScale outside 0..1 and dropped
+; ${AnswerSanity.marks(points)}
 They look like PIXELS.
 They look like PERCENTAGES.
 plotted. Another model will usually answer this correctly.
@@ -1785,6 +1794,7 @@ of the way across the picture
 the app's own detection.
 before accepting any of it.
 the centre
+repeated coordinates $repeats; $pct% of values on a 0.05 grid
 no holes
 + fmt(it.first) +
 + fmt(it.second) +
@@ -1832,18 +1842,25 @@ anthropic/claude-sonnet-5
 Claude Sonnet 5 (via OpenRouter)
 openai/gpt-4o
 GPT-4o (via OpenRouter)
-grok-2-vision-latest
-Grok 2 Vision — reads images
+Model not found
+grok-4.3
+Grok 4.3 — reads images (recommended)
+grok-4.5
+Grok 4.5 — newer, more capable
+not found for API version v1beta
+no longer available to new users; use 3.6 Flash
+gemini-3.6-flash
+3.6 Flash — stable (recommended)
+gemini-3.7-flash
+3.7 Flash — newest
 gemini-3.5-flash
-3.5 Flash — fast, cheap (recommended)
-gemini-3.1-pro
-3.1 Pro — strongest reasoning
-gemini-2.5-flash
-2.5 Flash — older, GA until Oct 2026
-pixtral-large-latest
-Pixtral Large — vision, poor at locating shots
+3.5 Flash — older, proven here
 mistral-medium-latest
 Mistral Medium — vision, poor at locating shots
+mistral-large-latest
+Mistral Large — vision, untested here
+mistral-small-latest
+Mistral Small — vision, untested here
 deepseek-v4-flash
 V4 Flash — faster, cheaper
 deepseek-v4-pro

@@ -93,30 +93,47 @@ object CloudSettings {
             "anthropic/claude-sonnet-5" to "Claude Sonnet 5 (via OpenRouter)",
             "openai/gpt-4o" to "GPT-4o (via OpenRouter)"
         ),
+        // grok-2-vision-latest shipped here and returned "Model not found"
+        // from the field. The Grok 2 and Grok 4 families were retired in May
+        // 2026 and their identifiers now redirect to 4.3, which is where
+        // image understanding lives.
         AiProvider.XAI to listOf(
-            "grok-2-vision-latest" to "Grok 2 Vision — reads images"
+            "grok-4.3" to "Grok 4.3 — reads images (recommended)",
+            "grok-4.5" to "Grok 4.5 — newer, more capable"
         ),
         // Gemini renames its models with each generation rather than keeping
         // an alias, so these WILL age. 2.5 is the safe one today and is
         // announced as GA-stable only until 16 October 2026; the 3.x names
         // are current as of this release. "Other" is the escape hatch, and a
         // wrong name here fails as a 404 that says so.
+        // Two of the three entries here were dead in the field: 3.1 Pro
+        // returned "not found for API version v1beta", and 2.5 Flash
+        // answered "no longer available to new users; use 3.6 Flash". 3.5
+        // Flash still works and stays, because it is the one that has been
+        // seen to answer correctly on a card.
         AiProvider.GEMINI to listOf(
-            "gemini-3.5-flash" to "3.5 Flash — fast, cheap (recommended)",
-            "gemini-3.1-pro" to "3.1 Pro — strongest reasoning",
-            "gemini-2.5-flash" to "2.5 Flash — older, GA until Oct 2026"
+            "gemini-3.6-flash" to "3.6 Flash — stable (recommended)",
+            "gemini-3.7-flash" to "3.7 Flash — newest",
+            "gemini-3.5-flash" to "3.5 Flash — older, proven here"
         ),
-        // LABELLED FROM MEASUREMENT, not from the maker's description. Both
-        // read images; neither locates holes on a card reliably. Asked about
-        // a card with the shots in the black and a string out to the 5 ring,
-        // Mistral Medium answered with a dozen holes marched evenly from one
-        // corner to the other, and Pixtral Large would not take the request
-        // at all until the JSON-mode fallback was added. Left available
-        // because a service that works for someone should not be removed on
-        // one report - but not recommended, and said so where it is chosen.
+        // TWO SEPARATE FAULTS, BOTH SEEN IN THE FIELD.
+        //
+        // pixtral-large-latest returned {"message":"Invalid model",
+        // "type":"invalid_model"} on every request. 1.49.4 guessed that the
+        // strict JSON schema was being refused and added a JSON-mode retry;
+        // that guess was WRONG, and the log said so plainly once refusals
+        // were being logged. Pixtral Large was deprecated in February 2026
+        // and retired on 31 May 2026, its vision folded into the main model
+        // line. The identifier had simply stopped existing.
+        //
+        // mistral-medium-latest does answer, and answers badly: asked about a
+        // card whose group was in the black, it returned holes marched evenly
+        // out from the exact centre in two, and on another attempt four,
+        // directions. Left available, labelled for what it does here.
         AiProvider.MISTRAL to listOf(
-            "pixtral-large-latest" to "Pixtral Large — vision, poor at locating shots",
-            "mistral-medium-latest" to "Mistral Medium — vision, poor at locating shots"
+            "mistral-medium-latest" to "Mistral Medium — vision, poor at locating shots",
+            "mistral-large-latest" to "Mistral Large — vision, untested here",
+            "mistral-small-latest" to "Mistral Small — vision, untested here"
         ),
 
         // Unreachable while DEEPSEEK is not offered, kept correct so that
@@ -155,9 +172,9 @@ object CloudSettings {
         AiProvider.OPENAI to "gpt-4o",
         AiProvider.DEEPSEEK to "deepseek-v4-flash",
         AiProvider.OPENROUTER to "anthropic/claude-sonnet-5",
-        AiProvider.XAI to "grok-2-vision-latest",
-        AiProvider.MISTRAL to "pixtral-large-latest",
-        AiProvider.GEMINI to "gemini-3.5-flash"
+        AiProvider.XAI to "grok-4.3",
+        AiProvider.MISTRAL to "mistral-medium-latest",
+        AiProvider.GEMINI to "gemini-3.6-flash"
     )
 
     private var prefs: SharedPreferences? = null

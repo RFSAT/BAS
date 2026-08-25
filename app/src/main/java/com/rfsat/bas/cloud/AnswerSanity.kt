@@ -48,9 +48,25 @@ object AnswerSanity {
      *  enough that throwing the answer away would be the greater harm. */
     private const val WARN_POINTS = 6
 
-    /** How far across the frame the line must run. A group - even a poor one
-     *  - does not span this; the fabricated answers run corner to corner. */
-    private const val SPAN = 0.55
+    /**
+     * How far across the frame the line must run.
+     *
+     * WAS 0.55, AND THAT LET TWO REAL FABRICATIONS THROUGH. The answers that
+     * arrived from the field do not run corner to corner: they start at the
+     * exact centre of the frame and march OUTWARDS, in two directions in one
+     * case and four in another, so the longest single run is about half the
+     * width. One of them was accepted into a session, replacing fifteen
+     * measured shots with seventeen invented ones.
+     *
+     * Retuned against six real answers - three fabricated by Mistral, and
+     * two from Claude and one from Gemini on the same card. At 0.45 all
+     * three fabrications are caught (runs of 12, 17 and 9 holes) and none of
+     * the three good answers is touched, with margin: the setting stays
+     * clean all the way down to 0.30. Simulated answers are falsely rejected
+     * in 0.05% to 0.16% of cases, whatever decimal precision the model
+     * reports in.
+     */
+    private const val SPAN = 0.45
 
     /** Step sizes worth testing, as a fraction of the frame. */
     private const val MIN_STEP = 0.03
@@ -161,6 +177,37 @@ object AnswerSanity {
         val v = if (p.second < 0.34) "top" else if (p.second > 0.66) "bottom" else "middle"
         val h = if (p.first < 0.34) "left" else if (p.first > 0.66) "right" else "centre"
         return if (v == "middle" && h == "centre") "the centre" else "$v $h"
+    }
+
+
+    /**
+     * Two further marks of an answer that was not read, kept for the LOG and
+     * deliberately NOT used to reject anything.
+     *
+     * Both separated the six real answers perfectly - the fabrications had a
+     * repeated coordinate and 52-94% of their numbers on a 0.05 grid, the
+     * good ones had no repeat and 0-13%. Neither is safe to act on. A model
+     * reporting to two decimal places produces repeats by chance in a tight
+     * group, and one reporting to one decimal place sits entirely on a 0.05
+     * grid while still having looked at the card; acting on either would
+     * throw away real answers at 15% and 74% respectively. So they are
+     * evidence for a human reading the log, and nothing more.
+     */
+    fun marks(points: List<Pair<Double, Double>>): String {
+        if (points.isEmpty()) return ""
+        val seen = HashSet<Pair<Long, Long>>()
+        var repeats = 0
+        for (p in points) {
+            val k = Math.round(p.first * 10000) to Math.round(p.second * 10000)
+            if (!seen.add(k)) repeats++
+        }
+        var onGrid = 0
+        for (p in points) for (v in listOf(p.first, p.second)) {
+            val q = v / 0.05
+            if (abs(q - Math.round(q)) < 1e-6) onGrid++
+        }
+        val pct = 100 * onGrid / (2 * points.size)
+        return "repeated coordinates $repeats; $pct% of values on a 0.05 grid"
     }
 
     /** One log line for what came back: how many, and where. Coordinates

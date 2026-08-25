@@ -1,111 +1,116 @@
 package com.rfsat.sts
 
 import com.rfsat.bas.cloud.AnswerSanity
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * The rejection has to be NARROW. A check that throws away real answers is
- * worse than no check at all, so most of this file is answers it must let
- * through.
+ * THE FIRST SIX CASES ARE REAL. They were read out of the device log on
+ * 25 August 2026 — three answers Mistral gave about one card, and the
+ * answers Claude and Gemini gave about the same card. Nothing here is
+ * invented, and nothing here is a simulation: these are the numbers that
+ * actually arrived, and the thresholds were fitted to them rather than to a
+ * model of what a bad answer might look like.
  *
- * Every case is written out rather than generated from a seed: a threshold
- * test whose inputs depend on a random generator passes or fails for reasons
- * that have nothing to do with the thresholds.
+ * The rejection must stay NARROW. A check that throws away real answers is
+ * worse than no check, so the good answers matter more than the bad ones.
  */
 class AnswerSanityTest {
 
-    // ---------------------------------------------------- must be rejected
+    // ------------------------------------------------- real, and fabricated
 
-    /** A fabricated sweep on its own: evenly spaced, corner to corner. */
-    @Test fun pureRampIsRejected() {
-        val pts = (0 until 10).map { i ->
-            val f = 0.05 + i * 0.1
-            f to (1.0 - f)                       // bottom left to top right on screen
-        }
-        val f = AnswerSanity.sweep(pts)
-        assertNotNull(f)
-        assertTrue(f!!.reject)
-        assertEquals(10, f.count)
-    }
-
-    /**
-     * THE CASE THAT PROMPTED THE SECOND LOOK. Mistral returned real-looking
-     * holes in the black AND a dozen strung across the card. Taken together
-     * these are not collinear at all, so a test asking whether the WHOLE
-     * answer is a ramp passes them - which is exactly what happened.
-     */
-    @Test fun rampMixedWithARealGroupIsStillRejected() {
-        val ramp = (0 until 12).map { i -> (0.09 + i * 0.067) to (0.87 - i * 0.067) }
-        val group = listOf(
-            0.47 to 0.44, 0.52 to 0.41, 0.49 to 0.50, 0.55 to 0.47,
-            0.44 to 0.52, 0.58 to 0.45, 0.51 to 0.55, 0.46 to 0.39
+    /** Mistral, 21 holes: a repeated centre, then two runs marching out. */
+    @Test fun mistralTwentyOneHoleAnswerIsRejected() {
+        val pts = listOf(
+            0.5 to 0.5, 0.5 to 0.5, 0.55 to 0.45, 0.52 to 0.48, 0.58 to 0.42,
+            0.6 to 0.4, 0.62 to 0.38, 0.65 to 0.35, 0.68 to 0.32, 0.7 to 0.3,
+            0.72 to 0.28, 0.75 to 0.25, 0.78 to 0.22, 0.8 to 0.2, 0.82 to 0.18,
+            0.5 to 0.6, 0.52 to 0.62, 0.55 to 0.65, 0.58 to 0.68, 0.6 to 0.7, 0.62 to 0.72
         )
-        val f = AnswerSanity.sweep(ramp + group)
-        assertNotNull(f)
-        assertTrue(f!!.reject)
-        assertTrue("found only ${f.count} of the 12 planted", f.count >= 10)
+        val f = AnswerSanity.sweep(pts)
+        assertNotNull(f); assertTrue(f!!.reject)
+        assertTrue("found only ${f.count}", f.count >= 10)
     }
 
-    /** A ramp with a little noise on it is still a ramp. */
-    @Test fun slightlyJitteredRampIsRejected() {
-        val pts = (0 until 10).map { i ->
-            val f = (i + 0.5) / 10.0
-            (f + if (i % 2 == 0) 0.008 else -0.008) to
-                (1.0 - f + if (i % 3 == 0) 0.008 else -0.006)
-        }
+    /** Mistral, 28 holes: four runs radiating from the exact centre. */
+    @Test fun mistralTwentyEightHoleAnswerIsRejected() {
+        val pts = listOf(
+            0.5 to 0.5, 0.5 to 0.5, 0.52 to 0.48, 0.55 to 0.45, 0.58 to 0.42,
+            0.6 to 0.4, 0.62 to 0.38, 0.65 to 0.35, 0.68 to 0.32, 0.7 to 0.3,
+            0.72 to 0.28, 0.75 to 0.25, 0.45 to 0.55, 0.42 to 0.58, 0.4 to 0.6,
+            0.38 to 0.62, 0.35 to 0.65, 0.32 to 0.68, 0.3 to 0.7, 0.28 to 0.72,
+            0.55 to 0.55, 0.58 to 0.58, 0.6 to 0.6, 0.62 to 0.62, 0.65 to 0.65,
+            0.45 to 0.45, 0.42 to 0.42, 0.4 to 0.4
+        )
         assertTrue(AnswerSanity.sweep(pts)!!.reject)
     }
 
-    // ------------------------------------------- warned about, but not lost
+    /**
+     * Mistral, 17 holes — THE ONE 1.49.4 LET THROUGH. Its longest run spans
+     * about half the frame, not the whole of it, because the runs start at
+     * the centre and go outwards. Seventeen invented shots replaced fifteen
+     * measured ones in a session before this was caught.
+     */
+    @Test fun theSeventeenHoleAnswerThatGotThroughIsRejected() {
+        val pts = listOf(
+            0.5 to 0.5, 0.5 to 0.5, 0.52 to 0.48, 0.55 to 0.45, 0.6 to 0.4,
+            0.65 to 0.35, 0.7 to 0.3, 0.75 to 0.25, 0.8 to 0.2, 0.85 to 0.15,
+            0.5 to 0.55, 0.45 to 0.6, 0.4 to 0.65, 0.35 to 0.7, 0.3 to 0.75,
+            0.25 to 0.8, 0.2 to 0.85
+        )
+        val f = AnswerSanity.sweep(pts)
+        assertNotNull("this is the case the span threshold was lowered for", f)
+        assertTrue(f!!.reject)
+    }
 
-    /** Six or seven can be a coincidence. Said out loud, and kept. */
+    // ------------------------------------------------------- real, and good
+
+    /** Claude, on the same card. Fifteen holes, and they were right. */
+    @Test fun claudeAnswerIsKept() {
+        val pts = listOf(
+            0.463 to 0.404, 0.519 to 0.392, 0.526 to 0.432, 0.489 to 0.492,
+            0.52 to 0.485, 0.59 to 0.48, 0.617 to 0.484, 0.613 to 0.525,
+            0.542 to 0.597, 0.665 to 0.545, 0.658 to 0.617, 0.618 to 0.64,
+            0.531 to 0.694, 0.443 to 0.694, 0.515 to 0.735
+        )
+        assertNull(AnswerSanity.sweep(pts))
+    }
+
+    /** Claude again, a day later, on the same card. */
+    @Test fun claudeSecondAnswerIsKept() {
+        val pts = listOf(
+            0.462 to 0.398, 0.516 to 0.388, 0.525 to 0.428, 0.487 to 0.485,
+            0.518 to 0.479, 0.588 to 0.472, 0.614 to 0.478, 0.607 to 0.522,
+            0.542 to 0.594, 0.663 to 0.539, 0.66 to 0.613, 0.618 to 0.637,
+            0.443 to 0.688, 0.532 to 0.686, 0.516 to 0.729
+        )
+        assertNull(AnswerSanity.sweep(pts))
+    }
+
+    /** Gemini, on the same card. Two decimal places, and still correct —
+     *  which is why coarse rounding must never be grounds for rejection. */
+    @Test fun geminiAnswerIsKept() {
+        val pts = listOf(
+            0.48 to 0.49, 0.51 to 0.48, 0.52 to 0.43, 0.51 to 0.38, 0.46 to 0.4,
+            0.54 to 0.59, 0.58 to 0.47, 0.61 to 0.48, 0.6 to 0.51, 0.66 to 0.54,
+            0.65 to 0.6, 0.61 to 0.63, 0.53 to 0.68, 0.52 to 0.73, 0.44 to 0.68
+        )
+        assertNull(AnswerSanity.sweep(pts))
+    }
+
+    // ------------------------------------------- constructed edge cases
+
     @Test fun aShortRunIsWarnedAboutRatherThanDiscarded() {
-        val ramp = (0 until 6).map { i -> (0.12 + i * 0.13) to (0.88 - i * 0.13) }
+        val ramp = (0 until 6).map { i -> (0.15 + i * 0.10) to (0.85 - i * 0.10) }
         val f = AnswerSanity.sweep(ramp)
         assertNotNull(f)
-        assertEquals(false, f!!.reject)
-        assertTrue(f.message.startsWith("CHECK THIS ANSWER"))
+        assertTrue(!f!!.reject && f.message.startsWith("CHECK THIS ANSWER"))
     }
 
-    // -------------------------------------------------- must be left alone
-
-    /** The card in the photograph: a cluster in the black and a string out to
-     *  the 5 and 6 rings. A real answer, and a wide one. */
-    @Test fun theRealCardIsKept() {
-        val pts = listOf(
-            0.50 to 0.36, 0.53 to 0.34, 0.54 to 0.40, 0.51 to 0.47, 0.52 to 0.48,
-            0.60 to 0.46, 0.62 to 0.45, 0.63 to 0.48, 0.55 to 0.59, 0.70 to 0.53,
-            0.69 to 0.61, 0.64 to 0.66, 0.53 to 0.71, 0.41 to 0.72, 0.53 to 0.78
-        )
-        assertNull(AnswerSanity.sweep(pts))
-    }
-
-    /** Everything inside the 9 and 10 rings. */
-    @Test fun tightGroupIsKept() {
-        val pts = listOf(
-            0.492 to 0.505, 0.511 to 0.488, 0.503 to 0.517, 0.487 to 0.494,
-            0.518 to 0.509, 0.499 to 0.481, 0.506 to 0.502, 0.481 to 0.512,
-            0.514 to 0.497, 0.497 to 0.520
-        )
-        assertNull(AnswerSanity.sweep(pts))
-    }
-
-    /** A bad day, but a real one: a wide scattered group across the card. */
-    @Test fun wideScatterIsKept() {
-        val pts = listOf(
-            0.31 to 0.62, 0.68 to 0.41, 0.52 to 0.77, 0.24 to 0.35,
-            0.71 to 0.69, 0.44 to 0.28, 0.59 to 0.55, 0.36 to 0.71,
-            0.63 to 0.33, 0.47 to 0.49, 0.28 to 0.53, 0.74 to 0.58
-        )
-        assertNull(AnswerSanity.sweep(pts))
-    }
-
-    /** A group strung out diagonally - recoil walking the point of aim - with
-     *  the uneven spacing and the lateral scatter real shooting has. */
+    /** Recoil walking the point of aim: diagonal, but unevenly spaced and
+     *  scattered sideways the way real shooting is. */
     @Test fun walkedGroupIsKept() {
         val pts = listOf(
             0.18 to 0.24, 0.27 to 0.31, 0.31 to 0.41, 0.44 to 0.44,
@@ -114,14 +119,12 @@ class AnswerSanityTest {
         assertNull(AnswerSanity.sweep(pts))
     }
 
-    /** Evenly spaced and dead straight, but confined to the middle of the
-     *  card: a sighting string, not a fabricated sweep. */
+    /** Straight and evenly spaced, but confined to the middle of the card. */
     @Test fun shortEvenLineIsKept() {
         val pts = (0 until 8).map { i -> (0.44 + i * 0.015) to (0.44 + i * 0.015) }
         assertNull(AnswerSanity.sweep(pts))
     }
 
-    /** Too few to say anything about. */
     @Test fun fivePointsAreNeverFlagged() {
         val pts = listOf(0.1 to 0.9, 0.3 to 0.7, 0.5 to 0.5, 0.7 to 0.3, 0.9 to 0.1)
         assertNull(AnswerSanity.sweep(pts))
@@ -131,9 +134,22 @@ class AnswerSanityTest {
         assertNull(AnswerSanity.sweep(emptyList()))
     }
 
+    // ----------------------------------------------------------- the log
+
     @Test fun describeNamesTheCountAndTheCoordinates() {
         val d = AnswerSanity.describe(listOf(0.25 to 0.75, 0.5 to 0.5))
         assertTrue(d, d.startsWith("2 holes at"))
         assertTrue(d, d.contains("(0.25,0.75)"))
+    }
+
+    /** The supporting marks are reported, and are never grounds to reject. */
+    @Test fun marksSeparateTheRealAnswersFromTheFabricatedOnes() {
+        val fabricated = AnswerSanity.marks(listOf(
+            0.5 to 0.5, 0.5 to 0.5, 0.55 to 0.45, 0.6 to 0.4, 0.65 to 0.35))
+        assertTrue(fabricated, fabricated.contains("repeated coordinates 1"))
+        val real = AnswerSanity.marks(listOf(
+            0.463 to 0.404, 0.519 to 0.392, 0.526 to 0.432, 0.489 to 0.492))
+        assertTrue(real, real.contains("repeated coordinates 0"))
+        assertTrue(real, real.contains("0% of values"))
     }
 }

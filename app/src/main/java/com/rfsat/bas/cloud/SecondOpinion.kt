@@ -43,7 +43,15 @@ object SecondOpinion {
      *  older budget out mid-object, and a truncated reply has no closing
      *  brace — which is what "the reply was not in the expected form" was
      *  actually reporting. */
-    private const val MAX_TOKENS = 4000
+    /**
+     * RAISED FROM 4000, which was not enough. A fifteen-shot card answered
+     * with a note and a ring per hole runs past it, and Gemini's reply
+     * arrived cut off in the middle of the holes array — reported to the
+     * shooter as "the reply was not valid JSON", which is true and useless.
+     * The truncation is now recognised for what it is, and the ceiling is
+     * high enough that a thirty-shot card does not reach it.
+     */
+    private const val MAX_TOKENS = 8000
 
     /** The model is made to answer THROUGH a tool rather than in prose.
      *
@@ -400,6 +408,41 @@ object SecondOpinion {
      * and a second charge - for every malformed request, so it has to be the
      * response_format field that the service objected to.
      */
+    /**
+     * A reply that stopped mid-sentence rather than one that was never JSON.
+     *
+     * The difference matters to the shooter: a truncated answer means try a
+     * smaller picture or a shorter answer, while malformed JSON means try
+     * another model. Told apart by counting brackets outside strings — a
+     * complete object closes everything it opened.
+     */
+    private fun looksTruncated(text: String): Boolean {
+        val t = text.trim()
+        if (!t.startsWith("{") && !t.startsWith("[")) return false
+        var depth = 0
+        var inStr = false
+        var esc = false
+        for (c in t) {
+            when {
+                esc -> esc = false
+                c == '\\' && inStr -> esc = true
+                c == '"' -> inStr = !inStr
+                inStr -> {}
+                c == '{' || c == '[' -> depth++
+                c == '}' || c == ']' -> depth--
+            }
+        }
+        return depth > 0 || inStr
+    }
+
+    /** Does this 429 mean an empty account rather than too many requests?
+     *  Both arrive with the same status, and the remedies are opposite. */
+    private fun outOfCredit(body: String): Boolean {
+        val b = body.lowercase()
+        return b.contains("insufficient_quota") || b.contains("credit_balance") ||
+            b.contains("no credits") || b.contains("billing") || b.contains("quota")
+    }
+
     private fun rejectsSchema(body: String): Boolean {
         val b = body.lowercase()
         if (!b.contains("response_format") && !b.contains("json_schema") &&
@@ -424,12 +467,22 @@ object SecondOpinion {
                 (if (detail.isNotBlank()) ": $detail" else " and gave no reason. See the Log.") +
                 (if (detail.contains("max_completion_tokens") || detail.contains("max_tokens"))
                     " This model may not accept the token limit the app sends; try another model."
+                 else if (body.contains("invalid_model") || detail.contains("Invalid model"))
+                    " That identifier no longer exists on this service — models are retired " +
+                    "regularly. Pick one from the list, or type a current identifier under " +
+                    "\u201cOther\u201d."
                  else if (detail.contains("json_schema") || detail.contains("response_format"))
                     " This model may not support schema-constrained replies; try one of the " +
                     "models listed for ${provider.label}."
                  else "")
             404 -> "That model was not found on this account: $detail"
-            429 -> "Rate limited, or the account is out of credit. $detail"
+            // 429 CARRIES TWO OPPOSITE REMEDIES on these services and the
+            // app used to give both at once, which is no help at all. The
+            // body says which it is.
+            429 -> if (outOfCredit(body))
+                "${provider.label} has no credit left on this key. Top the account up at " +
+                    "${provider.console}; waiting will not help. $detail"
+            else "Rate limited by ${provider.label}. Wait a moment and try again."
             in 500..599 -> "The service is having trouble ($code). Try again shortly."
             else -> "${provider.label} returned HTTP $code" +
                 (if (detail.isNotBlank()) ": $detail" else ". See the Log for the reply.")
@@ -464,7 +517,13 @@ object SecondOpinion {
                 response)
         }
         val obj = runCatching { JSONObject(content) }.getOrElse {
-            return failed(who, "The reply was not valid JSON.", content)
+            return failed(who,
+                if (looksTruncated(content))
+                    "The reply was cut off part-way through — the model ran out of room before it " +
+                        "finished listing the holes. Try a smaller picture, or a model with more " +
+                        "room to answer."
+                else "The reply was not valid JSON.",
+                content)
         }
         return build(obj,
             usage?.optInt("prompt_tokens") ?: 0,
@@ -596,7 +655,13 @@ object SecondOpinion {
                 response)
         }
         val obj = runCatching { JSONObject(content) }.getOrElse {
-            return failed(who, "The reply was not valid JSON.", content)
+            return failed(who,
+                if (looksTruncated(content))
+                    "The reply was cut off part-way through — the model ran out of room before it " +
+                        "finished listing the holes. Try a smaller picture, or a model with more " +
+                        "room to answer."
+                else "The reply was not valid JSON.",
+                content)
         }
         val usage = root.optJSONObject("usageMetadata")
         return build(obj,
@@ -692,7 +757,15 @@ object SecondOpinion {
                 "Console, not your Claude.ai password — the two are different things."
             400 -> "Claude refused the request" +
                 (if (detail.isNotBlank()) ": $detail" else " and gave no reason. See the Log.")
-            429 -> "Rate limited. Wait a moment and try again."
+            // 429 CARRIES TWO COMPLETELY DIFFERENT MEANINGS on the
+            // OpenAI-shaped services, and the app used to give the wrong
+            // remedy for one of them: an exhausted balance was reported as
+            // "wait a moment and try again", which it will never fix. The
+            // body says which.
+            429 -> if (outOfCredit(body))
+                "${provider.label} has no credit left on this key. Top the account up at " +
+                    "${provider.console}; waiting will not help. $detail"
+            else "Rate limited by ${provider.label}. Wait a moment and try again."
             in 500..599 -> "The service is having trouble ($code). Try again shortly."
             402, 403 -> "The key is valid but the request was not allowed — usually no credit " +
                 "on the account. $detail"
@@ -736,7 +809,11 @@ object SecondOpinion {
                         response)
                 }
                 runCatching { JSONObject(text.substring(a, b + 1)) }
-                    .getOrElse { return failed(who, "The reply was not valid JSON.", response) }
+                    .getOrElse {
+                        return failed(who,
+                            if (looksTruncated(text)) "The reply was cut off part-way through."
+                            else "The reply was not valid JSON.", response)
+                    }
             }
 
         return build(obj,
@@ -774,7 +851,8 @@ object SecondOpinion {
 
         val points = spots.map { it.xFrac to it.yFrac }
         Logger.i("SecondOpinion", "$who answered: ${AnswerSanity.describe(points)}" +
-            (if (offScale > 0) "; $offScale outside 0..1 and dropped" else ""))
+            (if (offScale > 0) "; $offScale outside 0..1 and dropped" else "") +
+            (if (points.isNotEmpty()) "; ${AnswerSanity.marks(points)}" else ""))
 
         if (spots.isEmpty() && offScale > 0) {
             val scale = when {

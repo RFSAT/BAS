@@ -35,6 +35,83 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.49.5 - five dead model identifiers, and the fabrication that
+        //          got past 1.49.4.
+        //
+        //          A DEVICE LOG SETTLED SEVERAL THINGS AT ONCE. Logging every
+        //          refusal, added in 1.49.2, paid for itself here: five of the
+        //          model identifiers shipped in the picker no longer exist,
+        //          and each said so in its own words.
+        //
+        //            pixtral-large-latest  invalid_model. Deprecated in
+        //                                  February 2026, retired 31 May;
+        //                                  vision folded into the main line.
+        //            grok-2-vision-latest  Model not found. The Grok 2 and 4
+        //                                  families retired in May 2026 and
+        //                                  redirect to 4.3.
+        //            gemini-3.1-pro        not found for API version v1beta.
+        //            gemini-2.5-flash      no longer available to new users.
+        //            (gemini-3.5-flash still answers, and is kept for that
+        //             reason: it is the one seen to be right on a card.)
+        //
+        //          1.49.4 GUESSED WRONG ABOUT PIXTRAL and this corrects the
+        //          record. The reasoning there was that pixtral-large-latest
+        //          refused the strict JSON schema, and a JSON-mode retry was
+        //          added on that basis. The body of the 400 says
+        //          invalid_model, nothing about response_format. The retry is
+        //          harmless and is kept — it fires only when the body names
+        //          response_format, which this never did — but it fixed
+        //          nothing, and the identifier was the whole fault.
+        //
+        //          A retired identifier arrives as a 400, not a 404, so the
+        //          message for it now says exactly that: the identifier no
+        //          longer exists, pick from the list or type a current one.
+        //
+        //          429 MEANT TWO OPPOSITE THINGS AND THE APP GAVE BOTH.
+        //          OpenAI answered "You have no credits remaining", with
+        //          type insufficient_quota, and the shooter was told to wait
+        //          a moment and try again — which will never fix it. An
+        //          exhausted balance and a rate limit are now told apart from
+        //          the body and given their own remedy.
+        //
+        //          THE SEVENTEEN-HOLE ANSWER THAT GOT THROUGH. 1.49.4 refused
+        //          a run of holes spanning over 55% of the frame. The
+        //          fabricated answers do not run corner to corner: they start
+        //          at the EXACT CENTRE and march outwards, in two directions
+        //          on one attempt and four on another, so the longest single
+        //          run is about half the width. One was accepted into a
+        //          session, replacing fifteen measured shots with seventeen
+        //          invented ones.
+        //
+        //          The threshold is now fitted to real data rather than to a
+        //          model of it: six answers about one card, three fabricated
+        //          by Mistral and three good ones from Claude and Gemini. At
+        //          45% all three fabrications are caught — runs of 12, 17 and
+        //          9 holes — and none of the three good answers is touched,
+        //          with margin to spare; the setting stays clean down to 30%.
+        //          Simulated answers are falsely rejected in 0.05% to 0.16%
+        //          of cases whatever decimal precision the model reports in.
+        //          All six are now regression tests.
+        //
+        //          TWO FURTHER MARKS ARE LOGGED AND DELIBERATELY NOT ACTED
+        //          ON. Every fabricated answer repeated a coordinate exactly
+        //          and put 52-94% of its numbers on a 0.05 grid; the good
+        //          ones repeated nothing and scored 0-13%. Both separate this
+        //          data perfectly and NEITHER is safe: a model reporting two
+        //          decimals repeats by chance in a tight group, and one
+        //          reporting a single decimal sits wholly on a 0.05 grid
+        //          while still having looked — acting on them would discard
+        //          real answers at 15% and 74%. They are evidence for
+        //          whoever reads the log, and nothing more.
+        //
+        //          A REPLY THAT STOPS IS NOT A REPLY THAT WAS NEVER JSON.
+        //          Gemini's answer arrived cut off inside the holes array and
+        //          was reported as "not valid JSON", which is true and
+        //          useless — the remedies are different. Truncation is now
+        //          recognised by counting brackets outside strings, and the
+        //          token ceiling goes from 4,000 to 8,000, which a fifteen-
+        //          shot card with a note and a ring per hole was exceeding.
+        //
         // 1.49.4 - the fabricated run is found even when real holes are
         //          mixed in with it, and Pixtral Large stops refusing.
         //
@@ -5243,8 +5320,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 93
-        versionName = "1.49.4"
+        versionCode = 94
+        versionName = "1.49.5"
     }
 
     // Resolved once, here, rather than re-read from the environment in two
