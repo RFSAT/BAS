@@ -12,11 +12,13 @@ scoring gauge.
 
 - `applicationId` — `com.BAS` (permanent once published)
 - Kotlin namespace — `com.rfsat.bas`
-- AGP 8.9.1 / Kotlin 2.1.0 / compileSdk 36 / minSdk 26 / targetSdk 36
-- Gradle 8.11.1 or newer, JDK 17
+- AGP 9.0.0 with its built-in Kotlin / compileSdk 36 / minSdk 26 / targetSdk 36
+- Gradle 9.7.0, JDK 17
 
-Open the folder in Android Studio and build. The **User Guide** and **Programmer's Reference** are in `docs/`. See `INTEGRATION.md` for exactly
-how the two apps were merged and what remains for the first compile pass.
+Open the folder in Android Studio and build. The **User Guide** and
+**Programmer Reference** are not in this repository — they are published on
+the RFSAT portal; see [Documentation](#documentation) below. `INTEGRATION.md`
+records exactly how the two apps were merged.
 
 ---
 
@@ -151,27 +153,27 @@ on another phone.
 
 ## Documentation
 
-**The guides are DELIVERED, not committed.** They are excluded from the
-release archives — large binaries that change every release and are of no use
-to a build — and arrive as separate files. If earlier copies are still sitting
-in `docs/` in the repository, delete them: nothing will update them there
-again.
+**The guides are published, not committed.** They are not in this repository
+and are not in the release archives — large binaries that change every release
+and are of no use to a build. The current versions are always at:
+
+- **User Guide** — <https://www.rfsat.com/download/BAS-User-Guide.pdf> — for shooters.
+- **Programmer Reference** — <https://www.rfsat.com/download/BAS-Programmer-Reference.pdf> — for whoever maintains this.
+
+Those two links always serve the latest published revision, so there is
+nothing here to go stale. If earlier copies are still sitting in `docs/` in
+the repository, delete them: nothing will update them there again.
 
 **Every release ships an updated User Guide and a freshly rendered PDF.** That
 is not a habit to remember: `tools/package_release.py` refuses to package a
 version whose guide is not stamped with it, or whose PDF is older than the
 document it came from. `tools/update_user_guide.py <version> <build>` does the
 mechanical half — the version on the title page and in the footer, and the
-page numbers in the static contents list, which are read back out of the
-rendered PDF because nothing else keeps them honest. The prose is still
-written by hand.
+page numbers in the contents list, which are read back out of the rendered PDF
+because nothing else keeps them honest. The prose is still written by hand.
 
-Both documents are current, and both were produced by editing the originals
-rather than regenerating them, so the title pages and every style are the
-originals:
-
-- `docs/BAS-User-Guide_v1.41.3.docx` — for shooters.
-- `docs/BAS-Programmer-Reference_v1.41.4.docx` — for whoever maintains this.
+Both documents are produced by editing the originals rather than regenerating
+them, so the title pages and every style are the originals.
 
 `docs/WHATS-NEW-SINCE-1.17.md` is superseded by both and kept only as the
 record of what changed between them.
@@ -237,6 +239,8 @@ one. Each release ships as a **single ZIP** holding the whole project —
 
 One entry per release, newest first. The full entry for each release is written
 in the header comment of `app/build.gradle.kts` as the work is done.
+
+**1.50.1** - README no longer sends readers to `docs/` for the User Guide and Programmer Reference, which have not been repository content for several releases and were still named by nine-release-old version numbers. Both now point at the RFSAT portal, at URLs that carry no version so they keep working across reissues. The build prerequisites are corrected too: they still read AGP 8.9.1 / Kotlin 2.1.0 / Gradle 8.11.1, which has been wrong since the AGP 9 move and would have had anyone following them configure a toolchain that cannot build this.
 
 **1.50.0** - the model picker now asks the service. One button under the list fetches the account's own catalogue, because a hand-written list of identifiers cannot be kept right — five of them had been retired by the time they were used. Nothing is hidden: every model the service publishes is shown, and the ones that would need something changed are greyed out with the reason attached, either 'text only' or 'not on this key' with the console to visit. The built-in fallback list is brought up to date across all six services. Also fixes the compile error in 1.49.5, where a branch written for one error explainer was pasted into another that has no provider parameter.
 

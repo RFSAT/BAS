@@ -35,6 +35,31 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.50.1 - the README points at the portal instead of at files that
+        //          are not there.
+        //
+        //          The guides stopped travelling in the release archives at
+        //          1.44.0 and stopped being repository content shortly after,
+        //          but README still told a reader to look in docs/ for them,
+        //          and named two files by version — 1.41.3 and 1.41.4 — that
+        //          nine releases had left behind. An instruction to look
+        //          somewhere empty is worse than none.
+        //
+        //          Both now resolve to the RFSAT portal:
+        //          www.rfsat.com/download/BAS-User-Guide.pdf and
+        //          .../BAS-Programmer-Reference.pdf. Neither URL carries a
+        //          version, which is the point: the link keeps working across
+        //          every reissue and the version is on the title page where a
+        //          reader can see it. docs/guide/README.md, which is the note
+        //          on how the documents are maintained and IS committed, says
+        //          the same.
+        //
+        //          Also corrected while there: the build prerequisites still
+        //          read "AGP 8.9.1 / Kotlin 2.1.0 / Gradle 8.11.1 or newer",
+        //          which has been wrong since the AGP 9 move. Anyone
+        //          following it would have configured a toolchain that cannot
+        //          build this.
+        //
         // 1.50.0 - feature: the model list comes from the service, and
         //          nothing is hidden.
         //
@@ -5368,8 +5393,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 95
-        versionName = "1.50.0"
+        versionCode = 96
+        versionName = "1.50.1"
     }
 
     // Resolved once, here, rather than re-read from the environment in two
