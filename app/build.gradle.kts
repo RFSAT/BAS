@@ -35,6 +35,39 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.51.1 - the version identity catches up with the label already
+        //          published.
+        //
+        //          1.50.1 was committed to GitHub under the name 1.51.1. The
+        //          tree was right and the label was wrong, which is the more
+        //          awkward way round: anyone building that release would
+        //          install an app whose Settings line reads 1.50.1 while the
+        //          page they downloaded it from says 1.51.1, and the Settings
+        //          line is the one this project tells people to trust.
+        //
+        //          Adopted rather than undone. Renaming a published release
+        //          leaves anyone who already fetched it holding something
+        //          that no longer exists, and nothing has gone to Play, so no
+        //          versionCode is committed. This revision therefore IS
+        //          1.51.1, and the GitHub release of that name should be
+        //          replaced with this package so that the two finally agree.
+        //
+        //          1.50.2 THROUGH 1.51.0 DO NOT EXIST and never will. They
+        //          were skipped by a naming mistake, not by unreleased work.
+        //          The record says so here rather than leaving a reader of
+        //          this file to hunt for the missing entries.
+        //
+        //          versionCode goes to 97 all the same. 96 has left this
+        //          machine — it is in the tree on GitHub — and the rule at the
+        //          top of this file is that a code which has shipped anywhere
+        //          is never reused. Two artifacts both calling themselves
+        //          1.51.1 with the same code would be impossible to tell
+        //          apart afterwards, which is the failure the rule exists to
+        //          prevent.
+        //
+        //          No code changes. The source is 1.50.1 with its version
+        //          identity corrected.
+        //
         // 1.50.1 - the README points at the portal instead of at files that
         //          are not there.
         //
@@ -5393,8 +5426,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 96
-        versionName = "1.50.1"
+        versionCode = 97
+        versionName = "1.51.1"
     }
 
     // Resolved once, here, rather than re-read from the environment in two
