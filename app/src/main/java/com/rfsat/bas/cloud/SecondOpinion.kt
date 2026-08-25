@@ -757,15 +757,20 @@ object SecondOpinion {
                 "Console, not your Claude.ai password — the two are different things."
             400 -> "Claude refused the request" +
                 (if (detail.isNotBlank()) ": $detail" else " and gave no reason. See the Log.")
-            // 429 CARRIES TWO COMPLETELY DIFFERENT MEANINGS on the
-            // OpenAI-shaped services, and the app used to give the wrong
-            // remedy for one of them: an exhausted balance was reported as
-            // "wait a moment and try again", which it will never fix. The
-            // body says which.
+            // 429 CARRIES TWO COMPLETELY DIFFERENT MEANINGS, and the app
+            // used to give the wrong remedy for one of them: an exhausted
+            // balance was reported as "wait a moment and try again", which
+            // it will never fix. The body says which.
+            //
+            // This explainer serves Anthropic ONLY and has no provider to
+            // name — the console is known. Written out rather than
+            // interpolated, which is how the OpenAI wording came to be
+            // pasted in here and referred to a parameter that does not
+            // exist in this function.
             429 -> if (outOfCredit(body))
-                "${provider.label} has no credit left on this key. Top the account up at " +
-                    "${provider.console}; waiting will not help. $detail"
-            else "Rate limited by ${provider.label}. Wait a moment and try again."
+                "Claude has no credit left on this key. Top the account up at " +
+                    "console.anthropic.com; waiting will not help. $detail"
+            else "Rate limited by Claude. Wait a moment and try again."
             in 500..599 -> "The service is having trouble ($code). Try again shortly."
             402, 403 -> "The key is valid but the request was not allowed — usually no credit " +
                 "on the account. $detail"

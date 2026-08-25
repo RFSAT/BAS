@@ -75,6 +75,7 @@ Applies the AI answer without asking. Useful when the app marks things that are 
 Service to set up:
 Use only free models
 Model:
+Ask the service which models this key has
 Set API key…
 Forget key
 Each service needs its own key, from its own console. Not the password you sign in to the chat service with. Kept encrypted on this device.
@@ -652,6 +653,16 @@ image/*
 Live frames are used as they come.
 under Lens distortion, from a photo taken with the same camera.
 Live frames will be straightened with k = %.3f.
+Free models are a billing choice, so this list stays as published.
+d MMM yyyy
+see what each would need.
+ones this key actually has.
+${p.label} needs its key first — the list is per account.
+Asking ${p.label} which models this key has…
+; $n can read a picture.
+none is marked.
+Every model in this list can be used with the key that is set.
+Greyed-out models
 Other
 model identifier
 Other ${p.label} model
@@ -1775,6 +1786,8 @@ The request was refused:
 Claude (Anthropic)
 Console, not your Claude.ai password — the two are different things.
 wait a moment and try again
+console.anthropic.com; waiting will not help. $detail
+Rate limited by Claude. Wait a moment and try again.
 on the account. $detail
 The service returned $code. $detail
 room. Try a smaller image or a different model.
@@ -1799,6 +1812,23 @@ no holes
 + fmt(it.first) +
 + fmt(it.second) +
 ; furthest from their own centre
+text only
+not on this key
+No catalogue to ask.
+${provider.label} needs its key before it can say which models this account has.
+).take(300).ifBlank {
+is still there, and “Other” still takes a typed identifier.
+${provider.label} model list failed: ${it.javaClass.simpleName}: ${it.message}
+${it.message ?: it.javaClass.simpleName}.
+${provider.label} answered with no model list in it.
+models/gemini-3.6-flash
+).ifBlank { m.optString(
+models/
+$shown  ($id)
+${provider.label} listed no models.
+$label  [text only]
+; ${visual.size} can be asked about a picture
+; the service does not say which read images
 :free
 OpenAI-compatible
 sk-ant-…
@@ -1830,23 +1860,38 @@ Haiku 4.5 — cheapest, fastest
 claude-sonnet-5
 Sonnet 5 — balanced (recommended)
 claude-opus-5
-Opus 5 — most capable, dearest
-gpt-4o-mini
-GPT-4o mini — cheapest, fastest
+Opus 5 — more capable
+claude-fable-5
+Fable 5 — most capable, dearest
+gpt-5.6-luna
+GPT-5.6 Luna — cheapest, fastest
+gpt-5.6-terra
+GPT-5.6 Terra — balanced (recommended)
+gpt-5.6-sol
+GPT-5.6 Sol — most capable, dearest
 gpt-4o
-GPT-4o — balanced (recommended)
+GPT-4o — older, kept for accounts still on it
 -latest
 (via OpenRouter)
 Claude Sonnet 5 — balanced
+Ask the service
 anthropic/claude-sonnet-5
 Claude Sonnet 5 (via OpenRouter)
-openai/gpt-4o
-GPT-4o (via OpenRouter)
+anthropic/claude-opus-5
+Claude Opus 5 (via OpenRouter)
+openai/gpt-5.6-terra
+GPT-5.6 Terra (via OpenRouter)
+google/gemini-3.6-flash
+Gemini 3.6 Flash (via OpenRouter)
+mistralai/mistral-medium-latest
+Mistral Medium 3.5 (via OpenRouter)
 Model not found
 grok-4.3
 Grok 4.3 — reads images (recommended)
 grok-4.5
 Grok 4.5 — newer, more capable
+grok-4.6
+Grok 4.6 — newest
 not found for API version v1beta
 no longer available to new users; use 3.6 Flash
 gemini-3.6-flash
@@ -1855,12 +1900,16 @@ gemini-3.7-flash
 3.7 Flash — newest
 gemini-3.5-flash
 3.5 Flash — older, proven here
+gemini-3.5-flash-lite
+3.5 Flash-Lite — cheapest
 mistral-medium-latest
-Mistral Medium — vision, poor at locating shots
+Mistral Medium 3.5 — vision, poor at locating shots
 mistral-large-latest
-Mistral Large — vision, untested here
+Mistral Large 3 — vision, untested here
 mistral-small-latest
-Mistral Small — vision, untested here
+Mistral Small 4 — vision, untested here
+ministral-3-14b-latest
+Ministral 3 14B — vision, small and cheap
 deepseek-v4-flash
 V4 Flash — faster, cheaper
 deepseek-v4-pro
@@ -1875,6 +1924,12 @@ current key
 unexpected char 0x0a at 83 in header value
 Bearer sk-proj-...
 + p.name + if (freeOnly(context, p))
+id\tlabel
+) { it.first +
+[text only]
+cannot score a card.
+$label  [not on this key]
+${p.console}. Set that key, then ask again.
 enable the button
 override the app
 find and score outright

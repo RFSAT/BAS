@@ -487,11 +487,47 @@ class ProfileActivity : BaseActivity() {
         fun refreshModels() {
             val p = CloudSettings.setupProvider(this)
             val free = CloudSettings.freeOnly(this, p)
-            val list = CloudSettings.models(p, free)
+            val options = CloudSettings.modelOptions(this, p, free)
+            val list = options.map { it.id to it.label }
+            val fetched = CloudSettings.fetchedModels(this, p)
+            binding.tvModelSource.text = when {
+                free -> "Free models are a billing choice, so this list stays as published."
+                fetched.isNotEmpty() -> {
+                    val greyed = options.count { o -> !o.enabled }
+                    "${options.size} model(s) — ${fetched.size} listed by ${p.label} for this " +
+                        "key on " +
+                        java.text.SimpleDateFormat("d MMM yyyy", java.util.Locale.getDefault())
+                            .format(java.util.Date(CloudSettings.fetchedAt(this, p))) +
+                        (if (greyed > 0) ". $greyed are greyed out; press and hold this list to " +
+                            "see what each would need." else "")
+                }
+                else ->
+                    "Built-in list. Model identifiers are retired often — ask ${p.label} which " +
+                        "ones this key actually has."
+            }
             val opts = list.map { it.second } + OTHER_MODEL
-            binding.spCloudModel.adapter = android.widget.ArrayAdapter(
+            // A GREYED ROW RATHER THAN A MISSING ONE. A model the key cannot
+            // reach, or one the service says cannot read a picture, is shown
+            // and refused rather than hidden: an absent entry reads as an app
+            // that does not support the model, when what is actually missing
+            // is a key with access to it. Pressing one says which.
+            binding.spCloudModel.adapter = object : android.widget.ArrayAdapter<String>(
                 this, R.layout.spinner_item, opts
-            ).also { it.setDropDownViewResource(R.layout.spinner_dropdown_item) }
+            ) {
+                override fun areAllItemsEnabled() = false
+                override fun isEnabled(position: Int) =
+                    options.getOrNull(position)?.enabled ?: true
+                override fun getDropDownView(
+                    position: Int, convertView: android.view.View?,
+                    parent: android.view.ViewGroup
+                ): android.view.View {
+                    val v = super.getDropDownView(position, convertView, parent)
+                    val on = options.getOrNull(position)?.enabled ?: true
+                    v.isEnabled = on
+                    v.alpha = if (on) 1f else 0.45f
+                    return v
+                }
+            }.also { it.setDropDownViewResource(R.layout.spinner_dropdown_item) }
             val current = CloudSettings.model(this, p)
             val idx = list.indexOfFirst { it.first == current }
             binding.spCloudModel.setSelection(if (idx >= 0) idx else opts.size - 1)
@@ -511,15 +547,72 @@ class ProfileActivity : BaseActivity() {
         }
         refreshModels()
         refreshCloud()
+        // ASKING THE SERVICE, rather than trusting a constant written months
+        // ago. Five identifiers in that constant had been retired by the time
+        // they were used in the field, and each failed at a range with a card
+        // in front of the shooter. The answer is the account's own.
+        binding.btnRefreshModels.setOnClickListener {
+            val p = CloudSettings.setupProvider(this)
+            val key = CloudSettings.apiKey(this, p)
+            if (key.isBlank()) {
+                notifyUser("${p.label} needs its key first — the list is per account.")
+                return@setOnClickListener
+            }
+            binding.btnRefreshModels.isEnabled = false
+            notifyUser("Asking ${p.label} which models this key has…")
+            Thread {
+                val r = com.rfsat.bas.cloud.ModelCatalog.fetch(p, key)
+                runOnUiThread {
+                    binding.btnRefreshModels.isEnabled = true
+                    when (r) {
+                        is com.rfsat.bas.cloud.ModelCatalog.Result.Failed -> notifyUser(r.message)
+                        is com.rfsat.bas.cloud.ModelCatalog.Result.Ok -> {
+                            CloudSettings.setFetchedModels(this, p, r.models)
+                            refreshModels()
+                            refreshCloud()
+                            notifyUser(
+                                "${p.label} lists ${r.models.size} model(s)" +
+                                    (r.readImages?.let { n -> "; $n can read a picture." }
+                                        ?: ". This service does not say which read images, so " +
+                                        "none is marked.")
+                            )
+                        }
+                    }
+                }
+            }.start()
+        }
+
         binding.cbFreeModels.setOnCheckedChangeListener { _, checked ->
             if (syncingFreeBox) return@setOnCheckedChangeListener
             CloudSettings.setFreeOnly(this, CloudSettings.setupProvider(this), checked)
             refreshModels()
             refreshCloud()
         }
+        binding.spCloudModel.setOnLongClickListener {
+            val p = CloudSettings.setupProvider(this)
+            val blocked = CloudSettings.modelOptions(this, p, CloudSettings.freeOnly(this, p))
+                .filterNot { o -> o.enabled }
+            if (blocked.isEmpty()) {
+                notifyUser("Every model in this list can be used with the key that is set.")
+            } else {
+                AlertDialog.Builder(this)
+                    .setTitle("Greyed-out models")
+                    .setMessage(blocked.joinToString("\n\n") { o -> "${o.label}\n${o.note}" })
+                    .setPositiveButton("Close", null)
+                    .show()
+            }
+            true
+        }
+
         binding.spCloudModel.onItemSelectedListener = onSelectedIndex { i ->
             val p = CloudSettings.setupProvider(this)
-            val list = CloudSettings.models(p, CloudSettings.freeOnly(this, p))
+            val options = CloudSettings.modelOptions(this, p, CloudSettings.freeOnly(this, p))
+            val list = options.map { o -> o.id to o.label }
+            options.getOrNull(i)?.takeIf { o -> !o.enabled }?.let { o ->
+                notifyUser(o.note)
+                refreshModels()
+                return@onSelectedIndex
+            }
             val picked = list.getOrNull(i)
             if (picked != null) { CloudSettings.setModel(this, p, picked.first); return@onSelectedIndex }
             // "Other": a list of model names goes stale the week it is

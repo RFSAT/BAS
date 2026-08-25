@@ -715,5 +715,36 @@ if _declared_ids:
 # superclass chain that leaves the project is type resolution, which is the
 # compiler's job — the same conclusion gate 15 reached from the other side.
 
+
+# ---------------------------------------------------------------- gate 18
+#
+# WITHDRAWN, and this is the third time down this road, so the note is the
+# deliverable.
+#
+# The target was real: 1.49.5 failed to compile because a `when` branch
+# worded for explainOpenAi(provider, ...) was pasted into explain(code, body),
+# which has no provider. Three "Unresolved reference 'provider'" errors,
+# caught by CI rather than here.
+#
+# A first draft flagged any identifier that is a parameter of some OTHER
+# function in the same file and is not declared in this one. It found the
+# real fault immediately, and 135 other things:
+#
+#   * expression-bodied functions (`fun f(x) = ...`) have no braces, so a
+#     brace walk runs past their end and swallows the enclosing function's
+#     remaining lines. FIXED by skipping them - that was all 135.
+#   * and then 92 more, of a kind that cannot be fixed here: `context` inside
+#     a View subclass, `level` inside Logger, `title` and `v` inside
+#     Activities. These are properties inherited from framework superclasses
+#     or declared in a primary constructor. Telling "inherited from
+#     android.view.View" apart from "not declared anywhere" means resolving a
+#     superclass chain that leaves this project.
+#
+# That is type resolution, and it is the compiler's job - the same conclusion
+# gates 15 and 17 reached from two other directions. The lesson worth keeping
+# is not about the gate: editing one of several near-identical functions by
+# text replacement is what produced the fault, and asserting that the OLD
+# text matched is not the same as checking it matched in the RIGHT function.
+
 print(("PROBLEMS:\n  "+"\n  ".join(problems)) if problems else "No problems found.")
 sys.exit(1 if problems else 0)

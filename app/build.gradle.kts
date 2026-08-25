@@ -35,6 +35,54 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.50.0 - feature: the model list comes from the service, and
+        //          nothing is hidden.
+        //
+        //          FIRST, THE COMPILE ERROR IN 1.49.5. A `when` branch worded
+        //          for explainOpenAi(provider, ...) was pasted into
+        //          explain(code, body), which serves Anthropic alone and has
+        //          no provider. Three unresolved references, caught by CI.
+        //          The cause was editing one of several near-identical
+        //          explainers by text replacement: asserting that the OLD
+        //          text matched is not the same as checking it matched in the
+        //          RIGHT function. A gate for this was written and WITHDRAWN,
+        //          the third of its kind — it found the fault and 92 other
+        //          things, because telling an inherited `context` apart from
+        //          an undeclared one needs a superclass chain that leaves
+        //          this project. The note in tools/kotlin_checks.py is the
+        //          deliverable.
+        //
+        //          A HAND-WRITTEN MODEL LIST CANNOT BE KEPT RIGHT. Five
+        //          identifiers were retired within months of being written,
+        //          and each failed only when a shooter pressed the button, at
+        //          a range, with a card in front of them. Every one of these
+        //          services publishes the answer, so BAS now asks: one button
+        //          under the model picker, one request to the account's own
+        //          catalogue, and the reply replaces the built-in list. The
+        //          built-in list stays for a shooter with no key yet, and is
+        //          brought up to date here too — Fable 5 was missing from the
+        //          Claude line, GPT-4o was the whole OpenAI list two
+        //          generations on, and Grok, Gemini and Mistral each gained
+        //          the models they actually publish now.
+        //
+        //          NOTHING IS HIDDEN, WHICH IS A CORRECTION TO MY OWN FIRST
+        //          DRAFT. That draft cut the list to models that both read
+        //          images and are reachable on the current key. Wrong twice:
+        //          a shooter cannot choose a model they cannot see, and a
+        //          missing entry reads as an app that does not support the
+        //          model rather than an account that does not have it. Every
+        //          model the service publishes is now shown. Those that would
+        //          need something changed are GREYED OUT and carry the reason
+        //          — "text only" where the service says the model cannot read
+        //          a picture, "not on this key" for one the built-in list
+        //          knows about that did not come back for this account, with
+        //          the console to visit. Pressing a greyed row says why;
+        //          holding the list shows every reason at once.
+        //
+        //          Where a service does not publish which of its models read
+        //          images, nothing is marked. Guessing from an identifier
+        //          would be a lie dressed as help.
+        //
         // 1.49.5 - five dead model identifiers, and the fabrication that
         //          got past 1.49.4.
         //
@@ -5320,8 +5368,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 94
-        versionName = "1.49.5"
+        versionCode = 95
+        versionName = "1.50.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

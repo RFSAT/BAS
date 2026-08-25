@@ -62,14 +62,21 @@ object CloudSettings {
      *  schema, fails in a way the shooter cannot diagnose. "Other" lets a
      *  newer identifier be typed in, so a list going stale strands nobody. */
     val MODELS: Map<AiProvider, List<Pair<String, String>>> = mapOf(
+        // Every current Claude model takes images and tools, so the whole
+        // published line is offered.
         AiProvider.ANTHROPIC to listOf(
             "claude-haiku-4-5-20251001" to "Haiku 4.5 — cheapest, fastest",
             "claude-sonnet-5" to "Sonnet 5 — balanced (recommended)",
-            "claude-opus-5" to "Opus 5 — most capable, dearest"
+            "claude-opus-5" to "Opus 5 — more capable",
+            "claude-fable-5" to "Fable 5 — most capable, dearest"
         ),
+        // GPT-4o was the whole list here and is two generations behind. The
+        // 5.6 line takes images and answers to a schema throughout.
         AiProvider.OPENAI to listOf(
-            "gpt-4o-mini" to "GPT-4o mini — cheapest, fastest",
-            "gpt-4o" to "GPT-4o — balanced (recommended)"
+            "gpt-5.6-luna" to "GPT-5.6 Luna — cheapest, fastest",
+            "gpt-5.6-terra" to "GPT-5.6 Terra — balanced (recommended)",
+            "gpt-5.6-sol" to "GPT-5.6 Sol — most capable, dearest",
+            "gpt-4o" to "GPT-4o — older, kept for accounts still on it"
         ),
         // MODEL IDENTIFIERS GO STALE FASTER THAN ANYTHING ELSE HERE. The
         // DeepSeek entry shipped in 1.36.0 was out of date the day it was
@@ -89,9 +96,15 @@ object CloudSettings {
         // is charging me. Picking Anthropic -> Claude Sonnet 5 and
         // OpenRouter -> Claude Sonnet 5 reaches the same model but needs a
         // different key and spends a different account.
+        // OpenRouter carries hundreds of models and the number changes
+        // weekly, so a hand-written list can only ever be a starting point.
+        // Press "Ask the service" for what the key actually reaches.
         AiProvider.OPENROUTER to listOf(
             "anthropic/claude-sonnet-5" to "Claude Sonnet 5 (via OpenRouter)",
-            "openai/gpt-4o" to "GPT-4o (via OpenRouter)"
+            "anthropic/claude-opus-5" to "Claude Opus 5 (via OpenRouter)",
+            "openai/gpt-5.6-terra" to "GPT-5.6 Terra (via OpenRouter)",
+            "google/gemini-3.6-flash" to "Gemini 3.6 Flash (via OpenRouter)",
+            "mistralai/mistral-medium-latest" to "Mistral Medium 3.5 (via OpenRouter)"
         ),
         // grok-2-vision-latest shipped here and returned "Model not found"
         // from the field. The Grok 2 and Grok 4 families were retired in May
@@ -99,7 +112,8 @@ object CloudSettings {
         // image understanding lives.
         AiProvider.XAI to listOf(
             "grok-4.3" to "Grok 4.3 — reads images (recommended)",
-            "grok-4.5" to "Grok 4.5 — newer, more capable"
+            "grok-4.5" to "Grok 4.5 — newer, more capable",
+            "grok-4.6" to "Grok 4.6 — newest"
         ),
         // Gemini renames its models with each generation rather than keeping
         // an alias, so these WILL age. 2.5 is the safe one today and is
@@ -114,7 +128,8 @@ object CloudSettings {
         AiProvider.GEMINI to listOf(
             "gemini-3.6-flash" to "3.6 Flash — stable (recommended)",
             "gemini-3.7-flash" to "3.7 Flash — newest",
-            "gemini-3.5-flash" to "3.5 Flash — older, proven here"
+            "gemini-3.5-flash" to "3.5 Flash — older, proven here",
+            "gemini-3.5-flash-lite" to "3.5 Flash-Lite — cheapest"
         ),
         // TWO SEPARATE FAULTS, BOTH SEEN IN THE FIELD.
         //
@@ -131,9 +146,10 @@ object CloudSettings {
         // out from the exact centre in two, and on another attempt four,
         // directions. Left available, labelled for what it does here.
         AiProvider.MISTRAL to listOf(
-            "mistral-medium-latest" to "Mistral Medium — vision, poor at locating shots",
-            "mistral-large-latest" to "Mistral Large — vision, untested here",
-            "mistral-small-latest" to "Mistral Small — vision, untested here"
+            "mistral-medium-latest" to "Mistral Medium 3.5 — vision, poor at locating shots",
+            "mistral-large-latest" to "Mistral Large 3 — vision, untested here",
+            "mistral-small-latest" to "Mistral Small 4 — vision, untested here",
+            "ministral-3-14b-latest" to "Ministral 3 14B — vision, small and cheap"
         ),
 
         // Unreachable while DEEPSEEK is not offered, kept correct so that
@@ -169,7 +185,7 @@ object CloudSettings {
 
     val DEFAULT_MODEL: Map<AiProvider, String> = mapOf(
         AiProvider.ANTHROPIC to "claude-sonnet-5",
-        AiProvider.OPENAI to "gpt-4o",
+        AiProvider.OPENAI to "gpt-5.6-terra",
         AiProvider.DEEPSEEK to "deepseek-v4-flash",
         AiProvider.OPENROUTER to "anthropic/claude-sonnet-5",
         AiProvider.XAI to "grok-4.3",
@@ -333,11 +349,116 @@ object CloudSettings {
         store(context)?.edit()?.putString(modelKey(context, p), value)?.apply()
     }
 
+    // ------------------------------------------------------------------
+    // The list the SERVICE gave, which outranks the one written here.
+    //
+    // Stored as newline-separated "id\tlabel" rather than JSON: it is a flat
+    // list of strings, and a format that cannot fail to parse is worth more
+    // than one that is tidy.
+    private const val KEY_FETCHED = "fetched_models"
+    private const val KEY_FETCHED_AT = "fetched_models_at"
+
+    fun setFetchedModels(context: Context, p: AiProvider, models: List<Pair<String, String>>) {
+        val flat = models.joinToString("\n") { it.first + "\t" + it.second }
+        store(context)?.edit()
+            ?.putString(KEY_FETCHED + "_" + p.name, flat)
+            ?.putLong(KEY_FETCHED_AT + "_" + p.name, System.currentTimeMillis())
+            ?.apply()
+    }
+
+    fun fetchedModels(context: Context, p: AiProvider): List<Pair<String, String>> {
+        val flat = store(context)?.getString(KEY_FETCHED + "_" + p.name, "").orEmpty()
+        if (flat.isBlank()) return emptyList()
+        return flat.split("\n").mapNotNull { line ->
+            val t = line.indexOf('\t')
+            if (t <= 0) null else line.substring(0, t) to line.substring(t + 1)
+        }
+    }
+
+    fun fetchedAt(context: Context, p: AiProvider): Long =
+        store(context)?.getLong(KEY_FETCHED_AT + "_" + p.name, 0L) ?: 0L
+
+    fun clearFetchedModels(context: Context, p: AiProvider) {
+        store(context)?.edit()
+            ?.remove(KEY_FETCHED + "_" + p.name)
+            ?.remove(KEY_FETCHED_AT + "_" + p.name)
+            ?.apply()
+    }
+
     /** Which list the pickers show: the free one when the shooter asked for
      *  it AND this service has one to give. */
     fun models(p: AiProvider, freeOnly: Boolean = false): List<Pair<String, String>> =
         if (freeOnly && p.freeAccess == FreeAccess.SELECTABLE) FREE_MODELS[p].orEmpty()
         else MODELS[p].orEmpty()
+
+    /**
+     * One row of the model picker: what it is, whether it can be chosen, and
+     * why not when it cannot.
+     *
+     * A model the account cannot reach is SHOWN rather than removed - a
+     * missing entry reads as an app that does not support the model, when
+     * the truth is a key that does not have it. Shown, greyed, and told why.
+     */
+    data class ModelOption(
+        val id: String,
+        val label: String,
+        val enabled: Boolean,
+        /** What would have to change for this one to be usable, or "". */
+        val note: String
+    )
+
+    private const val TEXT_ONLY = "[text only]"
+
+    /**
+     * The picker's rows: everything the service published for this key, plus
+     * everything the built-in list knows about that did not come back.
+     *
+     * Nothing is offered as selectable that would fail on being pressed - a
+     * text-only model cannot answer about a photograph, and a model the key
+     * cannot reach answers 404 - but both are visible, because being unable
+     * to see a model is worse than being unable to pick it.
+     */
+    fun modelOptions(context: Context, p: AiProvider, freeOnly: Boolean = false):
+        List<ModelOption> {
+        if (freeOnly && p.freeAccess == FreeAccess.SELECTABLE)
+            return FREE_MODELS[p].orEmpty().map { ModelOption(it.first, it.second, true, "") }
+
+        val fetched = fetchedModels(context, p)
+        val curated = MODELS[p].orEmpty()
+        if (fetched.isEmpty())
+            return curated.map { ModelOption(it.first, it.second, true, "") }
+
+        val out = ArrayList<ModelOption>()
+        for ((id, label) in fetched) {
+            val textOnly = label.contains(TEXT_ONLY)
+            out += ModelOption(id, label, !textOnly,
+                if (textOnly) "${p.label} lists this model as unable to read a picture, so it " +
+                    "cannot score a card." else "")
+        }
+        val have = fetched.map { it.first }.toSet()
+        for ((id, label) in curated) {
+            if (id in have) continue
+            out += ModelOption(id, "$label  [not on this key]", false,
+                "${p.label} did not list this model for the key that is set. It needs a " +
+                    "${p.label} key on an account that has this model enabled — check " +
+                    "${p.console}. Set that key, then ask again.")
+        }
+        return out
+    }
+
+    /**
+     * What the picker should show: the service's own answer where one has
+     * been fetched, and the curated list otherwise.
+     *
+     * The free-models box still wins, because "free" is a choice about
+     * BILLING that the fetched list knows nothing about on most services.
+     */
+    fun models(context: Context, p: AiProvider, freeOnly: Boolean = false):
+        List<Pair<String, String>> {
+        if (freeOnly && p.freeAccess == FreeAccess.SELECTABLE) return FREE_MODELS[p].orEmpty()
+        val fetched = fetchedModels(context, p)
+        return if (fetched.isNotEmpty()) fetched else MODELS[p].orEmpty()
+    }
 
     private const val KEY_FREE = "free_only"
 

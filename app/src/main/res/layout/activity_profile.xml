@@ -354,6 +354,18 @@
             <Spinner android:id="@+id/spCloudModel"
                 android:layout_width="match_parent" android:layout_height="wrap_content" />
 
+            <Button android:id="@+id/btnRefreshModels"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textSize="12sp"
+                android:text="Ask the service which models this key has" />
+
+            <TextView android:id="@+id/tvModelSource"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="11sp" android:layout_marginTop="2dp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:justificationMode="inter_word" />
+
             <TextView android:id="@+id/tvCloudKeys"
                 style="@style/Sts.Value" android:layout_marginTop="2dp" android:textSize="12sp" />
 
