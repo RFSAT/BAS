@@ -35,6 +35,37 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.52.1 - two tests pinned decisions that 1.52.0 changed.
+        //
+        //          CI failed on AiProviderTest, and both failures were this
+        //          project's own pins doing exactly their job: "DeepSeek is
+        //          present but withheld" and an order that read Claude,
+        //          OpenAI, xAI, Mistral, Gemini, OpenRouter. Neither is true
+        //          any more, for reasons stated in 1.52.0.
+        //
+        //          Moved rather than deleted. A pin that fails when a
+        //          decision changes is worth more than one that quietly
+        //          tracks whatever the code says, so each now records WHY the
+        //          new value is the right one: DeepSeek is offered because
+        //          vision arrived, and the order is the order those services
+        //          placed on one 15-shot card.
+        //
+        //          A third pin, "a withdrawn choice falls back to one that is
+        //          offered", had DeepSeek as its only example and would have
+        //          passed vacuously. It now asserts the invariant over every
+        //          entry instead: whatever is stored, the picker must land on
+        //          something selectable.
+        //
+        //          AND THE GUARD THE ministral INCIDENT DESERVED. Nothing
+        //          here can prove an identifier exists on someone else's
+        //          server, but it can refuse the two shapes that produced
+        //          every stale entry so far: an identifier that reads like
+        //          prose — a space, or capital letters, which is exactly how
+        //          "Ministral 3 14B" became ministral-3-14b-latest — and one
+        //          already known to have been withdrawn. Seven withdrawn
+        //          identifiers are listed by name so none of them can come
+        //          back by a later edit.
+        //
         // 1.52.0 - feature: the service list is ordered by what actually
         //          scored a card, and DeepSeek is offered.
         //
@@ -5523,8 +5554,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 98
-        versionName = "1.52.0"
+        versionCode = 99
+        versionName = "1.52.1"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

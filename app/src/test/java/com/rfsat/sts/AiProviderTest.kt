@@ -22,18 +22,37 @@ class AiProviderTest {
         }
     }
 
+    /**
+     * WAS "DeepSeek is present but withheld", and it failed the moment
+     * DeepSeek was offered — which is the test doing its job. It pinned a
+     * decision, the decision changed for a stated reason (vision arrived on
+     * 21 August 2026), and the pin moved with it deliberately rather than
+     * being deleted.
+     */
     @Test
-    fun `DeepSeek is present but withheld`() {
-        assertFalse(AiProvider.DEEPSEEK.selectable)
-        assertFalse(AiProvider.OFFERED.contains(AiProvider.DEEPSEEK))
-        assertTrue("the entry itself must survive for the day it works",
-            AiProvider.entries.contains(AiProvider.DEEPSEEK))
+    fun `DeepSeek is offered now that it reads images`() {
+        assertTrue(AiProvider.DEEPSEEK.selectable)
+        assertTrue(AiProvider.DEEPSEEK.readsImages)
+        assertTrue(AiProvider.OFFERED.contains(AiProvider.DEEPSEEK))
+        assertTrue("a service offered with reservations must carry them where it is chosen",
+            AiProvider.DEEPSEEK.caution.isNotBlank())
     }
 
+    /**
+     * Every entry is offered as of 1.52.0, so this no longer has a withdrawn
+     * provider to test with. The invariant is what matters and it is stated
+     * generally: whatever is stored in settings, the picker must end up on
+     * something a shooter can actually choose — otherwise the spinner shows
+     * nothing selected and the next tap silently changes the setting.
+     */
     @Test
-    fun `a withdrawn choice falls back to one that is offered`() {
-        assertTrue(AiProvider.offeredOr(AiProvider.DEEPSEEK).selectable)
-        assertEquals(AiProvider.OPENAI, AiProvider.offeredOr(AiProvider.OPENAI))
+    fun `a stored choice always resolves to one that is offered`() {
+        for (p in AiProvider.entries) {
+            assertTrue("${p.label} resolves to something unselectable",
+                AiProvider.offeredOr(p).selectable)
+        }
+        assertEquals("an offered provider must resolve to itself",
+            AiProvider.OPENAI, AiProvider.offeredOr(AiProvider.OPENAI))
     }
 
     @Test
@@ -148,14 +167,67 @@ class AiProviderTest {
         assertEquals(AiProvider.OPENROUTER, AiProvider.OFFERED.last())
     }
 
+    /**
+     * THE ORDER IS EVIDENCE, NOT TASTE, so it is pinned like any other
+     * measurement. On one 15-shot card: Claude and Gemini 3.6/3.5 Flash
+     * placed every hole correctly; Mistral invented positions on all three
+     * of its vision models; OpenRouter's two free entries had been
+     * withdrawn by its own catalogue. xAI and OpenAI are untested here and
+     * sit between the two groups.
+     *
+     * If this fails, either the order changed or the evidence did — and the
+     * second is the only good reason.
+     */
     @Test
-    fun `the direct services keep their order ahead of the router`() {
+    fun `services are ordered by what scored the test card`() {
         assertEquals(
             listOf(
-                AiProvider.ANTHROPIC, AiProvider.OPENAI, AiProvider.XAI,
-                AiProvider.MISTRAL, AiProvider.GEMINI, AiProvider.OPENROUTER
+                AiProvider.ANTHROPIC, AiProvider.GEMINI, AiProvider.XAI,
+                AiProvider.OPENAI, AiProvider.MISTRAL, AiProvider.DEEPSEEK,
+                AiProvider.OPENROUTER
             ),
             AiProvider.OFFERED
         )
+    }
+
+    @Test
+    fun `a service that failed on the card is labelled rather than removed`() {
+        assertTrue("Mistral must still be reachable — it may work on another card",
+            AiProvider.OFFERED.contains(AiProvider.MISTRAL))
+        assertTrue("and it must say what it did here",
+            AiProvider.MISTRAL.caution.startsWith("INACCURATE"))
+        assertTrue("the picker itself must warn, not just the entry",
+            AiProvider.MISTRAL.pickerLabel.contains("inaccurate"))
+    }
+
+    /**
+     * THE ministral-3-14b-latest GUARD. That identifier was written into this
+     * project from a docs page listing "Ministral 3 14B" as a display NAME,
+     * with the alias guessed from it; Mistral answered invalid_model. Nothing
+     * here can prove an identifier exists remotely, but it can refuse the two
+     * shapes that produced every stale entry so far: an identifier that reads
+     * like prose, and one already known to have been withdrawn.
+     */
+    @Test
+    fun `no model identifier looks like it was guessed from a display name`() {
+        val cs = com.rfsat.bas.cloud.CloudSettings
+        val withdrawn = setOf(
+            "ministral-3-14b-latest",
+            "pixtral-large-latest",
+            "grok-2-vision-latest",
+            "gemini-3.1-pro",
+            "gemini-2.5-flash",
+            "qwen/qwen2.5-vl-72b-instruct:free",
+            "meta-llama/llama-3.2-11b-vision-instruct:free"
+        )
+        val every = AiProvider.entries.flatMap {
+            cs.MODELS[it].orEmpty() + cs.FREE_MODELS[it].orEmpty()
+        }
+        for ((id, _) in every) {
+            assertFalse("$id was withdrawn by its service and must not come back", id in withdrawn)
+            assertFalse("$id contains a space — identifiers do not", id.contains(" "))
+            assertFalse("$id is capitalised like a display name, not an identifier",
+                id.any { c -> c.isUpperCase() })
+        }
     }
 }
