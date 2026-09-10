@@ -1,5 +1,12 @@
 # BAS — Ballistics and Scoring: integration notes
 
+
+> **Historical.** This document describes the original merge of STS and VTB
+> into BAS, at version 1.0.0. It is kept because the reasoning behind the
+> package layout, the shared profile format and the CI arrangement still
+> applies. It is NOT a description of the app as it stands — for that, read
+> README.md, whose changelog carries every release since.
+
 BAS is a new, single application that merges **VTB** (Vapor-Trail Ballistics — put
 shots on centre) and **STS** (Shooting Target Scorer — grade the group) into one
 product. STS is the base; VTB's ballistics stack was folded into it.

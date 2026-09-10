@@ -35,6 +35,27 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.52.3 - documentation. No code change: the app is byte-for-byte
+        //          1.52.2. The User Guide and the Programmer Reference, which
+        //          were left at 1.52.0 and 1.50.0 when 1.52.2 was compiled,
+        //          are brought current and re-stamped, and the release is cut
+        //          again as a COMPLETE package so it cannot be mistaken for the
+        //          already-built 1.52.2.
+        //
+        //          Every release is meant to ship an updated guide; 1.52.2 was
+        //          compiled and pushed before its guides were. Rather than
+        //          reissue 1.52.2 with different contents under the one name -
+        //          the 1.26.2 mistake - the guide work rides a new revision.
+        //          The User Guide gains a note that the Log now names the model
+        //          that actually answered and flags a substitution; the
+        //          Programmer Reference absorbs the service reorder, DeepSeek,
+        //          the paginated model-list fetch and ModelSubstitution.
+        //
+        //          versionCode still advances to 101: 100 has already left this
+        //          machine, and Play rejects a code it has seen. The guides are
+        //          delivered beside the zip, not inside it, so the APK is the
+        //          same bytes 1.52.2 produced.
+        //
         // 1.52.2 - the Log says which model actually answered.
         //
         //          A SERVICE CAN SUBSTITUTE A MODEL WITHOUT FAILING, and
@@ -5591,8 +5612,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 100
-        versionName = "1.52.2"
+        versionCode = 101
+        versionName = "1.52.3"
     }
 
     // Resolved once, here, rather than re-read from the environment in two
