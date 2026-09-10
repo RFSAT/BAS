@@ -256,6 +256,7 @@ object SecondOpinion {
                 ?.bufferedReader()?.use(BufferedReader::readText).orEmpty()
             conn.disconnect()
             if (code !in 200..299) return Result.Failed(explain(code, text))
+            noteAnsweringModel("Claude (Anthropic)", model, text)
             parse(text)
         }.getOrElse {
             Logger.w("SecondOpinion",
@@ -391,6 +392,7 @@ object SecondOpinion {
                 reply = second.second
             }
             if (code !in 200..299) return Result.Failed(explainOpenAi(provider, code, reply))
+            noteAnsweringModel(provider.label, model, reply)
             parseOpenAi(reply, provider.label)
         }.getOrElse {
             Logger.w("SecondOpinion",
@@ -605,6 +607,7 @@ object SecondOpinion {
                 ?.bufferedReader()?.use(BufferedReader::readText).orEmpty()
             conn.disconnect()
             if (code !in 200..299) return Result.Failed(explainGemini(code, reply))
+            noteAnsweringModel("Google Gemini", model, reply)
             parseGemini(reply)
         } catch (t: Throwable) {
             Logger.w("SecondOpinion",

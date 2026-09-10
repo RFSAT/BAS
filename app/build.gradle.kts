@@ -35,7 +35,44 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
-        // 1.52.1 - two tests pinned decisions that 1.52.0 changed.
+        // 1.52.2 - the Log says which model actually answered.
+        //
+        //          A SERVICE CAN SUBSTITUTE A MODEL WITHOUT FAILING, and
+        //          nothing here noticed. From 12:00 Beijing on 14 September
+        //          2026 DeepSeek routes every deepseek-v4-pro request to V4.1
+        //          Flash and bills it at Flash's price. The identifier does
+        //          not stop working - it answers as something else.
+        //
+        //          That is the one failure mode every diagnostic added since
+        //          1.49.2 is blind to. The refusal logging catches a service
+        //          that says no: 400, 404, 429, 503, an error payload wearing
+        //          a 200. AnswerSanity catches a reply that was never read.
+        //          Neither notices a well-formed answer from a model nobody
+        //          asked for - it parses, it plots, and it is wrong for a
+        //          reason no log line mentions.
+        //
+        //          Every reply names its model: "model" on Anthropic and the
+        //          OpenAI-shaped services, "modelVersion" on Gemini. All three
+        //          transports now compare that against what was asked for.
+        //          Recorded, never refused - a substitution is the vendor's
+        //          decision and may be an improvement; refusing an answer
+        //          because the label changed would be this app overruling a
+        //          service about itself. A version suffix is not treated as a
+        //          substitution, or an alias resolving to its dated build
+        //          would fill the Log and bury the line that matters.
+        //
+        //          The check lives in its own file so that SecondOpinion needs
+        //          three one-line calls and nothing else. Editing one of
+        //          several near-identical transports is how 1.49.5 failed to
+        //          compile.
+        //
+        //          deepseek-v4-pro STAYS IN THE LIST for now, which is a
+        //          change of mind. Removing it was the plan, and the logging
+        //          makes it unnecessary: choose it after the 14th and the Log
+        //          says plainly that V4.1 Flash answered. That is more use
+        //          than an entry that silently vanished, and it can go at the
+        //          next release that touches the model lists properly.
+        //        // 1.52.1 - two tests pinned decisions that 1.52.0 changed.
         //
         //          CI failed on AiProviderTest, and both failures were this
         //          project's own pins doing exactly their job: "DeepSeek is
@@ -5554,8 +5591,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 99
-        versionName = "1.52.1"
+        versionCode = 100
+        versionName = "1.52.2"
     }
 
     // Resolved once, here, rather than re-read from the environment in two
