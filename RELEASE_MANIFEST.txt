@@ -1,10 +1,10 @@
-version 1.52.3
+version 1.52.4
 3cd6213562bfeaece6f2f589f5c4642c2cc3b10425979fba878b98709e4bfd47  .gitattributes
 988813c69bcb1ea071b28e4789f768dd66d5cc29e54c5cc6cca14e6a1f3aeca5  .github/workflows/android-ci.yml
 63f28317647dec38425022ea90984ec439695f73f276845993322c8db845a6e4  .gitignore
 458952b5cf4972f4a53ecc7f67d89798980e99b452fed4c655dfe0712495c809  INTEGRATION.md
-57c8663f66c4c7fc4a43c88ef0229a2504d2d7f3d9a3f8e2bebdc9df7383aecd  README.md
-9f1df84c61baa57f3cca2ac33be408805c38adabb8d5f4361c09e4d4a179c952  app/build.gradle.kts
+f54550c022047fbb7a3928f4d36d16e5c578ef1c8888de2eb532be551ebeb1a9  README.md
+3d0f67ca1ac196c529223ba96d954ddf098003f2f52c3bed45918d6c58df74d4  app/build.gradle.kts
 db031cfb664fe276fcc130ac16ecd47845999e47872a1fa4a87cbeefcc0ad4a5  app/proguard-rules.pro
 fdb215195c6064ceb0f1bd2fd94b86cfab3cbbe2f6deab426b478c94b5381580  app/src/main/AndroidManifest.xml
 166d923d31cee9d1962991b5283a94d3764a23935220596ce33d807681ff2749  app/src/main/java/com/rfsat/bas/BasApp.kt
@@ -37,9 +37,9 @@ bd581da5b5b004049041c981e2c653bf96481c18dbdd4d8be0d3f9196583ece5  app/src/main/j
 a6efac375fba62c6dce3b26c140df67e89de829d95eb849fdbd8316f6e95939f  app/src/main/java/com/rfsat/bas/capture/VideoSourceRepository.kt
 94f4275bb1820f89013192887b2c5fda51efeb02afa0f635303d1fa30b1a5318  app/src/main/java/com/rfsat/bas/cloud/AiProvider.kt
 61218cd24577582467badd9fdb66331bbbc0de58f7fe29e0adbbf3fbcec9c64a  app/src/main/java/com/rfsat/bas/cloud/AnswerSanity.kt
-1de7105f6f2625d9ed2eba2da4e087a1f1881e628062505189b73d1ad8d65680  app/src/main/java/com/rfsat/bas/cloud/CloudSettings.kt
+3cfa343c36bb7431db4aa3857e6f355dff17dcd2db01c4c4e345a6c1b6219018  app/src/main/java/com/rfsat/bas/cloud/CloudSettings.kt
 b7aeee60c32964179d35969990311f62728ffd147af961feac9f66a10d767648  app/src/main/java/com/rfsat/bas/cloud/ModelCatalog.kt
-7c960bee186bb8c76734fdb26962f0622cb4b95828fc68df84bd80f746e5c983  app/src/main/java/com/rfsat/bas/cloud/ModelSubstitution.kt
+403b87d4875a73a0521f3fd035b02ed3c2d53089a7e70194e2069e7cd920ba6b  app/src/main/java/com/rfsat/bas/cloud/ModelSubstitution.kt
 e5a52a62411cf0e17791cd47d8698598fdf6f1a90994e70d13ff7c0eef350d6b  app/src/main/java/com/rfsat/bas/cloud/OpinionReconciler.kt
 545610e7b93b603f0ad7fd71019b0cce246a02cad78e30049c4eab82b5300059  app/src/main/java/com/rfsat/bas/cloud/SecondOpinion.kt
 6f2d6f8a9db56ddf397d639774c8b4476ea24483fe7ca5e8fbabcda1af6676b8  app/src/main/java/com/rfsat/bas/detect/AspectCorrection.kt
@@ -99,7 +99,7 @@ d1d02883551579b678be83c40d133b20d2aed5a988f09f6d161b2a616065260c  app/src/main/j
 d6ed60386f0c41ad6d58e34b085d10df6144bcfa7123146f347214e8f89e5409  app/src/main/java/com/rfsat/bas/log/Logger.kt
 89e0229c4eeda49a676126d1e9b0fbbeecdc2bdf4f6dc7adb0fef95ceb0d0ed9  app/src/main/java/com/rfsat/bas/profiles/AmmoCatalog.kt
 8c37e6e37ada85d2ba0b05c3eeb5ef1c9c4b2089ccfab4769e84caabc10828d4  app/src/main/java/com/rfsat/bas/profiles/BulletProfile.kt
-3b7c34d3ab0d3bd4fb2d24e4c7ca01b44068ba5b79379c5e62716c89b2444a33  app/src/main/java/com/rfsat/bas/profiles/ProfileActivity.kt
+bed010661384ed338f1ff4591ebbe93c4e6a0a116e483b98a8bda8287619c27a  app/src/main/java/com/rfsat/bas/profiles/ProfileActivity.kt
 cccef87eff1e854fb5ef27778aba160cb54517de779f853a0d5b15bb2758d9cd  app/src/main/java/com/rfsat/bas/profiles/ProfileRepository.kt
 1d64f4af7c77c39c9e9014fc4f802e9f2c13447fd835f3ae0c41dd59a1f7f8c0  app/src/main/java/com/rfsat/bas/profiles/RifleCatalog.kt
 b69118c274d8d2d6fcd47009ec0b1c8f433897cd48dae0ca0aa096049342699a  app/src/main/java/com/rfsat/bas/profiles/RifleProfile.kt
@@ -241,6 +241,7 @@ c55f7e47e81282202265300462a0b996d3b3970f6fc5d3a272e882723ed27fc7  app/src/test/j
 4553db12c226f695554ad1d07c3632431494457067270ef9f669cbd82af24676  app/src/test/java/com/rfsat/sts/FixedSightTest.kt
 93c30e0d75fe4edb0324556b30f866b4264875e1729bd7931d216a7b84466f57  app/src/test/java/com/rfsat/sts/HoleAccuracyTest.kt
 ac5baceb76a39ae912590e9be01115a16b2c03a8e75bf6354cde4453f92633a4  app/src/test/java/com/rfsat/sts/LensDistortionTest.kt
+540ad150770f134413b3a643c88f01bf8c10f761e4ca0466f52c39b60516ff7e  app/src/test/java/com/rfsat/sts/ModelHealthTest.kt
 bd698cd45e36d4a3d723606fdcf9935fa1a0a18603a1b84d15a364001c625918  app/src/test/java/com/rfsat/sts/NameWrapTest.kt
 fc64a14d2256ead51de7c37ee40871f24a36eb3d096740f1e2d53f2db45190bd  app/src/test/java/com/rfsat/sts/NineMillimetreCatalogueTest.kt
 85fd8732a9d922172896a277dcabe478f9c2717620a3b6a887ef0ef76b3f4423  app/src/test/java/com/rfsat/sts/PunctureCheckTest.kt

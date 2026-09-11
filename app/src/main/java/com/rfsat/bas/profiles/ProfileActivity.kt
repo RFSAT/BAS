@@ -485,6 +485,14 @@ class ProfileActivity : BaseActivity() {
                     "Built-in list. Model identifiers are retired often — ask ${p.label} which " +
                         "ones this key actually has."
             }
+            // The chosen model, judged against what the service last returned:
+            // a retired or text-only choice is called out here rather than
+            // only surfacing as a failure at the range.
+            CloudSettings.modelHealthNote(
+                CloudSettings.modelHealth(this, p), CloudSettings.model(this, p), p.label
+            ).takeIf { it.isNotBlank() }?.let {
+                binding.tvModelSource.text = "${binding.tvModelSource.text}\n\n$it"
+            }
             val opts = list.map { it.second } + OTHER_MODEL
             // A GREYED ROW RATHER THAN A MISSING ONE. A model the key cannot
             // reach, or one the service says cannot read a picture, is shown
@@ -527,6 +535,36 @@ class ProfileActivity : BaseActivity() {
         }
         refreshModels()
         refreshCloud()
+        // PROACTIVE FRESHNESS. The catalogue is what tells the app a chosen
+        // model has been retired or cannot read a picture; left to the button
+        // it is only as current as the last press. So on opening this screen,
+        // for the service being set up and only when a key is set, refresh it
+        // in the background — silently (no "asking…" toast), at most once a
+        // day, and with a failure left to the button rather than a toast at a
+        // range with no signal. The point is to catch a stale choice here, at
+        // a desk, not there.
+        run {
+            val p = CloudSettings.setupProvider(this)
+            val key = CloudSettings.apiKey(this, p)
+            val age = System.currentTimeMillis() - CloudSettings.fetchedAt(this, p)
+            val needsRefresh = CloudSettings.fetchedModels(this, p).isEmpty() ||
+                age > 24L * 60 * 60 * 1000
+            if (key.isNotBlank() && needsRefresh) {
+                Thread {
+                    val r = com.rfsat.bas.cloud.ModelCatalog.fetch(p, key)
+                    runOnUiThread {
+                        if (r is com.rfsat.bas.cloud.ModelCatalog.Result.Ok) {
+                            CloudSettings.setFetchedModels(this, p, r.models)
+                            refreshModels()
+                            CloudSettings.modelHealthNote(
+                                CloudSettings.modelHealth(this, p),
+                                CloudSettings.model(this, p), p.label
+                            ).takeIf { it.isNotBlank() }?.let { notifyUser(it) }
+                        }
+                    }
+                }.start()
+            }
+        }
         // ASKING THE SERVICE, rather than trusting a constant written months
         // ago. Five identifiers in that constant had been retired by the time
         // they were used in the field, and each failed at a range with a card
@@ -550,11 +588,15 @@ class ProfileActivity : BaseActivity() {
                             CloudSettings.setFetchedModels(this, p, r.models)
                             refreshModels()
                             refreshCloud()
+                            val hn = CloudSettings.modelHealthNote(
+                                CloudSettings.modelHealth(this, p),
+                                CloudSettings.model(this, p), p.label)
                             notifyUser(
                                 "${p.label} lists ${r.models.size} model(s)" +
                                     (r.readImages?.let { n -> "; $n can read a picture." }
                                         ?: ". This service does not say which read images, so " +
-                                        "none is marked.")
+                                        "none is marked.") +
+                                    (if (hn.isNotBlank()) "\n\n$hn" else "")
                             )
                         }
                     }

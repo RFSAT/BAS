@@ -6,10 +6,15 @@ import org.json.JSONObject
 /**
  * Which model actually answered, against which one was asked for.
  *
- * A SERVICE CAN SUBSTITUTE A MODEL WITHOUT FAILING, and until now nothing in
- * this app noticed. From 12:00 Beijing on 14 September 2026 DeepSeek routes
- * every request for deepseek-v4-pro to V4.1 Flash and bills it at Flash's
- * price. The identifier does not stop working. It answers - as something else.
+ * A SERVICE CAN SUBSTITUTE A MODEL WITHOUT FAILING, and until this was added
+ * nothing in the app noticed. The case that prompted it: DeepSeek announced
+ * that from 12:00 Beijing on 14 September 2026 every deepseek-v4-pro request
+ * would route to V4.1 Flash and bill at Flash's price - the identifier still
+ * working, but answering as something else. DeepSeek then withdrew that on
+ * 10 September 2026 in response to user demand, and V4 Pro continues
+ * unchanged, so the reroute never happened. The blind spot it exposed is
+ * real all the same, and this check stays as the general guard against the
+ * next one - whichever service, and whenever it comes.
  *
  * That is the one failure mode every diagnostic added since 1.49.2 is blind
  * to. The refusal logging catches a service that says no: 400, 404, 429, 503,

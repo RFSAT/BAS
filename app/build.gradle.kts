@@ -35,6 +35,29 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.52.4 - DeepSeek kept V4 Pro, and the app now flags a stale model
+        //          choice before the range instead of at it.
+        //
+        //          DeepSeek withdrew the 14 September reroute on 10 September
+        //          2026 in response to user demand: deepseek-v4-pro continues
+        //          unchanged, so nothing here needed reversing - it was never
+        //          removed. The 1.52.2 substitution logging stays as the
+        //          general guard, and its comment no longer treats the reroute
+        //          as a certainty.
+        //
+        //          What is new is functional but small. ModelCatalog already
+        //          knows what a key can reach; CloudSettings.modelHealth now
+        //          judges the STORED choice against that list - OK, not listed
+        //          (retired or brand new), text-only, or unchecked - and
+        //          Settings shows the verdict under the model picker, in the
+        //          "ask the service" result, and after a background refresh
+        //          taken once a day when the screen opens with a key set. The
+        //          point is that a retired or text-only choice is caught at a
+        //          desk with a signal, not as a 404 at a range without one.
+        //          Pure and unit-tested (ModelHealthTest), and the one check
+        //          serves all seven services, since it reads only the
+        //          catalogue each already returns.
+        //
         // 1.52.3 - documentation. No code change: the app is byte-for-byte
         //          1.52.2. The User Guide and the Programmer Reference, which
         //          were left at 1.52.0 and 1.50.0 when 1.52.2 was compiled,
@@ -5612,8 +5635,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 101
-        versionName = "1.52.3"
+        versionCode = 102
+        versionName = "1.52.4"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

@@ -482,6 +482,52 @@ object CloudSettings {
     }
 
     /**
+     * How a stored model choice stands against the last catalogue the service
+     * returned for this key.
+     *
+     *  - UNCHECKED: nothing chosen, or no catalogue has been fetched, so there
+     *    is nothing to check against. Not a warning.
+     *  - NOT_LISTED: the identifier is not in the fetched list. It may be brand
+     *    new, or it may have been retired — either way it is unconfirmed, and
+     *    it is exactly the case that used to surface only as a 404 at the
+     *    range. DeepSeek's deepseek-v4-pro would land here if it were ever
+     *    withdrawn from the catalogue.
+     *  - TEXT_ONLY: listed, but the service marks it unable to read a picture,
+     *    so it cannot score a card.
+     *  - OK: listed and image-capable as far as the service says.
+     */
+    enum class ModelHealth { OK, NOT_LISTED, TEXT_ONLY, UNCHECKED }
+
+    /**
+     * Judge [chosen] against [fetched], the list the service last returned.
+     * PURE — no Context and no network — so it is unit-tested without a
+     * device, and so the answer is available the moment a screen opens rather
+     * than only after a request fails somewhere with no signal.
+     */
+    fun modelHealth(chosen: String, fetched: List<Pair<String, String>>): ModelHealth {
+        if (chosen.isBlank() || fetched.isEmpty()) return ModelHealth.UNCHECKED
+        val hit = fetched.firstOrNull { it.first == chosen } ?: return ModelHealth.NOT_LISTED
+        return if (hit.second.contains(TEXT_ONLY)) ModelHealth.TEXT_ONLY else ModelHealth.OK
+    }
+
+    /** The stored choice's health for [p], from whatever was last fetched. */
+    fun modelHealth(context: Context, p: AiProvider): ModelHealth =
+        modelHealth(model(context, p), fetchedModels(context, p))
+
+    /** One sentence a shooter can act on, or "" when nothing is wrong. Pure. */
+    fun modelHealthNote(state: ModelHealth, chosen: String, providerLabel: String): String =
+        when (state) {
+            ModelHealth.OK, ModelHealth.UNCHECKED -> ""
+            ModelHealth.NOT_LISTED ->
+                "⚠ The chosen model “$chosen” is not in the list $providerLabel " +
+                    "last returned for this key. It may be new, or it may have been retired — " +
+                    "confirm it now, or pick one from the list, rather than finding out at the range."
+            ModelHealth.TEXT_ONLY ->
+                "⚠ $providerLabel lists the chosen model “$chosen” as unable to read " +
+                    "a picture, so it cannot score a card. Pick an image-capable model."
+        }
+
+    /**
      * What the picker should show: the service's own answer where one has
      * been fetched, and the curated list otherwise.
      *
