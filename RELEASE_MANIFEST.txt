@@ -1,10 +1,10 @@
-version 1.52.4
+version 1.52.5
 3cd6213562bfeaece6f2f589f5c4642c2cc3b10425979fba878b98709e4bfd47  .gitattributes
 988813c69bcb1ea071b28e4789f768dd66d5cc29e54c5cc6cca14e6a1f3aeca5  .github/workflows/android-ci.yml
 63f28317647dec38425022ea90984ec439695f73f276845993322c8db845a6e4  .gitignore
 458952b5cf4972f4a53ecc7f67d89798980e99b452fed4c655dfe0712495c809  INTEGRATION.md
-f54550c022047fbb7a3928f4d36d16e5c578ef1c8888de2eb532be551ebeb1a9  README.md
-3d0f67ca1ac196c529223ba96d954ddf098003f2f52c3bed45918d6c58df74d4  app/build.gradle.kts
+ba5eca8328ddb6f7ccb7e6b8434791b0826b9a47d1c3ff2c6af4be2d26512ef5  README.md
+8fe9fe3705e59258b2ffe511b794c8e32c0b49651d980b3028d86a70c5927fba  app/build.gradle.kts
 db031cfb664fe276fcc130ac16ecd47845999e47872a1fa4a87cbeefcc0ad4a5  app/proguard-rules.pro
 fdb215195c6064ceb0f1bd2fd94b86cfab3cbbe2f6deab426b478c94b5381580  app/src/main/AndroidManifest.xml
 166d923d31cee9d1962991b5283a94d3764a23935220596ce33d807681ff2749  app/src/main/java/com/rfsat/bas/BasApp.kt
@@ -57,7 +57,7 @@ a00655fd184e1980de63b14507fc6a98998a82806337ac83a8bb557b430a9199  app/src/main/j
 8bf4677feb0bbe6648760c69754c788b354200345a855c250695002e9ccecd29  app/src/main/java/com/rfsat/bas/detect/Homography.kt
 cd4fe8bacfd631ba15c7809009de072ba0b5388d77954694cd60856883e094f5  app/src/main/java/com/rfsat/bas/detect/HoughCentre.kt
 1656052e9775cf705c80a31c7794d87896ec9ea94a3b2617bb3262bfb0db1bb3  app/src/main/java/com/rfsat/bas/detect/ImageLoader.kt
-f1f8d40a19de5a49b4e29676b8c1890d1ac75a360a87392f2cb3b604a2d153e1  app/src/main/java/com/rfsat/bas/detect/ImportActivity.kt
+e5135ab7aad6acc4391f6d8f689b5abfc50c09455991e3606a75b12776ce63e6  app/src/main/java/com/rfsat/bas/detect/ImportActivity.kt
 571c79a6ea8d05f1b9fb16fada101e33df2bd03420c95968ba4afbc8ac0eb998  app/src/main/java/com/rfsat/bas/detect/LensDistortion.kt
 5f1e7c5659e03696907719e1de23f6c0c784f5fe51f3c5d5fe49cbaa93cdbc62  app/src/main/java/com/rfsat/bas/detect/LiveHitDetector.kt
 4fab6dbf3e58ed0fea40e3b9fd132283a520be830c08a89e4afe0b9ffe82d1ac  app/src/main/java/com/rfsat/bas/detect/LocalBackground.kt
@@ -65,6 +65,7 @@ f1f8d40a19de5a49b4e29676b8c1890d1ac75a360a87392f2cb3b604a2d153e1  app/src/main/j
 bd8b746bc46ed6b2045c7321c0bc61c08a410d22c2bf7b8868c1865c0939a64b  app/src/main/java/com/rfsat/bas/detect/MarkOutline.kt
 f531007c21b2d04aa440365d6509a34ec0c7d2f5cb4e4a49658ec11ef0504a1d  app/src/main/java/com/rfsat/bas/detect/MergedHoles.kt
 00d28133230f2c4ac6c75bf13e7a9ce85165e29d7e62573fa7df27f5f55b7827  app/src/main/java/com/rfsat/bas/detect/PunctureCheck.kt
+a0fca6c95ef8a83ae344370322e33c10e34019227988c75ce2fc91f78e4d8bea  app/src/main/java/com/rfsat/bas/detect/RegistrationHealth.kt
 7d2f73e65d3255dec919f87273ac7371c2a72c1712264ae36065328992fe4b49  app/src/main/java/com/rfsat/bas/detect/RegistrationOverlayView.kt
 90d3687ce499e540a923396c33c253ddd85e8eb3286e2a18815f44f294b01829  app/src/main/java/com/rfsat/bas/detect/RingFamilyFit.kt
 70ba4c938cefd32d36cc570e464963d00e1e8d96c43acbc5affac0d16bd8df65  app/src/main/java/com/rfsat/bas/detect/RingFinder.kt
@@ -246,6 +247,7 @@ bd698cd45e36d4a3d723606fdcf9935fa1a0a18603a1b84d15a364001c625918  app/src/test/j
 fc64a14d2256ead51de7c37ee40871f24a36eb3d096740f1e2d53f2db45190bd  app/src/test/java/com/rfsat/sts/NineMillimetreCatalogueTest.kt
 85fd8732a9d922172896a277dcabe478f9c2717620a3b6a887ef0ef76b3f4423  app/src/test/java/com/rfsat/sts/PunctureCheckTest.kt
 721f296a5a492217e63c55b9772a1981549480057ca0b739a97b560483b0c1e3  app/src/test/java/com/rfsat/sts/RegistrationBoxTest.kt
+36618d953109e02c875db9a281fe6df4755120aeb2214cbb6b4f83e3f75a0d37  app/src/test/java/com/rfsat/sts/RegistrationHealthTest.kt
 b02144bf4ee10566affbb3b9adcdf6029812cbbcca7e1c71344041a2c9f487d0  app/src/test/java/com/rfsat/sts/ResultsHandoverTest.kt
 5fbea80fa0c7519af0ae88c4a17a18b294b1d10e59dc658f68f31dde2d4eeffe  app/src/test/java/com/rfsat/sts/RingFinderTest.kt
 7027f65577a6eb870e838f391a951806c88d5a3a6d1386878ba9c901ab28d6a7  app/src/test/java/com/rfsat/sts/RingOverlayGeometryTest.kt

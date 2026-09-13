@@ -35,6 +35,39 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.52.5 - the wrong-face mis-registration is caught before it scores,
+        //          not discovered at the range.
+        //
+        //          A range card scored wildly wrong because the selected face
+        //          was ISSF 300 m Rifle and the card was not that face. The
+        //          app already knew - TargetGeometryCheck named the proportion
+        //          match and the ring fit was refused as a harmonic - but both
+        //          findings went only to the Log while Auto-detect registered
+        //          on the wrong face anyway and a transient toast scrolled
+        //          away. The centre was never the problem: a robust circle fit
+        //          recovers it from the black edge even shot to pieces.
+        //
+        //          A. Auto-detect now adopts the face the printed rings match,
+        //          the way Identify already did, instead of trusting the
+        //          selection; and a PERSISTENT wrong-face / unconfirmed-face
+        //          warning sits in the status panel until the face is put
+        //          right, so a confident wrong score cannot be produced in
+        //          silence. The verdict is RegistrationHealth - pure and
+        //          unit-tested (RegistrationHealthTest).
+        //
+        //          B. MarkOutline gives up when a hole on a ring line lets the
+        //          dark region leak; it now falls back to BlackMarkDetector's
+        //          hole-tolerant mark rather than losing the radius. Additive -
+        //          it runs only where the outline path returned nothing, so no
+        //          case that already worked can change.
+        //
+        //          No detector fix can be proved without the device, so the
+        //          logic that could be is pure and tested and one desk run on
+        //          the range card confirms the rest. The European 1-10 target
+        //          still needs its own catalogue face for correct millimetre
+        //          distances; ring scores are right once the proportion match
+        //          is adopted.
+        //
         // 1.52.4 - DeepSeek kept V4 Pro, and the app now flags a stale model
         //          choice before the range instead of at it.
         //
@@ -5635,8 +5668,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 102
-        versionName = "1.52.4"
+        versionCode = 103
+        versionName = "1.52.5"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

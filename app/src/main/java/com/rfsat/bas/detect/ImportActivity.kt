@@ -189,7 +189,7 @@ class ImportActivity : BaseActivity() {
         binding.btnAutoDetect.setOnClickListener { doAutoDetect() }
         binding.btnRegister.setOnClickListener { doRegister() }
         binding.btnUndoCorner.setOnClickListener {
-            binding.overlay.clearAll(); registration = null; lastFit = null; lastMarkRadiusPx = 0.0; refreshStatus()
+            binding.overlay.clearAll(); registration = null; lastFit = null; lastMarkRadiusPx = 0.0; registrationWarning = null; refreshStatus()
         }
         binding.cbCornerMode.setOnCheckedChangeListener { _, corners ->
             if (corners) binding.cbCentreMode.isChecked = false
@@ -565,7 +565,7 @@ class ImportActivity : BaseActivity() {
      * run on load: a face with no black mark at all is a perfectly ordinary
      * thing to open, and being told off for it would be noise.
      */
-    private fun doAutoDetect(silent: Boolean = false) {
+    private fun doAutoDetect(silent: Boolean = false, alreadySwitched: Boolean = false) {
         val bmp = shotBitmap ?: run {
             if (!silent) notifyUser("Choose a photo of the shot target first.")
             return
@@ -601,6 +601,28 @@ class ImportActivity : BaseActivity() {
         val geometry = TargetGeometryCheck.analyse(
             frame, disc, face, com.rfsat.bas.targets.TargetRepository(this).allFaces()
         )
+
+        // A — DO NOT SILENTLY REGISTER ON THE WRONG FACE. Auto-detect used to
+        // trust the selected face and only toast a warning that scrolled away.
+        // If the printed rings clearly match a different catalogue face, adopt
+        // it and re-run — the way "Identify" already does — and otherwise
+        // record a PERSISTENT warning (shown in the status panel) so a wrong or
+        // unconfirmed face cannot quietly produce a confident, wrong score.
+        val gMatch = geometry.bestMatch
+        if (geometry.looksWrong && gMatch != null && gMatch.id != face.id && !alreadySwitched) {
+            val idx = faces.indexOfFirst { it.id == gMatch.id }
+            if (idx >= 0) {
+                pendingTargetSelection = idx
+                binding.spTarget.setSelection(idx)
+                TargetRepository(this).setActiveFace(gMatch.id)
+                notifyUser("The printed rings match ${gMatch.name}, not ${face.name} — switched to it and re-detecting.")
+                doAutoDetect(silent = true, alreadySwitched = true)
+                return
+            }
+        }
+        registrationWarning = RegistrationHealth.assess(
+            face.name, geometry.looksWrong, geometry.bestMatch?.name
+        ).note.ifBlank { null }
 
         val (box, meaning) = BlackMarkDetector.boxFor(disc, face, bmp.width, bmp.height)
         boxMeaning = meaning
@@ -805,8 +827,15 @@ class ImportActivity : BaseActivity() {
             val cy = lastFit?.let { fit ->
                 fit.correctedFrame?.toSource(fit.centreXPx, fit.centreYPx)?.second ?: fit.centreYPx
             } ?: (frame.height / 2.0)
-            lastMarkRadiusPx = MarkOutline.extract(frame, cx, cy)
-                ?.let { RingShapeSelector.choose(it)?.model?.semiMajorPx } ?: 0.0
+            lastMarkRadiusPx = (MarkOutline.extract(frame, cx, cy)
+                ?.let { RingShapeSelector.choose(it)?.model?.semiMajorPx }
+            // B — MarkOutline gives up once a hole on a ring line lets the dark
+            // region leak; BlackMarkDetector finds the mark by a cruder,
+            // hole-tolerant route, so fall back to its radius rather than
+            // losing the measurement entirely. Additive: only when the outline
+            // path returned nothing, so it cannot change a case that worked.
+                ?: BlackMarkDetector.detect(frame, binding.overlay.centreHint)?.radiusPx)
+                ?: 0.0
         }
     }
 
@@ -1192,7 +1221,9 @@ class ImportActivity : BaseActivity() {
                     runnerUp.face.name, 100 * (1 - runnerUp.relativeError)))
                 append("). Scale from %d fitted rings.".format(fit.ringCount))
             })
+            registrationWarning = null
         } else {
+            registrationWarning = RegistrationHealth.unmatchedNote(currentFace().name)
             notifyUser(
                 "The rings were fitted, but no catalogue face matches these proportions. " +
                     "Registering against the selected face — check it is the right one, or add " +
@@ -1390,6 +1421,7 @@ class ImportActivity : BaseActivity() {
                     append("\nbox around: ${boxMeaning.label.lowercase()}, ${transform.summary()}")
                 }
             }
+            registrationWarning?.let { append("\n"); append(it) }
         }
     }
 
@@ -1406,6 +1438,11 @@ class ImportActivity : BaseActivity() {
     /** What the detector thinks the tilt is. Offered, never applied on its
      *  own — see the note where it is set. */
     private var suggestedTilt = BoxTransform.NONE
+
+    /** A persistent wrong-face / unconfirmed-face warning, shown in the status
+     *  panel until the face is put right. Set by the two detect routes, and
+     *  the reason the guard no longer scrolls away in a toast. */
+    private var registrationWarning: String? = null
 
     private fun wireTransformControls() {
         binding.sbRotation.setOnSeekBarChangeListener(seekListener { p ->
