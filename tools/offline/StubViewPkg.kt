@@ -21,6 +21,11 @@ open class View(
 ) {
     var visibility: Int = 0
     var isEnabled: Boolean = true
+    // The view transform properties, used by ImportActivity's pinch zoom.
+    var pivotX: Float = 0f
+    var pivotY: Float = 0f
+    var scaleX: Float = 1f
+    var scaleY: Float = 1f
     var isClickable: Boolean = false
     var isFocusable: Boolean = false
     var alpha: Float = 1f

@@ -892,6 +892,28 @@ class ImportActivity : BaseActivity() {
                         notifyUser(result.message)
                     }
                     is SecondOpinion.Result.Ok -> {
+                        // REACTIVE CROSS-CHECK. The scoring answer already
+                        // carries the model's NAME for this face, so it costs
+                        // nothing to ask whether that is the face just scored
+                        // against. When it is not, the millimetres came off the
+                        // wrong printing — which is precisely how the range
+                        // test lost shots and misplaced the black.
+                        //
+                        // It WARNS and changes nothing. Swapping the face under
+                        // a finished score would silently restate every ring
+                        // without remeasuring a single position.
+                        val aiFace = com.rfsat.bas.cloud.AiFaceMatch.match(
+                            result.opinion.faceName, TargetRepository(this).allFaces())
+                        if (aiFace != null && aiFace.id != face.id) {
+                            Logger.w("ImportActivity",
+                                "AI names '${result.opinion.faceName}' (${aiFace.name}) but the " +
+                                    "card was scored against ${face.name}")
+                            registrationWarning =
+                                "${provider.label} reads this card as ${aiFace.name}, not " +
+                                    "${face.name}. If it is right, select that face, register " +
+                                    "again and rescore — the scores here are measured against " +
+                                    "${face.name}."
+                        }
                         if (binding.cbReplace.isChecked) {
                             ScoringSession.startNew(face, rules, distanceFromField())
                         }
@@ -947,6 +969,14 @@ class ImportActivity : BaseActivity() {
                             appendLine()
                             append("Every position here was placed by the service, not measured. " +
                                 "Check them on the plot.")
+                            // The face disagreement is the one thing here worth
+                            // more than the total, because it invalidates it.
+                            if (aiFace != null && aiFace.id != face.id) {
+                                appendLine(); appendLine()
+                                append("${provider.label} reads this card as ${aiFace.name}, " +
+                                    "not ${face.name} — if that is right, these rings are " +
+                                    "measured off the wrong face.")
+                            }
                         }
                         // Same rule as the app's own detection: the card is
                         // scored, so the plot is where it gets checked — and
@@ -1191,29 +1221,6 @@ class ImportActivity : BaseActivity() {
 
         lastFit = fit
         lastMarkRadiusPx = mark?.radiusPx ?: 0.0
-        val gauge = currentRules().gaugeDiameterMm
-
-        // F2 — CHOOSE THE FACE BY WHICH ONE'S RINGS ACTUALLY LAND ON THE PRINT.
-        //
-        // The black/outer RATIO cannot tell an even 1-10 face from an
-        // unevenly-pitched face of the same proportions — on the range card it
-        // could not separate ISSF Precision Pistol from NRA/CMP SR, and the
-        // 1.52.5 auto-adopt took the wrong one. Ring VERIFICATION can: for each
-        // catalogue face, build a trial registration from THIS fit and count
-        // how many of its rings sit on printed lines. The face the card really
-        // is verifies almost completely; a wrong face of similar proportions
-        // does not. Scale-based, so it also survives an under-measured mark,
-        // which the pitch-ratio identify below does not.
-        data class Verified(val face: TargetFace, val fraction: Double, val testable: Int)
-        val verified = TargetRepository(this).allFaces().filter { it.ringPitchMm != null }.mapNotNull { f ->
-            val reg = runCatching {
-                TargetRegistration.fromRingFit(f, fit, gauge, transform, frame, mark?.radiusPx ?: 0.0)
-            }.getOrNull() ?: return@mapNotNull null
-            val vr = TargetGeometryCheck.verifiedRings(frame, reg, f) ?: return@mapNotNull null
-            Verified(f, vr.first.toDouble() / vr.second, vr.second)
-        }
-        val topVerified = verified.filter { it.testable >= 4 }.maxByOrNull { it.fraction }
-
         val matches = if (mark != null)
             RingFinder.identify(
                 fit, mark.radiusPx, TargetRepository(this).identifiableFaces(currentFace().id),
@@ -1222,17 +1229,18 @@ class ImportActivity : BaseActivity() {
         else emptyList()
         val best = matches.firstOrNull()
 
-        var chosenFace = currentFace()
-        // 0.5 is the same bar verifyRings() calls "matches"; below it the fit
-        // is not trusted and we fall through to the pitch-ratio identify.
-        if (topVerified != null && topVerified.fraction >= 0.5) {
-            chosenFace = topVerified.face
-            registrationWarning = null
-            notifyUser("Identified as %s: %.0f%% of its rings land on the printed lines.".format(
-                topVerified.face.name, topVerified.fraction * 100))
-        } else if (best != null && best.relativeError < IDENTIFY_TOLERANCE) {
-            chosenFace = best.face
-            registrationWarning = null
+        // 1.52.7 — the 1.52.6 ring-VERIFICATION face pick is withdrawn. With
+        // every candidate face's pitch normalised to the fitted pitch it
+        // stopped discriminating and crowned sparse faces (an air-pistol card
+        // read as F-Class MR-FC). Identification is back to the pitch/mark
+        // ratio, which fails HONESTLY — it declines rather than naming the
+        // wrong face — and when it cannot name one the shooter picks it.
+        if (best != null && best.relativeError < IDENTIFY_TOLERANCE) {
+            faces.indexOfFirst { it.id == best.face.id }.takeIf { it >= 0 }?.let { idx ->
+                pendingTargetSelection = idx
+                binding.spTarget.setSelection(idx)
+                TargetRepository(this).setActiveFace(best.face.id)
+            }
             val runnerUp = matches.getOrNull(1)
             notifyUser(buildString {
                 append("Identified as %s (%.0f%% agreement".format(best.face.name, 100 * (1 - best.relativeError)))
@@ -1240,6 +1248,7 @@ class ImportActivity : BaseActivity() {
                     runnerUp.face.name, 100 * (1 - runnerUp.relativeError)))
                 append("). Scale from %d fitted rings.".format(fit.ringCount))
             })
+            registrationWarning = null
         } else {
             registrationWarning = RegistrationHealth.unmatchedNote(currentFace().name)
             notifyUser(
@@ -1247,13 +1256,11 @@ class ImportActivity : BaseActivity() {
                     "Registering against the selected face — check it is the right one, or add " +
                     "this target under Targets."
             )
-        }
-        if (chosenFace.id != currentFace().id) {
-            faces.indexOfFirst { it.id == chosenFace.id }.takeIf { it >= 0 }?.let { idx ->
-                pendingTargetSelection = idx
-                binding.spTarget.setSelection(idx)
-                TargetRepository(this).setActiveFace(chosenFace.id)
-            }
+            // Geometry has just said, honestly, that it cannot name this face.
+            // That is exactly the point to offer the one question a vision
+            // model answers well — WHICH face is this — rather than leaving
+            // the shooter with whatever was selected before.
+            offerAiFaceIdentification()
         }
 
         // The ring family's ellipticity is an INDEPENDENT read on the tilt,
@@ -1279,7 +1286,7 @@ class ImportActivity : BaseActivity() {
             )
         }
 
-        val face = chosenFace
+        val face = currentFace()
         val rules = currentRules()
         val reg = TargetRegistration.fromRingFit(
             face, fit, rules.gaugeDiameterMm, transform, frame,
@@ -1320,6 +1327,113 @@ class ImportActivity : BaseActivity() {
             )
         )
         reg.warnings.forEach { Logger.w("Registration", it) }
+        refreshStatus()
+    }
+
+    /**
+     * When the geometry cannot name the face, the AI usually can — naming a
+     * printed face is the one question about a target a vision model answers
+     * better than this app's measurement. OFFERED, never automatic: it is a
+     * network round trip spent on the shooter's own key.
+     */
+    private fun offerAiFaceIdentification() {
+        val provider = CloudSettings.importProvider(this)
+        if (CloudSettings.apiKey(this, provider).isBlank()) return
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Ask ${provider.label} which face this is?")
+            .setMessage(
+                "The printed rings do not match any catalogue face. A vision model is good at " +
+                    "naming a target face, and it would only set the FACE — the scale still comes " +
+                    "from the rings or your corner taps."
+            )
+            .setPositiveButton("Ask") { _, _ -> identifyFaceWithAi() }
+            .setNegativeButton("Not now", null)
+            .show()
+    }
+
+    /**
+     * Asks the chosen service which face this is, from the RAW photograph —
+     * no registration needed, which is the point: this runs when registration
+     * has nothing to go on.
+     */
+    private fun identifyFaceWithAi() {
+        val bmp = shotBitmap ?: run { notifyUser("Choose a photo of the target first."); return }
+        val provider = CloudSettings.importProvider(this)
+        val key = CloudSettings.apiKey(this, provider)
+        if (key.isBlank()) {
+            notifyUser("${provider.label} needs its key first — set it in Settings.")
+            return
+        }
+        val model = CloudSettings.model(this, provider)
+        notifyUser("Asking ${provider.label} which target face this is…")
+        Thread {
+            val out = java.io.ByteArrayOutputStream()
+            val longest = maxOf(bmp.width, bmp.height)
+            val send = if (longest <= 1568) bmp else Bitmap.createScaledBitmap(
+                bmp, bmp.width * 1568 / longest, bmp.height * 1568 / longest, true)
+            send.compress(Bitmap.CompressFormat.JPEG, 85, out)
+            val b64 = Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP)
+            val result = SecondOpinion.ask(
+                provider, key, model, b64, scoreToo = false, wantBounds = true)
+            runOnUiThread {
+                when (result) {
+                    is SecondOpinion.Result.Failed -> notifyUser(result.message)
+                    is SecondOpinion.Result.Ok ->
+                        applyAiFace(result.opinion, bmp, provider.label)
+                }
+            }
+        }.start()
+    }
+
+    /**
+     * Acts on the model's answer. The NAME selects a catalogue face; the card
+     * box only ever WARNS.
+     *
+     * That split is the whole safety property. A vision model places an edge to
+     * a few per cent of the frame, which on this card is millimetres, so it is
+     * never allowed to move a registration — the rings and the corner taps
+     * remain the only things that set a scale.
+     */
+    private fun applyAiFace(opinion: SecondOpinion.Opinion, bmp: Bitmap, providerLabel: String) {
+        val matched = com.rfsat.bas.cloud.AiFaceMatch.match(
+            opinion.faceName, TargetRepository(this).allFaces())
+        Logger.i("ImportActivity",
+            "AI face answer '${opinion.faceName}' -> ${matched?.name ?: "no catalogue match"}")
+        when {
+            matched == null -> notifyUser(
+                "$providerLabel could not name a face in the catalogue" +
+                    (if (opinion.faceName.isBlank()) "" else " (it said “${opinion.faceName}”)") +
+                    ". Choose the face yourself, or add this target under Targets.")
+            matched.id == currentFace().id -> {
+                registrationWarning = null
+                notifyUser("$providerLabel agrees this is ${matched.name}.")
+            }
+            else -> {
+                faces.indexOfFirst { it.id == matched.id }.takeIf { it >= 0 }?.let { idx ->
+                    pendingTargetSelection = idx
+                    binding.spTarget.setSelection(idx)
+                    TargetRepository(this).setActiveFace(matched.id)
+                }
+                registrationWarning = null
+                notifyUser("$providerLabel reads this as ${matched.name} — selected it. " +
+                    "Register again to score against it.")
+            }
+        }
+        // THE BOX WARNS, IT NEVER MOVES ANYTHING.
+        opinion.bounds?.let { b ->
+            val box = binding.overlay.boxInSource() ?: return@let
+            val aiCx = (b.x0 + b.x1) / 2.0 * bmp.width
+            val aiCy = (b.y0 + b.y1) / 2.0 * bmp.height
+            val aiW = (b.x1 - b.x0) * bmp.width
+            val offset = kotlin.math.hypot(
+                (box[0] + box[2]) / 2.0 - aiCx, (box[1] + box[3]) / 2.0 - aiCy)
+            if (aiW > 1.0 && offset > 0.25 * aiW) {
+                Logger.w("ImportActivity",
+                    "AI puts the scoring area %.0f px from the registration box".format(offset))
+                notifyUser("Note: $providerLabel puts the scoring area somewhere else than the " +
+                    "registration box. Nothing has been moved — check the box against the printing.")
+            }
+        }
         refreshStatus()
     }
 

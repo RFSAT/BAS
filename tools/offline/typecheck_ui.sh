@@ -34,7 +34,14 @@ UI="$(mktemp -d -p "${STS_TMP:-/tmp}")"
 trap 'rm -rf "$UI"' EXIT
 mkdir -p "$UI/src" "$UI/stub"
 
-cp -r "$ROOT/app/src/main/java/com/rfsat/sts" "$UI/src/"
+# The sources moved from com/rfsat/sts to com/rfsat/bas at the merge and this
+# line did not, so the one check that resolves every NAME has been failing at
+# `cp` ever since — silently, as far as anyone reading a release was
+# concerned. Both are copied: whichever exists is what gets checked.
+for pkg in bas sts; do
+  [ -d "$ROOT/app/src/main/java/com/rfsat/$pkg" ] && cp -r "$ROOT/app/src/main/java/com/rfsat/$pkg" "$UI/src/"
+done
+[ -n "$(find "$UI/src" -name '*.kt' -print -quit)" ] || { echo "no sources found under app/src/main/java/com/rfsat"; exit 2; }
 cp "$ROOT"/tools/offline/Stub*.kt "$UI/stub/"
 python3 "$ROOT/tools/offline/gen_bindings.py" "$ROOT/app/src/main/res/layout" "$UI/stub/Bindings.kt"
 python3 "$ROOT/tools/offline/gen_r.py" "$ROOT/app/src/main/res" "$UI/stub/R.kt"

@@ -29,13 +29,13 @@ def binding_name(layout):
     return "".join(p.capitalize() for p in layout.split("_")) + "Binding"
 
 def generate(layout_dir, out_path):
-    out = ["package com.rfsat.sts.databinding", "",
+    out = ["package com.rfsat.bas.databinding", "",
            "import android.view.LayoutInflater", "import android.view.View",
            "import android.view.ViewGroup", "import android.widget.*",
-           "import com.rfsat.sts.detect.RegistrationOverlayView",
-           "import com.rfsat.sts.ui.CrosshairView",
-           "import com.rfsat.sts.ui.ScoreHistogramView",
-           "import com.rfsat.sts.ui.TargetPlotView",
+           "import com.rfsat.bas.detect.RegistrationOverlayView",
+           "import com.rfsat.bas.ui.CrosshairView",
+           "import com.rfsat.bas.ui.ScoreHistogramView",
+           "import com.rfsat.bas.ui.TargetPlotView",
            "import com.google.android.material.bottomnavigation.BottomNavigationView",
            "import androidx.camera.view.PreviewView",
            "import android.view.TextureView", ""]

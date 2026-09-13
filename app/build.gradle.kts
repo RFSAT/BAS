@@ -35,6 +35,125 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.53.0 - the AI service can be asked WHICH FACE this is, and its
+        //          answer is cross-checked against the face a card was scored
+        //          on.
+        //
+        //          THE PRINCIPLE, arrived at the hard way over 1.52.5-1.52.7:
+        //          AI CHOOSES THE LABEL, GEOMETRY MEASURES THE NUMBERS. Naming
+        //          a printed face is a CLASSIFICATION and wants none of the
+        //          millimetre precision a vision model does not have; the scale
+        //          still comes only from the fitted rings or four tapped
+        //          corners. Three revisions of trying to tell faces apart by
+        //          measurement failed because the discriminating evidence is
+        //          not in the geometry - two faces can share their proportions
+        //          exactly. It is in the PRINTING, which is what a vision model
+        //          reads well.
+        //
+        //          cloud/AiFaceMatch.kt maps a model's free-text answer onto a
+        //          catalogue entry by weighted tokens - distance strongest,
+        //          then type and governing body - and a conflicting distance is
+        //          disqualifying. It DECLINES rather than guess: below a score
+        //          floor, or with two faces within an absolute margin, it names
+        //          none and the shooter is asked. A face named on a coin toss
+        //          is what put NRA/CMP SR on a Precision Pistol card in 1.52.5.
+        //          Both thresholds were set by the unit test, not by taste: the
+        //          governing body had to outweigh a shared distance (ISSF 50 m
+        //          Rifle could not otherwise identify ITSELF against DSB/BDS
+        //          50 m Kleinkaliber), and the margin had to be absolute rather
+        //          than a ratio (a full "ISSF 10 m Air Rifle" beats Air Pistol
+        //          by one word, and a ratio rule threw that away).
+        //
+        //          PROACTIVE: when "Identify and register" fits the rings but
+        //          no catalogue face matches their proportions - the honest
+        //          decline kept from 1.52.7 - the app now OFFERS to ask the
+        //          configured service. It sets the FACE only; register again to
+        //          score against it. Offered, never automatic: it is a network
+        //          round trip on the shooter's own key.
+        //
+        //          REACTIVE: a card scored by the AI is cross-checked against
+        //          the same answer's face name at no extra cost. If it names a
+        //          different catalogue face than the one scored, that is said
+        //          plainly on the result and in the persistent registration
+        //          warning - the rings were measured off the wrong printing,
+        //          which is how the range test lost shots. It WARNS; a face
+        //          swapped under a finished score would restate every ring
+        //          without remeasuring one position.
+        //
+        //          THE CARD BOX ONLY EVER WARNS. The identify request also asks
+        //          the model for the scoring area's bounding box. A vision
+        //          model places an edge to a few per cent of the frame, which
+        //          on a 170 mm card is several millimetres - useless as a
+        //          homography. It is a sanity bound: when it lands well away
+        //          from the registration box the shooter is told, and nothing
+        //          is moved. A box outside the frame, or collapsed to a sliver,
+        //          is discarded rather than clamped.
+        //
+        //          The bounds request is ADDITIVE: wantBounds defaults false,
+        //          so every existing scoring call sends byte-identical requests
+        //          and cannot regress. It is carried on the Anthropic and
+        //          Gemini transports; the five OpenAI-shaped providers keep
+        //          their strict schema untouched, since strict mode would force
+        //          the field required on all of them. Their face NAME - the
+        //          half that matters - comes back as before.
+        //
+        //          A WORD IN ONE FACE ALONE is weighted like a distance. The
+        //          practical and steel faces - "IDPA target", "IPSC Classic
+        //          target", "300 mm round steel" - have short names made of
+        //          words no hand-picked list anticipates; scored as ordinary
+        //          words all four came to 1.5 and named nothing, so four
+        //          catalogue faces could not identify THEMSELVES. Rarity
+        //          separates IPSC Classic from IPSC Mini exactly as "10 m"
+        //          separates air pistol from precision pistol, and no word
+        //          list has to grow when a face is added.
+        //
+        //          NOT YET CONFIRMED ON DEVICE. The matcher is COMPILED AND
+        //          RUN here against the real catalogue - all 30 built-in faces
+        //          identify themselves, seven test methods pass - and every
+        //          name in the three changed files resolves against the
+        //          offline type-check. The wiring into Import is still not
+        //          exercised, and per the lesson recorded in 1.52.7 that wants
+        //          one range run before it is trusted.
+        //
+        //          THE OFFLINE TOOLCHAIN IS REPAIRED. run.sh and
+        //          typecheck_ui.sh, and the binding and R generators, still
+        //          pointed at com/rfsat/sts; the sources moved to com/rfsat/bas
+        //          at the merge. Both scripts had been dying at their first cp
+        //          ever since, which is how a missing AlertDialog import in
+        //          this very revision reached a package before being caught by
+        //          hand. Paths fixed and the stubs given the few members the
+        //          changed files need. The remaining stub gaps in untouched
+        //          files are not closed here and run.sh's source list is still
+        //          short of the test set - both are named as outstanding
+        //          rather than left to look like a passing check.
+        //
+        // 1.52.7 - withdraw the 1.52.6 verification face-pick; it made
+        //          identification worse.
+        //
+        //          F2 in 1.52.6 chose the face by how many of ITS rings land on
+        //          printed lines, meaning to separate two faces of similar
+        //          proportions. It could not: fromRingFit normalises every
+        //          candidate's pitch to the fitted pitch, so a sparse face's few
+        //          rings land on the print as readily as the right face's, and
+        //          with no penalty for a face too sparse to explain the ladder
+        //          it crowned the wrong one - an ISSF 10 m Air Pistol / DSB
+        //          100 m card was read as F-Class MR-FC 600 yd.
+        //
+        //          Identification returns to the pitch/mark ratio it used before
+        //          1.52.6, which fails HONESTLY: it declines rather than naming
+        //          a wrong face, and the shooter then picks it. Kept from the
+        //          arc: F1 (a fitted pitch that cannot scale still registers
+        //          from the aiming-mark box) and the warn-only Auto-detect. Net
+        //          of 1.52.5-1.52.7: the wrong-face AUTO-adopt is gone, the
+        //          persistent warning stays, and no route silently switches the
+        //          face any more.
+        //
+        //          A LESSON RECORDED: three revisions running changed the
+        //          identify/registration path on inference, without the device,
+        //          and two regressed. That path is not to be tuned again from
+        //          here without an on-device run or a labelled photo corpus to
+        //          measure against.
+        //
         // 1.52.6 - "Identify and register" picks the face by which one's rings
         //          actually fit, and always leaves you registered.
         //
@@ -5704,8 +5823,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 104
-        versionName = "1.52.6"
+        versionCode = 106
+        versionName = "1.53.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

@@ -39,7 +39,10 @@ WORK="$(mktemp -d -p "${STS_TMP:-/tmp}")"
 trap 'rm -rf "$WORK"' EXIT
 mkdir -p "$WORK/src"
 
-M="$ROOT/app/src/main/java/com/rfsat/sts"
+# The sources moved from com/rfsat/sts to com/rfsat/bas at the merge; this
+# line did not follow them, so the offline test run has been dying at its
+# first `cp` ever since.
+M="$ROOT/app/src/main/java/com/rfsat/bas"
 for f in detect/BlackMarkDetector detect/BoxTransform detect/EllipseFit detect/HoleDetector \
          detect/Homography detect/HoughCentre detect/LumaFrame detect/MarkOutline \
          detect/RingFinder detect/RingShapeSelector detect/ShapeCorrection detect/MergedHoles \
@@ -51,7 +54,8 @@ for f in detect/BlackMarkDetector detect/BoxTransform detect/EllipseFit detect/H
          scoring/Shot scoring/ShotDistribution \
          targets/PracticalGeometry targets/TargetCatalog targets/TargetFace \
          scoring/ScoredPhoto ui/NameWrap ui/AimGuide ui/Reticle detect/ScaleSettings scoring/ShotCountCheck \
-         cloud/SecondOpinion cloud/OpinionReconciler cloud/AiProvider; do
+         cloud/SecondOpinion cloud/OpinionReconciler cloud/AiProvider cloud/AiFaceMatch \
+         cloud/AnswerSanity cloud/ModelSubstitution; do
   cp "$M/$f.kt" "$WORK/src/$(basename $f).kt"
 done
 
@@ -70,7 +74,7 @@ while True:
         if d == 0: break
     j += 1
 open(sys.argv[2], 'w').write(
-    "package com.rfsat.sts.detect\n\n// Lifted verbatim from ImageLoader.kt by tools/offline/run.sh.\n"
+    "package com.rfsat.bas.detect\n\n// Lifted verbatim from ImageLoader.kt by tools/offline/run.sh.\n"
     "object ImageLoader {\n" + src[a:j+1] + "\n}\n")
 PY
 

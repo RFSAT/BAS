@@ -23,7 +23,25 @@ originals rather than an imitation of them.
 import os, re, shutil, subprocess, sys, tempfile, zipfile
 
 T = re.compile(r'<w:t(?:\s[^>]*)?>(.*?)</w:t>', re.S)
-SOFFICE = "/sessions/festive-affectionate-einstein/mnt/.claude/skills/docx/scripts/office/soffice.py"
+def _soffice():
+    """How to render a PDF here.
+
+    This used to be one hardcoded path into a workspace that no longer exists,
+    which is a fine way to make a tool that only works on the machine it was
+    written on. Resolved at run time instead: the docx skill's wrapper where
+    it is installed, otherwise the plain LibreOffice binary on PATH.
+    """
+    for p in (
+        os.environ.get("BAS_SOFFICE"),
+        "/mnt/skills/public/docx/scripts/office/soffice.py",
+        os.path.expanduser("~/.claude/skills/docx/scripts/office/soffice.py"),
+    ):
+        if p and os.path.exists(p):
+            return [sys.executable, p]
+    exe = shutil.which("soffice") or shutil.which("libreoffice")
+    if exe:
+        return [exe]
+    raise SystemExit("No LibreOffice found: set BAS_SOFFICE or install soffice.")
 
 
 def paras(doc):
@@ -50,16 +68,34 @@ def stamp_version(doc, version, build):
         n += 1
         return "Version %s (build %s) · %s" % (version, build, m.group(3))
     doc = re.sub(r'Version (\d+\.\d+\.\d+) \(build (\d+)\) · ([A-Za-z]+ \d{4})', title, doc)
+    # The two guides do not write the footer the same way: the User Guide has
+    # "BAS <v> — RFSAT" and the Programmer Reference "BAS <v> (build <n>) —
+    # RFSAT". Matching only the first shipped a Programmer Reference whose
+    # title page said 1.53.0 and whose every page footer said 1.52.7, which is
+    # exactly the mechanical slip this script exists to prevent. Each form is
+    # rewritten in its own shape rather than normalised to one, because the
+    # footer is the author's formatting, not this script's.
     def footer(m):
         nonlocal n
         n += 1
+        return "BAS %s (build %s) — RFSAT" % (version, build)
+    doc = re.sub(r'BAS (\d+\.\d+\.\d+) \(build (\d+)\) — RFSAT', footer, doc)
+
+    def plain_footer(m):
+        nonlocal n
+        n += 1
         return "BAS %s — RFSAT" % version
-    doc = re.sub(r'BAS (\d+\.\d+\.\d+) — RFSAT', footer, doc)
+    doc = re.sub(r'BAS (\d+\.\d+\.\d+) — RFSAT', plain_footer, doc)
+    if n < 2:
+        # Never silently: a guide that stamped in fewer than two places has a
+        # version left behind somewhere a reader will see.
+        print("WARNING: version stamped in only %d place(s) — check title and footer" % n)
     return doc, n
 
 
 def render_pdf(docx, outdir):
-    subprocess.run([sys.executable, SOFFICE, "--headless", "--convert-to", "pdf", docx],
+    subprocess.run(_soffice() + ["--headless", "--convert-to", "pdf",
+                                 os.path.abspath(docx), "--outdir", os.path.abspath(outdir)],
                    cwd=outdir, check=True, capture_output=True, timeout=600)
     return os.path.join(outdir, os.path.splitext(os.path.basename(docx))[0] + ".pdf")
 
@@ -135,6 +171,10 @@ def main():
         if not cands:
             sys.exit("no BAS-User-Guide_v*.docx in docs/")
         src = os.path.join(docs, cands[-1])
+    # The two guides are the SAME document mechanically - title page, footer,
+    # a static contents list - so the stem is taken from the file rather than
+    # hardcoded, and this script stamps either one.
+    stem = os.path.basename(src).split("_v")[0]
     print("base: %s" % os.path.basename(src))
 
     work = tempfile.mkdtemp(prefix="guide")
@@ -171,15 +211,15 @@ def main():
     print("contents rows corrected: %d" % fixed)
     open(docxml, "w", encoding="utf-8").write(doc)
 
-    out_docx = os.path.join(docs, "BAS-User-Guide_v%s.docx" % version)
+    out_docx = os.path.join(docs, "%s_v%s.docx" % (stem, version))
     rezip(out_docx)
     final_pdf = render_pdf(out_docx, work)
-    shutil.copy(final_pdf, os.path.join(docs, "BAS-User-Guide.pdf"))
+    shutil.copy(final_pdf, os.path.join(docs, "%s.pdf" % stem))
     print("written: docs/%s" % os.path.basename(out_docx))
-    print("written: docs/BAS-User-Guide.pdf")
+    print("written: docs/%s.pdf" % stem)
 
     for f in os.listdir(docs):
-        if f.startswith("BAS-User-Guide_v") and f != os.path.basename(out_docx):
+        if f.startswith(stem + "_v") and f != os.path.basename(out_docx):
             print("SUPERSEDED, delete by hand: docs/%s" % f)
 
 

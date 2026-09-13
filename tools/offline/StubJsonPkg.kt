@@ -20,6 +20,8 @@ class JSONObject {
     fun optInt(name: String): Int = 0
     fun optInt(name: String, fallback: Int): Int = fallback
     fun optBoolean(name: String, fallback: Boolean): Boolean = fallback
+    fun opt(name: String): Any? = null
+    fun has(name: String): Boolean = false
     override fun toString(): String = ""
 }
 

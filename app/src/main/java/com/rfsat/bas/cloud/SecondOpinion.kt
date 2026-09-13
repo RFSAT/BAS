@@ -74,12 +74,33 @@ object SecondOpinion {
         val ring: Int = -1
     )
 
+    /**
+     * The scoring area as the model sees it, in fractions of the image.
+     *
+     * COARSE ON PURPOSE, AND NEVER THE REGISTRATION. A vision model places an
+     * edge to a few per cent of the frame, which on a 170 mm card is several
+     * millimetres — useless as a homography, where the printed rings and four
+     * tapped corners are good to a fraction of one. This is a region of
+     * interest and a sanity bound: it says roughly WHERE the card is, so the
+     * picture can be cropped to it and so a registration that lands somewhere
+     * else can be questioned. It only ever warns; it never moves a box.
+     */
+    data class Bounds(
+        val x0: Double, val y0: Double, val x1: Double, val y1: Double
+    ) {
+        val valid: Boolean
+            get() = x0 in 0.0..1.0 && y0 in 0.0..1.0 && x1 in 0.0..1.0 && y1 in 0.0..1.0 &&
+                x1 - x0 > 0.05 && y1 - y0 > 0.05
+    }
+
     data class Opinion(
         val faceName: String,
         val holeCount: Int,
         val spots: List<Spot>,
         val usable: Boolean,
-        val comment: String
+        val comment: String,
+        /** Only ever populated when the caller asked for it. */
+        val bounds: Bounds? = null
     )
 
     sealed class Result {
@@ -121,6 +142,18 @@ object SecondOpinion {
     """.trimIndent()
 
     /**
+     * Asked for ONLY when the caller wants the card located — the identify
+     * pass. The scoring calls do not send this, so their request and their
+     * schema are unchanged and cannot regress on it.
+     */
+    private val BOUNDS_EXTRA = """
+        Also report "card": the printed SCORING AREA's bounding box — the
+        outermost printed ring and everything inside it, NOT the paper, the
+        backing board or the frame — as {"x0","y0","x1","y1"} in fractions of
+        the image, x0/y0 being the top-left corner.
+    """.trimIndent()
+
+    /**
      * [jpegBase64] is the card photograph. Blocking; call it off the main
      * thread. Never logs the key, and never logs the image.
      */
@@ -134,7 +167,10 @@ object SecondOpinion {
         apiKey: String,
         model: String,
         jpegBase64: String,
-        scoreToo: Boolean = false
+        scoreToo: Boolean = false,
+        /** Ask the model where the card is as well. Off by default, so every
+         *  existing caller sends exactly the request it sent before. */
+        wantBounds: Boolean = false
     ): Result {
         if (apiKey.isBlank()) return Result.Failed("No API key is set for ${provider.label}.")
         // An HTTP header may not contain a newline, and a key pasted from a
@@ -160,7 +196,7 @@ object SecondOpinion {
             "identifier under \u201cOther\u201d."
 
         val outcome = when (provider) {
-            AiProvider.ANTHROPIC -> askAnthropic(apiKey, model, jpegBase64, scoreToo)
+            AiProvider.ANTHROPIC -> askAnthropic(apiKey, model, jpegBase64, scoreToo, wantBounds)
             AiProvider.OPENAI ->
                 askOpenAiCompatible(provider, OPENAI_ENDPOINT, apiKey, model, jpegBase64, scoreToo)
             // DeepSeek speaks the same dialect, so it is the same call with a
@@ -174,11 +210,29 @@ object SecondOpinion {
                 askOpenAiCompatible(provider, XAI_ENDPOINT, apiKey, model, jpegBase64, scoreToo)
             AiProvider.MISTRAL ->
                 askOpenAiCompatible(provider, MISTRAL_ENDPOINT, apiKey, model, jpegBase64, scoreToo)
-            AiProvider.GEMINI -> askGemini(apiKey, model, jpegBase64, scoreToo)
+            AiProvider.GEMINI -> askGemini(apiKey, model, jpegBase64, scoreToo, wantBounds)
         }
         return if (note.isEmpty() || outcome !is Result.Failed) outcome
                else Result.Failed(outcome.message + note)
     }
+
+    /** The question, assembled from the parts this call actually needs. */
+    private fun promptText(scoreToo: Boolean, wantBounds: Boolean): String = buildString {
+        append(PROMPT)
+        if (scoreToo) { append("\n\n"); append(SCORING_EXTRA) }
+        if (wantBounds) { append("\n\n"); append(BOUNDS_EXTRA) }
+    }
+
+    /** The card-bounds property. Never listed as REQUIRED: a model that will
+     *  not place the card should still answer everything else. */
+    private fun cardProperty(): JSONObject = JSONObject()
+        .put("type", "object")
+        .put("properties", JSONObject()
+            .put("x0", JSONObject().put("type", "number"))
+            .put("y0", JSONObject().put("type", "number"))
+            .put("x1", JSONObject().put("type", "number"))
+            .put("y1", JSONObject().put("type", "number")))
+        .put("required", JSONArray().put("x0").put("y0").put("x1").put("y1"))
 
     /** The hole schema both services are held to. Written once so the two
      *  cannot drift into answering slightly different questions. */
@@ -198,20 +252,25 @@ object SecondOpinion {
         return props
     }
 
-    private fun askAnthropic(apiKey: String, model: String, jpegBase64: String, scoreToo: Boolean): Result {
+    private fun askAnthropic(
+        apiKey: String, model: String, jpegBase64: String, scoreToo: Boolean,
+        wantBounds: Boolean = false
+    ): Result {
         val holeProps = holeProperties(scoreToo)
+        val props = JSONObject()
+            .put("face", JSONObject().put("type", "string"))
+            .put("usable", JSONObject().put("type", "boolean"))
+            .put("comment", JSONObject().put("type", "string"))
+            .put("holes", JSONObject()
+                .put("type", "array")
+                .put("items", JSONObject()
+                    .put("type", "object")
+                    .put("properties", holeProps)
+                    .put("required", JSONArray().put("x").put("y"))))
+        if (wantBounds) props.put("card", cardProperty())
         val schema = JSONObject()
             .put("type", "object")
-            .put("properties", JSONObject()
-                .put("face", JSONObject().put("type", "string"))
-                .put("usable", JSONObject().put("type", "boolean"))
-                .put("comment", JSONObject().put("type", "string"))
-                .put("holes", JSONObject()
-                    .put("type", "array")
-                    .put("items", JSONObject()
-                        .put("type", "object")
-                        .put("properties", holeProps)
-                        .put("required", JSONArray().put("x").put("y")))))
+            .put("properties", props)
             .put("required", JSONArray().put("face").put("usable").put("holes"))
 
         val body = JSONObject().apply {
@@ -235,7 +294,7 @@ object SecondOpinion {
                     })
                     .put(JSONObject().apply {
                         put("type", "text")
-                        put("text", if (scoreToo) PROMPT + "\n\n" + SCORING_EXTRA else PROMPT)
+                        put("text", promptText(scoreToo, wantBounds))
                     }))
             }))
         }.toString()
@@ -558,26 +617,31 @@ object SecondOpinion {
 
     /** Gemini's schema dialect: the same shape as the others, minus the
      *  additionalProperties that OpenAI insists on and Google rejects. */
-    private fun geminiSchema(scoreToo: Boolean): JSONObject {
+    private fun geminiSchema(scoreToo: Boolean, wantBounds: Boolean = false): JSONObject {
         val required = JSONArray().put("x").put("y").put("note")
         if (scoreToo) required.put("ring")
+        val props = JSONObject()
+            .put("face", JSONObject().put("type", "string"))
+            .put("usable", JSONObject().put("type", "boolean"))
+            .put("comment", JSONObject().put("type", "string"))
+            .put("holes", JSONObject()
+                .put("type", "array")
+                .put("items", JSONObject()
+                    .put("type", "object")
+                    .put("properties", holeProperties(scoreToo))
+                    .put("required", required)))
+        if (wantBounds) props.put("card", cardProperty())
         return JSONObject()
             .put("type", "object")
-            .put("properties", JSONObject()
-                .put("face", JSONObject().put("type", "string"))
-                .put("usable", JSONObject().put("type", "boolean"))
-                .put("comment", JSONObject().put("type", "string"))
-                .put("holes", JSONObject()
-                    .put("type", "array")
-                    .put("items", JSONObject()
-                        .put("type", "object")
-                        .put("properties", holeProperties(scoreToo))
-                        .put("required", required))))
+            .put("properties", props)
             .put("required", JSONArray().put("face").put("usable").put("comment").put("holes"))
     }
 
-    private fun askGemini(apiKey: String, model: String, jpegBase64: String, scoreToo: Boolean): Result {
-        val text = if (scoreToo) PROMPT + "\n\n" + SCORING_EXTRA else PROMPT
+    private fun askGemini(
+        apiKey: String, model: String, jpegBase64: String, scoreToo: Boolean,
+        wantBounds: Boolean = false
+    ): Result {
+        val text = promptText(scoreToo, wantBounds)
         val body = JSONObject().apply {
             put("contents", JSONArray().put(JSONObject()
                 .put("role", "user")
@@ -588,7 +652,7 @@ object SecondOpinion {
                         .put("data", jpegBase64))))))
             put("generationConfig", JSONObject()
                 .put("responseMimeType", "application/json")
-                .put("responseSchema", geminiSchema(scoreToo))
+                .put("responseSchema", geminiSchema(scoreToo, wantBounds))
                 .put("maxOutputTokens", MAX_TOKENS))
         }.toString()
         return try {
@@ -719,6 +783,22 @@ object SecondOpinion {
         }
         // Not JSON, or JSON this does not know: give back what arrived.
         return excerpt(body, 300).let { if (it == "(empty)") "" else it }
+    }
+
+    /**
+     * The card box the model gave, or null when it gave none or gave nonsense.
+     *
+     * A box is DISCARDED rather than clamped when it falls outside the frame
+     * or collapses to a sliver: this is a region of interest, and a wrong one
+     * is worse than none — it would crop the card out of its own photograph.
+     */
+    internal fun parseBounds(obj: JSONObject): Bounds? {
+        val c = obj.optJSONObject("card") ?: return null
+        val b = Bounds(
+            c.optDouble("x0", Double.NaN), c.optDouble("y0", Double.NaN),
+            c.optDouble("x1", Double.NaN), c.optDouble("y1", Double.NaN)
+        )
+        return if (b.valid) b else null
     }
 
     /** A body cut to size for a log line: one line, bounded, never blank. */
@@ -914,7 +994,8 @@ object SecondOpinion {
                 // The warning leads, because it changes how everything after
                 // it should be read.
                 comment = if (finding != null) finding.message +
-                    (if (comment.isBlank()) "" else " — $comment") else comment
+                    (if (comment.isBlank()) "" else " — $comment") else comment,
+                bounds = parseBounds(obj)
             ),
             inputTokens = inTok,
             outputTokens = outTok

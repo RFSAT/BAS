@@ -30,7 +30,7 @@ def collect(res_dir):
 
 def generate(res_dir, out_path):
     names = collect(res_dir)
-    lines = ["package com.rfsat.sts", "", "object R {"]
+    lines = ["package com.rfsat.bas", "", "object R {"]
     for kind in sorted(names):
         lines.append(f"    object {kind} {{")
         for n in sorted(names[kind]):
