@@ -1,10 +1,10 @@
-version 1.52.5
+version 1.52.6
 3cd6213562bfeaece6f2f589f5c4642c2cc3b10425979fba878b98709e4bfd47  .gitattributes
 988813c69bcb1ea071b28e4789f768dd66d5cc29e54c5cc6cca14e6a1f3aeca5  .github/workflows/android-ci.yml
 63f28317647dec38425022ea90984ec439695f73f276845993322c8db845a6e4  .gitignore
 458952b5cf4972f4a53ecc7f67d89798980e99b452fed4c655dfe0712495c809  INTEGRATION.md
-ba5eca8328ddb6f7ccb7e6b8434791b0826b9a47d1c3ff2c6af4be2d26512ef5  README.md
-8fe9fe3705e59258b2ffe511b794c8e32c0b49651d980b3028d86a70c5927fba  app/build.gradle.kts
+1a94fd83a2e7b1c347aa83d405bff39d35e12a5cbb9e29bf810a5f6283a41b2d  README.md
+b7fe714390fcffb20a112af57e448f6bb82f67907e81a34843a648ea7cf23799  app/build.gradle.kts
 db031cfb664fe276fcc130ac16ecd47845999e47872a1fa4a87cbeefcc0ad4a5  app/proguard-rules.pro
 fdb215195c6064ceb0f1bd2fd94b86cfab3cbbe2f6deab426b478c94b5381580  app/src/main/AndroidManifest.xml
 166d923d31cee9d1962991b5283a94d3764a23935220596ce33d807681ff2749  app/src/main/java/com/rfsat/bas/BasApp.kt
@@ -57,7 +57,7 @@ a00655fd184e1980de63b14507fc6a98998a82806337ac83a8bb557b430a9199  app/src/main/j
 8bf4677feb0bbe6648760c69754c788b354200345a855c250695002e9ccecd29  app/src/main/java/com/rfsat/bas/detect/Homography.kt
 cd4fe8bacfd631ba15c7809009de072ba0b5388d77954694cd60856883e094f5  app/src/main/java/com/rfsat/bas/detect/HoughCentre.kt
 1656052e9775cf705c80a31c7794d87896ec9ea94a3b2617bb3262bfb0db1bb3  app/src/main/java/com/rfsat/bas/detect/ImageLoader.kt
-e5135ab7aad6acc4391f6d8f689b5abfc50c09455991e3606a75b12776ce63e6  app/src/main/java/com/rfsat/bas/detect/ImportActivity.kt
+116f3132af80370b9e44fa0e324aa13346a185ca288449b646d0f2b601ebca69  app/src/main/java/com/rfsat/bas/detect/ImportActivity.kt
 571c79a6ea8d05f1b9fb16fada101e33df2bd03420c95968ba4afbc8ac0eb998  app/src/main/java/com/rfsat/bas/detect/LensDistortion.kt
 5f1e7c5659e03696907719e1de23f6c0c784f5fe51f3c5d5fe49cbaa93cdbc62  app/src/main/java/com/rfsat/bas/detect/LiveHitDetector.kt
 4fab6dbf3e58ed0fea40e3b9fd132283a520be830c08a89e4afe0b9ffe82d1ac  app/src/main/java/com/rfsat/bas/detect/LocalBackground.kt
@@ -76,7 +76,7 @@ f3b510f898ca3b652b1cadd7b06a342671f10ddfe216a46d5b3fd04fbfdc350a  app/src/main/j
 9c95a1ff2795408b21df4a744837c241fd2f579ab0a20a906f93903174a2d001  app/src/main/java/com/rfsat/bas/detect/ShapeCorrection.kt
 eb5e57e6832f6110dd9ee3c0b73edc40fc903fbd5d66abe27b1fce03959fce5c  app/src/main/java/com/rfsat/bas/detect/SourceHoleDetector.kt
 1e66469f06ecacf6987126e845bfbb25bb392d142d49116992e5161525ac4a3e  app/src/main/java/com/rfsat/bas/detect/SpsDimensions.kt
-cd1571345ab9040782f1bc9c67954f538b6fbed801e78b59a2eb8f38d9f56bda  app/src/main/java/com/rfsat/bas/detect/TargetGeometryCheck.kt
+53cfe903dacdd6028e55fd624cef63c760f41c4362e282d9c35919c51db3266c  app/src/main/java/com/rfsat/bas/detect/TargetGeometryCheck.kt
 a11a8a958bad8af14260ea3c845040de13ccf1ab6d0a143a98ca6c4012aff6d4  app/src/main/java/com/rfsat/bas/detect/TargetRegistration.kt
 8d874d84924fbfcf1a4710bbb414480a290d30015662f511d7a4bb14e87879e7  app/src/main/java/com/rfsat/bas/environment/DistanceConfig.kt
 2854512a7c42ba869f07cdbce28a249940b02e778c9a3497d9d973f446b9e756  app/src/main/java/com/rfsat/bas/environment/EnvSource.kt

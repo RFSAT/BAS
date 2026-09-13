@@ -565,7 +565,7 @@ class ImportActivity : BaseActivity() {
      * run on load: a face with no black mark at all is a perfectly ordinary
      * thing to open, and being told off for it would be noise.
      */
-    private fun doAutoDetect(silent: Boolean = false, alreadySwitched: Boolean = false) {
+    private fun doAutoDetect(silent: Boolean = false) {
         val bmp = shotBitmap ?: run {
             if (!silent) notifyUser("Choose a photo of the shot target first.")
             return
@@ -602,24 +602,15 @@ class ImportActivity : BaseActivity() {
             frame, disc, face, com.rfsat.bas.targets.TargetRepository(this).allFaces()
         )
 
-        // A — DO NOT SILENTLY REGISTER ON THE WRONG FACE. Auto-detect used to
-        // trust the selected face and only toast a warning that scrolled away.
-        // If the printed rings clearly match a different catalogue face, adopt
-        // it and re-run — the way "Identify" already does — and otherwise
-        // record a PERSISTENT warning (shown in the status panel) so a wrong or
-        // unconfirmed face cannot quietly produce a confident, wrong score.
-        val gMatch = geometry.bestMatch
-        if (geometry.looksWrong && gMatch != null && gMatch.id != face.id && !alreadySwitched) {
-            val idx = faces.indexOfFirst { it.id == gMatch.id }
-            if (idx >= 0) {
-                pendingTargetSelection = idx
-                binding.spTarget.setSelection(idx)
-                TargetRepository(this).setActiveFace(gMatch.id)
-                notifyUser("The printed rings match ${gMatch.name}, not ${face.name} — switched to it and re-detecting.")
-                doAutoDetect(silent = true, alreadySwitched = true)
-                return
-            }
-        }
+        // Auto-detect trusts the SELECTED face by design — "Identify target and
+        // register" is the route that works the face out (now by ring
+        // verification). Auto-detect must NOT silently switch to a proportion
+        // guess: the black/outer ratio cannot separate an even 1-10 face from
+        // an unevenly-pitched one of the same proportions, and adopting that
+        // guess (as 1.52.5 briefly did) put the WRONG face on the card — NRA/CMP
+        // SR in place of ISSF Precision Pistol — and overrode a correct manual
+        // choice. So warn, persistently, and leave the face to the shooter or
+        // to Identify.
         registrationWarning = RegistrationHealth.assess(
             face.name, geometry.looksWrong, geometry.bestMatch?.name
         ).note.ifBlank { null }
@@ -1200,6 +1191,29 @@ class ImportActivity : BaseActivity() {
 
         lastFit = fit
         lastMarkRadiusPx = mark?.radiusPx ?: 0.0
+        val gauge = currentRules().gaugeDiameterMm
+
+        // F2 — CHOOSE THE FACE BY WHICH ONE'S RINGS ACTUALLY LAND ON THE PRINT.
+        //
+        // The black/outer RATIO cannot tell an even 1-10 face from an
+        // unevenly-pitched face of the same proportions — on the range card it
+        // could not separate ISSF Precision Pistol from NRA/CMP SR, and the
+        // 1.52.5 auto-adopt took the wrong one. Ring VERIFICATION can: for each
+        // catalogue face, build a trial registration from THIS fit and count
+        // how many of its rings sit on printed lines. The face the card really
+        // is verifies almost completely; a wrong face of similar proportions
+        // does not. Scale-based, so it also survives an under-measured mark,
+        // which the pitch-ratio identify below does not.
+        data class Verified(val face: TargetFace, val fraction: Double, val testable: Int)
+        val verified = TargetRepository(this).allFaces().filter { it.ringPitchMm != null }.mapNotNull { f ->
+            val reg = runCatching {
+                TargetRegistration.fromRingFit(f, fit, gauge, transform, frame, mark?.radiusPx ?: 0.0)
+            }.getOrNull() ?: return@mapNotNull null
+            val vr = TargetGeometryCheck.verifiedRings(frame, reg, f) ?: return@mapNotNull null
+            Verified(f, vr.first.toDouble() / vr.second, vr.second)
+        }
+        val topVerified = verified.filter { it.testable >= 4 }.maxByOrNull { it.fraction }
+
         val matches = if (mark != null)
             RingFinder.identify(
                 fit, mark.radiusPx, TargetRepository(this).identifiableFaces(currentFace().id),
@@ -1208,12 +1222,17 @@ class ImportActivity : BaseActivity() {
         else emptyList()
         val best = matches.firstOrNull()
 
-        if (best != null && best.relativeError < IDENTIFY_TOLERANCE) {
-            faces.indexOfFirst { it.id == best.face.id }.takeIf { it >= 0 }?.let { idx ->
-                pendingTargetSelection = idx
-                binding.spTarget.setSelection(idx)
-                TargetRepository(this).setActiveFace(best.face.id)
-            }
+        var chosenFace = currentFace()
+        // 0.5 is the same bar verifyRings() calls "matches"; below it the fit
+        // is not trusted and we fall through to the pitch-ratio identify.
+        if (topVerified != null && topVerified.fraction >= 0.5) {
+            chosenFace = topVerified.face
+            registrationWarning = null
+            notifyUser("Identified as %s: %.0f%% of its rings land on the printed lines.".format(
+                topVerified.face.name, topVerified.fraction * 100))
+        } else if (best != null && best.relativeError < IDENTIFY_TOLERANCE) {
+            chosenFace = best.face
+            registrationWarning = null
             val runnerUp = matches.getOrNull(1)
             notifyUser(buildString {
                 append("Identified as %s (%.0f%% agreement".format(best.face.name, 100 * (1 - best.relativeError)))
@@ -1221,7 +1240,6 @@ class ImportActivity : BaseActivity() {
                     runnerUp.face.name, 100 * (1 - runnerUp.relativeError)))
                 append("). Scale from %d fitted rings.".format(fit.ringCount))
             })
-            registrationWarning = null
         } else {
             registrationWarning = RegistrationHealth.unmatchedNote(currentFace().name)
             notifyUser(
@@ -1229,6 +1247,13 @@ class ImportActivity : BaseActivity() {
                     "Registering against the selected face — check it is the right one, or add " +
                     "this target under Targets."
             )
+        }
+        if (chosenFace.id != currentFace().id) {
+            faces.indexOfFirst { it.id == chosenFace.id }.takeIf { it >= 0 }?.let { idx ->
+                pendingTargetSelection = idx
+                binding.spTarget.setSelection(idx)
+                TargetRepository(this).setActiveFace(chosenFace.id)
+            }
         }
 
         // The ring family's ellipticity is an INDEPENDENT read on the tilt,
@@ -1254,22 +1279,33 @@ class ImportActivity : BaseActivity() {
             )
         }
 
-        val face = currentFace()
+        val face = chosenFace
         val rules = currentRules()
         val reg = TargetRegistration.fromRingFit(
             face, fit, rules.gaugeDiameterMm, transform, frame,
             markRadiusPx = mark?.radiusPx ?: 0.0
         )
         if (reg == null) {
-            // Not a failure of the fit — some faces simply have no single
-            // ring pitch to scale from. The practical and service faces put
-            // their scoring zones at unequal spacings by design, and for
-            // those the aiming mark is the only measurement there is.
-            notifyUser(
-                "${face.name} has unevenly pitched rings, so a fitted pitch cannot set its " +
-                    "scale. Registering from the aiming mark instead."
-            )
+            // F1 — "Identify AND register" must leave you registered. Some
+            // faces have no single ring pitch to scale from (the practical and
+            // service faces are unevenly spaced by design), so the fitted pitch
+            // cannot set the scale — but the aiming-mark box can, and its scale
+            // comes from the mark and the face ratio, not the pitch. So place
+            // that box and COMMIT it here, instead of dropping silently to "not
+            // registered" and making the shooter press Register a second time.
             doAutoDetect(silent = true)
+            val box = binding.overlay.boxInSource()
+            registration = if (box != null) TargetRegistration.fromBoundingBox(
+                face, box, boxMeaning, rules.gaugeDiameterMm, markEllipticity, transform
+            ) else null
+            notifyUser(
+                if (registration != null)
+                    "${face.name} can't be scaled from the ring pitch, so it was registered from the " +
+                        "aiming mark instead. Check the drawn rings before you score."
+                else "${face.name} has unevenly pitched rings and no aiming-mark box could be placed — " +
+                        "register by tapping the four card corners."
+            )
+            refreshStatus()
             return
         }
         registration = reg

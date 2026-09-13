@@ -35,6 +35,42 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.52.6 - "Identify and register" picks the face by which one's rings
+        //          actually fit, and always leaves you registered.
+        //
+        //          The range card is an ISSF 25/50 m Precision Pistol face
+        //          (even 1-10 rings). 1.52.5 registered it as NRA/CMP SR 200 yd
+        //          instead - nearly identical black/outer PROPORTIONS but
+        //          unevenly-pitched rings - because the auto-adopt trusted that
+        //          scale-free ratio, which cannot tell the two apart. And with
+        //          no single pitch, NRA/CMP SR gave Identify nothing to scale
+        //          from, so it dropped to an unregistered box and the shooter
+        //          was asked to register a second time.
+        //
+        //          F2. Identify now chooses the face by RING VERIFICATION: for
+        //          each even-pitch catalogue face it builds a trial fit and
+        //          counts how many of that face's rings land on printed lines,
+        //          and takes the best above 0.5. Precision Pistol verifies;
+        //          NRA/CMP SR cannot even form a ring-fit candidate (uneven), so
+        //          it can no longer be chosen. Scale-based, so it survives an
+        //          under-measured aiming mark, which the pitch-ratio identify
+        //          did not. Auto-detect no longer switches the face on the ratio
+        //          guess at all - it warns and leaves the selection alone,
+        //          undoing the 1.52.5 regression that put the wrong face on the
+        //          card and fought a correct manual choice.
+        //
+        //          F1. When a fitted pitch cannot set the scale (an unevenly
+        //          spaced face), Identify now COMMITS a registration from the
+        //          aiming-mark box instead of leaving it unregistered - the
+        //          button's name is honoured.
+        //
+        //          Verified by the static gates and by measuring the card's ring
+        //          structure directly (even 55.5 px pitch, 10 rings, black at 4
+        //          pitches = Precision Pistol); the detector path itself still
+        //          needs one on-device confirmation. This does NOT change how
+        //          many holes are found - recall on a tight overlapping group is
+        //          the second opinion's and the clean reference's job.
+        //
         // 1.52.5 - the wrong-face mis-registration is caught before it scores,
         //          not discovered at the range.
         //
@@ -5668,8 +5704,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 103
-        versionName = "1.52.5"
+        versionCode = 104
+        versionName = "1.52.6"
     }
 
     // Resolved once, here, rather than re-read from the environment in two

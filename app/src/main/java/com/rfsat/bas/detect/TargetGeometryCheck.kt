@@ -131,7 +131,15 @@ object TargetGeometryCheck {
      * size the rings are genuinely below one pixel apart, and failing that
      * card for it would be the check crying wolf.
      */
-    fun verifyRings(frame: LumaFrame, reg: TargetRegistration, face: TargetFace): String? {
+    /**
+     * How many of a face's rings actually land on printed ring lines under
+     * [reg], as (present, testable), or null when too few rings are testable
+     * to judge. This is SCALE-BASED — it asks whether the rings are where the
+     * face says, not what the black/outer ratio is — so it separates two faces
+     * of similar proportions that the ratio cannot (an even 1-10 face from an
+     * unevenly-pitched one), and it survives an under-measured aiming mark.
+     */
+    fun verifiedRings(frame: LumaFrame, reg: TargetRegistration, face: TargetFace): Pair<Int, Int>? {
         if (face.rings.size < 3) return null
         val (cx, cy) = reg.homography.mmToPx(0.0, 0.0)
         if (cx.isNaN() || cy.isNaN()) return null
@@ -159,6 +167,11 @@ object TargetGeometryCheck {
         }
 
         if (testable < 3) return null
+        return present to testable
+    }
+
+    fun verifyRings(frame: LumaFrame, reg: TargetRegistration, face: TargetFace): String? {
+        val (present, testable) = verifiedRings(frame, reg, face) ?: return null
         val fraction = present.toDouble() / testable
         Logger.i(
             "TargetGeometryCheck",
