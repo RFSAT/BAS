@@ -69,6 +69,20 @@
                 android:text="With both photographs the app scores what CHANGED between them, which ignores the printed rings, the paper texture and the aiming mark entirely. With only the shot target it has to tell holes from printing by shape and size alone, which works but is the weaker mode."
                 android:justificationMode="inter_word" />
 
+            <Button android:id="@+id/btnPickVideo"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                style="@style/Sts.TextButton"
+                android:text="…or a video of the whole string, with sound" />
+
+            <TextView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:layout_marginTop="4dp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:text="A video recorded from a fixed position, sound on, covering the string from before the first shot. Each report in the soundtrack says when a hole appeared, so every shot is scored one at a time, in firing order, against the frame just before it — the most accurate mode the app has. A tripod matters: if the camera moves, so does every position after it."
+                android:justificationMode="inter_word" />
+
             <TextView style="@style/Sts.SectionHeading" android:text="2. Course of fire" />
 
             <TextView style="@style/Sts.FieldLabel" android:text="Rules" />

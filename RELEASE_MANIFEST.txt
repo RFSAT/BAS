@@ -1,10 +1,10 @@
-version 1.53.0
+version 1.54.0
 3cd6213562bfeaece6f2f589f5c4642c2cc3b10425979fba878b98709e4bfd47  .gitattributes
 988813c69bcb1ea071b28e4789f768dd66d5cc29e54c5cc6cca14e6a1f3aeca5  .github/workflows/android-ci.yml
 63f28317647dec38425022ea90984ec439695f73f276845993322c8db845a6e4  .gitignore
 458952b5cf4972f4a53ecc7f67d89798980e99b452fed4c655dfe0712495c809  INTEGRATION.md
-27a3cc9b84430f5d346b515e0b94ee5740618200e47f48e1eb59c30e6b6189bc  README.md
-d609e8f7b4186d2a854873989e4c6833c2d7bceb3a106d07f75dc92e4b168727  app/build.gradle.kts
+09a64227bfaf27d5a447d30eeeea3c38d83fc942c146fe75f183f3a3d5a5d14b  README.md
+067b94ecc6b9b19d0963526dbc1e0ed36216fff73ba71d89dc32d2d84fef2b5c  app/build.gradle.kts
 db031cfb664fe276fcc130ac16ecd47845999e47872a1fa4a87cbeefcc0ad4a5  app/proguard-rules.pro
 fdb215195c6064ceb0f1bd2fd94b86cfab3cbbe2f6deab426b478c94b5381580  app/src/main/AndroidManifest.xml
 166d923d31cee9d1962991b5283a94d3764a23935220596ce33d807681ff2749  app/src/main/java/com/rfsat/bas/BasApp.kt
@@ -16,7 +16,7 @@ f5b70062fc5d33639bf165cf15f86b0c14937e575049561aca132c591ae4859e  app/src/main/j
 e927b27543648163460058b4be9f5e294d39d01f22321828730f924487c9940e  app/src/main/java/com/rfsat/bas/ballistics/MuzzleVelocity.kt
 747ec51ee343bfd70ff2b193afd8d14d1ca6510a097f3a12fcf90de5fcb24135  app/src/main/java/com/rfsat/bas/ballistics/Truing.kt
 f30ffca0e2a4d8bb68fe8b66463fe82157126d8b376264fc55d6335557c8bd48  app/src/main/java/com/rfsat/bas/ballistics/Vec3.kt
-9a2a1a3776cd3fca982419f4a5dd06979f66ebcef4f1271eebf1ac7f399d6377  app/src/main/java/com/rfsat/bas/capture/AudioShotDetector.kt
+8f2f82df891a2cde0bbf6617eaa1e5e359d0b44aae72f90c165b1934807bf86c  app/src/main/java/com/rfsat/bas/capture/AudioShotDetector.kt
 62c77e4802692d592c3ab91312c000a979f6def31ccf2695a9366ad26a7344fe  app/src/main/java/com/rfsat/bas/capture/CameraConfig.kt
 09e857e351023cda46403fdbde60c1e6c4d069f6d24ed5e140d88cb713f93cfd  app/src/main/java/com/rfsat/bas/capture/CameraFileImporter.kt
 5684765d990300c8e0b9a6ca8cba737d6fc49e43c19e146b000c9f6875d72526  app/src/main/java/com/rfsat/bas/capture/CameraFovProvider.kt
@@ -34,6 +34,7 @@ bd581da5b5b004049041c981e2c653bf96481c18dbdd4d8be0d3f9196583ece5  app/src/main/j
 53fe0c4e3e60afa234bd8405127bc185722d4f9db35de20ccaffc4584afebaae  app/src/main/java/com/rfsat/bas/capture/TrailCalibration.kt
 20012f6f9b7f7f4d74cd93e9cb3a08407a6ad9c1895e0e505b28c01b28dc9113  app/src/main/java/com/rfsat/bas/capture/TrailExtractor.kt
 466c5407235cafaa215a8d38e55110f981c4f48a30b15f07eefcc54dac7a697e  app/src/main/java/com/rfsat/bas/capture/TrailFrameAnalyzer.kt
+04c24f658aaa27e6a2032b9553704c9cb8b5fe17b30537e2a826cd0f9e76b833  app/src/main/java/com/rfsat/bas/capture/VideoFrames.kt
 a6efac375fba62c6dce3b26c140df67e89de829d95eb849fdbd8316f6e95939f  app/src/main/java/com/rfsat/bas/capture/VideoSourceRepository.kt
 1099ba80098aae80aad334662b640e8acb70124351b27ffc4c4df2eef9e083f0  app/src/main/java/com/rfsat/bas/cloud/AiFaceMatch.kt
 94f4275bb1820f89013192887b2c5fda51efeb02afa0f635303d1fa30b1a5318  app/src/main/java/com/rfsat/bas/cloud/AiProvider.kt
@@ -58,7 +59,7 @@ a00655fd184e1980de63b14507fc6a98998a82806337ac83a8bb557b430a9199  app/src/main/j
 8bf4677feb0bbe6648760c69754c788b354200345a855c250695002e9ccecd29  app/src/main/java/com/rfsat/bas/detect/Homography.kt
 cd4fe8bacfd631ba15c7809009de072ba0b5388d77954694cd60856883e094f5  app/src/main/java/com/rfsat/bas/detect/HoughCentre.kt
 1656052e9775cf705c80a31c7794d87896ec9ea94a3b2617bb3262bfb0db1bb3  app/src/main/java/com/rfsat/bas/detect/ImageLoader.kt
-d063d05511ba2dfb81206a1c9c0d412891413cbd1ef5ce9d08d25d8f84cd3d35  app/src/main/java/com/rfsat/bas/detect/ImportActivity.kt
+5086be99d9c3d8035221a9c61ad10a0becfe3093b423dcbc34c174dd0cae9743  app/src/main/java/com/rfsat/bas/detect/ImportActivity.kt
 571c79a6ea8d05f1b9fb16fada101e33df2bd03420c95968ba4afbc8ac0eb998  app/src/main/java/com/rfsat/bas/detect/LensDistortion.kt
 5f1e7c5659e03696907719e1de23f6c0c784f5fe51f3c5d5fe49cbaa93cdbc62  app/src/main/java/com/rfsat/bas/detect/LiveHitDetector.kt
 4fab6dbf3e58ed0fea40e3b9fd132283a520be830c08a89e4afe0b9ffe82d1ac  app/src/main/java/com/rfsat/bas/detect/LocalBackground.kt
@@ -79,6 +80,7 @@ eb5e57e6832f6110dd9ee3c0b73edc40fc903fbd5d66abe27b1fce03959fce5c  app/src/main/j
 1e66469f06ecacf6987126e845bfbb25bb392d142d49116992e5161525ac4a3e  app/src/main/java/com/rfsat/bas/detect/SpsDimensions.kt
 53cfe903dacdd6028e55fd624cef63c760f41c4362e282d9c35919c51db3266c  app/src/main/java/com/rfsat/bas/detect/TargetGeometryCheck.kt
 a11a8a958bad8af14260ea3c845040de13ccf1ab6d0a143a98ca6c4012aff6d4  app/src/main/java/com/rfsat/bas/detect/TargetRegistration.kt
+133b25e0b05d60e07069267bcc063d3a4e21fb0fd7cb4f0e742ef5fb074c711f  app/src/main/java/com/rfsat/bas/detect/VideoStringScorer.kt
 8d874d84924fbfcf1a4710bbb414480a290d30015662f511d7a4bb14e87879e7  app/src/main/java/com/rfsat/bas/environment/DistanceConfig.kt
 2854512a7c42ba869f07cdbce28a249940b02e778c9a3497d9d973f446b9e756  app/src/main/java/com/rfsat/bas/environment/EnvSource.kt
 6eb61825e087ac743d4ed364e15dcb30c31eec49ef88d83f1594c77199228c1b  app/src/main/java/com/rfsat/bas/environment/EnvironmentManager.kt
@@ -188,7 +190,7 @@ eaf20031debe40fd4a411ee195053c0141da0eb77b991c997feb4a9fb5b222b6  app/src/main/r
 fa591b6b552a096df39dd1e708b6eb9e240aebb455720742d0a02d1dc971dd84  app/src/main/res/layout/activity_ballistics_results.xml
 1439062533322380220f378b65d9ddb1a7c3e82e4d06256642b2319f2af537b9  app/src/main/res/layout/activity_capture.xml
 d528efc08b8fab70058d2788b0facdb49f6b6d133b4ee776281f60be6d47ee2c  app/src/main/res/layout/activity_face_detail.xml
-d39de52d4d9a3d0c40397ae5020a34b30843f7465b91387d2d84b4595934e0a8  app/src/main/res/layout/activity_import.xml
+11b6d48bd10b01c49ede81086fea581bd9901823b928b8fff092285aef34e538  app/src/main/res/layout/activity_import.xml
 24787fe888be814c62e586112a4d71282b9501bf67507e1fd4fadea1f178ed1c  app/src/main/res/layout/activity_log.xml
 4162dd6e962410beac7e8b6bebaddbfa46281e61cd841b2ac3b088149b49a661  app/src/main/res/layout/activity_main.xml
 5b9b56b70c150376e3036da0c9431ee3a87f872b139c7a1ced11447313a56a24  app/src/main/res/layout/activity_profile.xml
@@ -233,6 +235,7 @@ ff95deaf44bc2eda5cb0ee5e6cc77fb54ffce0a7d58a9a5d4bf2ec906e526e06  app/src/main/r
 730e6eaa4ff2a009c7514c45e8d32eb0e254cfcb175f1b3ff087816936615b94  app/src/test/java/com/rfsat/sts/AiProviderTest.kt
 9f76bde041760b1bace3d1bcca0ff88577598bbbc198dfb8c5b0924e05d0ea41  app/src/test/java/com/rfsat/sts/AnswerSanityTest.kt
 3faa17c4245ab27d1af28dc5ab8f5ca57843227ea88c6abaa21cfac70040651b  app/src/test/java/com/rfsat/sts/AspectCorrectionTest.kt
+362a80bc07d4492f9718a0a43cd8f8d475aae298d89ee355e609b20ae71bb800  app/src/test/java/com/rfsat/sts/AudioOnsetTest.kt
 05cb264da6b8bbf7c6a257eaf3f84accec4a56c26e96ed3f82eca1ef6dd48f18  app/src/test/java/com/rfsat/sts/BackupSettingsTest.kt
 536af42a233568a8b47023a6a8e9e6e84f2ce4db7150c244b445a32f441b18ec  app/src/test/java/com/rfsat/sts/CameraProfileTest.kt
 e10ebde2150e0026df0a78d7e99d559c2a9f00375c8a123e2c960f32bced7752  app/src/test/java/com/rfsat/sts/CorrectionConsistencyTest.kt
@@ -264,6 +267,7 @@ e1480b17e9d74209b285af520de1a25d0103e976165365b15afdec743475f123  app/src/test/j
 f903fbfbdb4f7b0800b5c2e89f23228857a1017da3b2e32b3079a51b8ac62e0b  app/src/test/java/com/rfsat/sts/T0002CorpusTest.kt
 5646d0a4d88fe27d85a62d5a6d57583b46ffb8f55c6f7214b3059b70b80bd68c  app/src/test/java/com/rfsat/sts/TruingTest.kt
 09c8307dbb1f12119812b29c094a94b8075dc8633661c19f8126c1e5415c9e94  app/src/test/java/com/rfsat/sts/UpgradeSnapshotTest.kt
+b7a9e40d1f1aa8e7d2ac6c2e309133d23a8f482f21265c84dc55d4a500f28708  app/src/test/java/com/rfsat/sts/VideoStringScorerTest.kt
 e853ebd73270e3d479061d8357da04d8013cc1a94f3c6ec307a24e6b8bcee1d6  app/src/test/java/com/rfsat/sts/WeatherGapsTest.kt
 22a546ac11fe998e03e8a71cf2bbb9b1a88de89386295c005c61156405b892f5  app/src/test/java/com/rfsat/sts/WeatherKeysTest.kt
 d07d5d99d42be770afc53b42c746cf70b7a04156368673a224016e495b36b0a0  app/src/test/resources/corpus/T0002_colour.pgm.gz
@@ -313,10 +317,10 @@ d3889e25291bb6fdd99b18f6aea63caa11fdb8c1cc04aba2600500a353515c8a  tools/offline/
 fdb34426a201c4ee8a99edcffe256b11172579e24c291f421b4ba478c1bdbcc4  tools/offline/StubLibsPkg.kt
 347fd691c72b437b3f477e0a31d77c5ad9dc8e00a3f1df7fad6b0c47d8aab63d  tools/offline/StubMaterialPkg.kt
 2da6173f4f1ca1a5dbc8e2d59c10f3af773f44e50752e8c2f2fb1e61a6747c85  tools/offline/StubMaterialRPkg.kt
-280d53a3e3783abd512b49bfe22edbfcd4d96feb24292804e2ee333696e5bbda  tools/offline/StubMediaCodecPkg.kt
+0b35e1f8d4bf30e6584418573b997be36f9b5a5b6a0a8622ddef5264f54c17b4  tools/offline/StubMediaCodecPkg.kt
 ee68d5692e1eec124fe763c6ec5b0cadd57768fcc0a47e39be78be11f4cd0700  tools/offline/StubMediaPkg.kt
 c47a12b9639467b55d22b206016403467b8b156c620eb5618301c62aa206d9c9  tools/offline/StubMiscPkg.kt
-9d20b3622ca37a4b41e772ca3845684d55e365d91f1423a97ae4b4d291c87434  tools/offline/StubNetPkg.kt
+34d16464c211615cb473be0cfa943863a6be26cb8e00565eed021d5cc425df00  tools/offline/StubNetPkg.kt
 11f5433420131616e0418be59acc726eb6bd076e0e162c4105f4df0830ff2518  tools/offline/StubNetPkg2.kt
 46fd0a8631de5555d079906486da86e9c644e3951cfaa2358cedfb4669230b18  tools/offline/StubOsBuild.kt
 5281f10bae6e8f267db51e2e4f2c31ddd05c0757bfd05b8d2fbfe276c9644e32  tools/offline/StubPlatformPkg.kt
@@ -335,4 +339,4 @@ cd2debbca7a581cfef2e4f7237fd04419a89e464d8285487735a7c7de0919d2a  tools/offline/
 97f9b86f4799dfd22243818cb8329612a425f35f10d189e5c146f62d5200930f  tools/offline/run.sh
 ecfaf66c672728d66d2ea533811deb5cd1cca6878330dae1d504dd157cc7122a  tools/offline/typecheck_ui.sh
 9ea64bffd2ec763b3748cfc7e89731e70c820db0a3692f5262b382f0d0ab3606  tools/package_release.py
-2114e09a62e2ac97217fbc7189e28d0f9373ff3d9db8dcb903e068c87f09ab0a  tools/update_user_guide.py
+3aeae8ef79f3abe24299ea8fd5c9cc04f520b2125fe974a7797daec909da56fd  tools/update_user_guide.py

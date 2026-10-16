@@ -20,7 +20,7 @@ The document is EDITED, never regenerated: unzip, patch document.xml, rezip.
 That is what keeps the title page, the RFSAT logo and every style the
 originals rather than an imitation of them.
 """
-import os, re, shutil, subprocess, sys, tempfile, zipfile
+import datetime, os, re, shutil, subprocess, sys, tempfile, zipfile
 
 T = re.compile(r'<w:t(?:\s[^>]*)?>(.*?)</w:t>', re.S)
 def _soffice():
@@ -63,10 +63,14 @@ def row_label(p):
 def stamp_version(doc, version, build):
     """Replace whatever version the title page and footer carry."""
     n = 0
+    # The month is TODAY'S, not whatever the title already carried. Keeping
+    # m.group(3) meant the date was copied forward from the first edition
+    # and never moved: an October release went out saying September.
+    month = datetime.date.today().strftime("%B %Y")
     def title(m):
         nonlocal n
         n += 1
-        return "Version %s (build %s) · %s" % (version, build, m.group(3))
+        return "Version %s (build %s) · %s" % (version, build, month)
     doc = re.sub(r'Version (\d+\.\d+\.\d+) \(build (\d+)\) · ([A-Za-z]+ \d{4})', title, doc)
     # The two guides do not write the footer the same way: the User Guide has
     # "BAS <v> — RFSAT" and the Programmer Reference "BAS <v> (build <n>) —

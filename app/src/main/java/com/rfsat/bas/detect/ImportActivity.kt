@@ -4,6 +4,8 @@ import android.graphics.Bitmap
 import com.rfsat.bas.cloud.SecondOpinion
 import com.rfsat.bas.cloud.ScoringSource
 import com.rfsat.bas.cloud.CloudSettings
+import com.rfsat.bas.capture.AudioShotDetector
+import com.rfsat.bas.capture.VideoFrames
 import android.util.Base64
 import android.net.Uri
 import android.os.Bundle
@@ -76,6 +78,19 @@ class ImportActivity : BaseActivity() {
     private var aspectX = 1.0
     private var aspectY = 1.0
     private var lensK = 0.0
+    /**
+     * The lens coefficient actually baked into [shotBitmap] right now — not
+     * the same thing as [lensK], which is what the field says. An aspect
+     * stretch starts again from the ORIGINAL and drops any lens correction,
+     * and a new picture starts uncorrected, so the field can hold a value the
+     * picture on screen does not have.
+     *
+     * Only the video path reads this. Every frame taken from a clip has to be
+     * put through precisely the correction the registered frame was, or the
+     * registration is applied to pixels of a different shape — and that
+     * misplaces every hole by an amount nothing on screen would show.
+     */
+    private var appliedLensK = 0.0
     private var cleanBitmap: Bitmap? = null
     private var cleanUri: Uri? = null
     private var shotUri: Uri? = null
@@ -115,6 +130,22 @@ class ImportActivity : BaseActivity() {
         if (uri != null) onImagePicked(uri)
     }
 
+    /**
+     * The video the shot came from, and the muzzle-report times its own
+     * soundtrack gave. Null and empty for a photograph.
+     *
+     * While set, the picture on screen is the clip's LAST settled frame — the
+     * card as the string ended — and that is what gets registered, exactly as
+     * a photograph would be. Detection then goes back to the clip and scores
+     * one shot at a time; see [scoreVideo].
+     */
+    private var videoFile: java.io.File? = null
+    private var reportTimesS: List<Double> = emptyList()
+
+    private val pickVideo = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) onVideoPicked(uri)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityImportBinding.inflate(layoutInflater)
@@ -128,8 +159,14 @@ class ImportActivity : BaseActivity() {
         }
         setupBottomNav(R.id.nav_score)
         intent?.getStringExtra(IMPORT_EXTRA_IMAGE_PATH)?.let { path ->
-            runCatching { onImagePicked(android.net.Uri.fromFile(java.io.File(path))) }
-                .onFailure { Logger.e("ImportActivity", "GoPro image load failed", it) }
+            // A camera download is not always a still. "Score latest file"
+            // on a TACTACAM or ShotKam fetches whatever the camera recorded
+            // last, and those cameras record VIDEO — which used to arrive
+            // here, fail ImageLoader, and tell the shooter to "try a JPEG".
+            val uri = android.net.Uri.fromFile(java.io.File(path))
+            runCatching {
+                if (VideoFrames.looksLikeVideo(path)) onVideoPicked(uri) else onImagePicked(uri)
+            }.onFailure { Logger.e("ImportActivity", "camera file load failed", it) }
         }
     }
 
@@ -185,6 +222,7 @@ class ImportActivity : BaseActivity() {
 
         binding.btnPickShot.setOnClickListener { pickingClean = false; pickImage.launch("image/*") }
         binding.btnPickClean.setOnClickListener { pickingClean = true; pickImage.launch("image/*") }
+        binding.btnPickVideo.setOnClickListener { pickVideo.launch("video/*") }
         binding.btnIdentify.setOnClickListener { doIdentifyTarget() }
         binding.btnAutoDetect.setOnClickListener { doAutoDetect() }
         binding.btnRegister.setOnClickListener { doRegister() }
@@ -379,6 +417,7 @@ class ImportActivity : BaseActivity() {
             return
         }
         aspectX = sx; aspectY = sy
+        appliedLensK = 0.0
         useBitmap(scaled)
         binding.tvAspect.text =
             "Stretched to width %.1f%%, height %.1f%% of the original.".format(sx * 100, sy * 100)
@@ -419,6 +458,7 @@ class ImportActivity : BaseActivity() {
             val h = (corrected.height * aspectY).toInt().coerceAtLeast(1)
             runCatching { Bitmap.createScaledBitmap(corrected, w, h, true) }.getOrNull() ?: corrected
         } else corrected
+        appliedLensK = k
         useBitmap(stretched)
         binding.tvLens.text =
             if (LensDistortion.worthApplying(k)) "Corrected with k = %.3f.".format(k)
@@ -471,6 +511,7 @@ class ImportActivity : BaseActivity() {
         binding.etLensK.setText("0")
         binding.tvLens.text = ""
         setSliders(1.0, 1.0)
+        appliedLensK = 0.0
         useBitmap(src)
         binding.tvAspect.text = "Original picture."
         notifyUser("Back to the original picture. Registering it again.")
@@ -522,40 +563,269 @@ class ImportActivity : BaseActivity() {
             notifyUser("Clean target loaded. Register the SHOT target below; the clean one is " +
                 "registered from the same corners, so photograph both from roughly the same place.")
         } else {
-            if (shotBitmap !== sourceShotBitmap) shotBitmap?.recycle()
-            sourceShotBitmap?.recycle()
-            shotBitmap = bmp
-            sourceShotBitmap = bmp
-            aspectX = 1.0; aspectY = 1.0
-            setSliders(1.0, 1.0)
-            binding.tvAspect.text = ""
+            // A photograph replaces any video: from here detection reads this
+            // still, not a clip it no longer has on screen.
+            videoFile = null
+            reportTimesS = emptyList()
             shotUri = uri
             rememberLastImage(uri)
-            binding.image.setImageBitmap(bmp)
-            // The overlay maps taps through the bitmap's own dimensions and
-            // the ImageView's fitCenter letterboxing. Both have to be right or
-            // the registration is silently skewed.
-            binding.overlay.setSourceGeometry(
-                bmp.width, bmp.height, RegistrationOverlayView.SourceFit.FIT_CENTER
-            )
-            binding.overlay.clearAll()
-            registration = null
-            // IDENTIFY, not merely detect.
-            //
-            // This ran the aiming-mark path on load, which takes the scale
-            // from the black mark multiplied by the ratio of whichever face
-            // happens to be SELECTED — so it is only as right as that
-            // selection. Fitting the ring family instead measures the pitch
-            // over five to nine rings, says which face it is rather than
-            // assuming, and cross-checks the two against each other.
-            //
-            // It falls back to the mark on its own when the rings cannot be
-            // fitted, or when the face has no even pitch to fit, so the
-            // weaker method is still there — as a fallback rather than as the
-            // default, which is the right way round.
-            doIdentifyTarget(silent = true)
+            showShot(bmp)
         }
         refreshStatus()
+    }
+
+    /**
+     * Puts a freshly loaded shot picture on screen and starts registering it.
+     * Shared by the photo and video pickers so that a frame from a clip is
+     * handled exactly as a photograph is — the same overlay geometry, the
+     * same automatic identification — and cannot drift into a second,
+     * slightly different version of that sequence.
+     */
+    private fun showShot(bmp: Bitmap) {
+        if (shotBitmap !== sourceShotBitmap) shotBitmap?.recycle()
+        sourceShotBitmap?.recycle()
+        shotBitmap = bmp
+        sourceShotBitmap = bmp
+        aspectX = 1.0; aspectY = 1.0
+        appliedLensK = 0.0
+        setSliders(1.0, 1.0)
+        binding.tvAspect.text = ""
+        binding.image.setImageBitmap(bmp)
+        // The overlay maps taps through the bitmap's own dimensions and
+        // the ImageView's fitCenter letterboxing. Both have to be right or
+        // the registration is silently skewed.
+        binding.overlay.setSourceGeometry(
+            bmp.width, bmp.height, RegistrationOverlayView.SourceFit.FIT_CENTER
+        )
+        binding.overlay.clearAll()
+        registration = null
+        // IDENTIFY, not merely detect.
+        //
+        // This ran the aiming-mark path on load, which takes the scale
+        // from the black mark multiplied by the ratio of whichever face
+        // happens to be SELECTED — so it is only as right as that
+        // selection. Fitting the ring family instead measures the pitch
+        // over five to nine rings, says which face it is rather than
+        // assuming, and cross-checks the two against each other.
+        //
+        // It falls back to the mark on its own when the rings cannot be
+        // fitted, or when the face has no even pitch to fit, so the
+        // weaker method is still there — as a fallback rather than as the
+        // default, which is the right way round.
+        doIdentifyTarget(silent = true)
+    }
+
+    // ------------------------------------------------------------------
+    //  Video
+    // ------------------------------------------------------------------
+
+    /**
+     * Loads a clip of a whole string. Two things are read from it, both off
+     * the main thread because both mean decoding: every muzzle report in the
+     * soundtrack, and the settled frame after the LAST one, which is the card
+     * as the string ended. That frame goes on screen and is registered
+     * exactly as a photograph would be — the rings, the corner taps and every
+     * check on them are unchanged. Only detection is different.
+     */
+    private fun onVideoPicked(uri: Uri) {
+        notifyUser("Reading the video — finding the shots in its soundtrack…")
+        binding.btnPickVideo.isEnabled = false
+        Thread {
+            val file = VideoFrames.copyToCache(this, uri)
+            val times = file?.let { AudioShotDetector.detectShotTimesS(it.absolutePath) }.orEmpty()
+            val last: Bitmap? = file?.let { f ->
+                VideoFrames.open(f)?.use { v ->
+                    // A little past the last report's settle time, so every
+                    // hole of the string is on the card; the clip's end when
+                    // there were no reports to go by.
+                    val end = if (v.durationS > 0.1) v.durationS - 0.05 else Double.MAX_VALUE
+                    val want = times.lastOrNull()
+                        ?.let { it + VideoStringScorer.DEFAULT_SETTLE_S + 0.30 }
+                        ?: end
+                    v.frameAt(minOf(want, end).coerceAtLeast(0.0))
+                }
+            }
+            runOnUiThread {
+                if (isFinishing || isDestroyed) return@runOnUiThread
+                binding.btnPickVideo.isEnabled = true
+                when {
+                    file == null -> notifyUser("That video could not be read.")
+                    last == null -> notifyUser(
+                        "No picture could be taken from that file. It may not be a video, or " +
+                            "it may use a format this phone cannot decode.")
+                    else -> {
+                        cleanBitmap?.recycle(); cleanBitmap = null; cleanUri = null
+                        shotUri = null
+                        showShot(last)
+                        videoFile = file
+                        reportTimesS = times
+                        notifyUser(
+                            if (times.isEmpty())
+                                "No shot reports were found in the sound, so this clip's shots " +
+                                    "cannot be timed. Its last frame is shown and will be scored " +
+                                    "as a single photograph."
+                            else
+                                "${times.size} shot report${if (times.size == 1) "" else "s"} " +
+                                    "found in the sound. The card as the string ended is shown — " +
+                                    "register it, then Detect scores the shots one at a time."
+                        )
+                        refreshStatus()
+                    }
+                }
+            }
+        }.start()
+    }
+
+    /**
+     * Puts one frame of the clip through precisely the correction the
+     * registered frame went through: the lens first, as [applyLens] does, then
+     * a resize to the registered frame's exact dimensions, which reproduces
+     * any aspect stretch. Returns [raw] itself when nothing was applied.
+     */
+    private fun prepareFrame(raw: Bitmap, targetW: Int, targetH: Int, lens: Double): Bitmap {
+        val lensed = if (lens != 0.0) LensCorrection.apply(raw, lens) else raw
+        if (lensed.width == targetW && lensed.height == targetH) return lensed
+        val sized = Bitmap.createScaledBitmap(lensed, targetW, targetH, true)
+        if (lensed !== raw && lensed !== sized) lensed.recycle()
+        return sized
+    }
+
+    /**
+     * Scores a string from the clip, one shot per report, in firing order.
+     * See [VideoStringScorer] for why the reference rolls forward shot by
+     * shot rather than staying on the clean card.
+     */
+    private fun scoreVideo(reg: TargetRegistration, file: java.io.File, shot: Bitmap) {
+        val rules = currentRules()
+        val face = currentFace()
+        val times = reportTimesS
+        // Captured here, on the main thread: the worker must not read screen
+        // state that the shooter could change while it runs.
+        val targetW = shot.width
+        val targetH = shot.height
+        val lens = appliedLensK
+        val gauge = rules.gaugeDiameterMm
+
+        binding.btnDetect.isEnabled = false
+        binding.hdrDistribution.visibility = View.GONE
+        binding.tvResult.text = "Scoring ${times.size} shot${if (times.size == 1) "" else "s"} " +
+            "from the video, one at a time…"
+
+        Thread {
+            val outcome = runCatching {
+                VideoFrames.open(file)?.use { v ->
+                    VideoStringScorer.score(reg, times, gauge) { t ->
+                        v.frameAt(t)?.let { raw ->
+                            val ready = prepareFrame(raw, targetW, targetH, lens)
+                            val luma = LumaFrame.fromBitmapForDetection(ready)
+                            if (ready !== raw) ready.recycle()
+                            raw.recycle()
+                            luma
+                        }
+                    }
+                }
+            }.onFailure { Logger.e("ImportActivity", "video scoring failed", it) }.getOrNull()
+
+            runOnUiThread {
+                if (isFinishing || isDestroyed) return@runOnUiThread
+                binding.btnDetect.isEnabled = true
+                if (outcome == null) {
+                    binding.tvResult.text = "The video could not be read for scoring. Its last " +
+                        "frame is still on screen; choose it as a photograph to score it that way."
+                    return@runOnUiThread
+                }
+                recordVideoOutcome(outcome, reg, face, rules, shot)
+            }
+        }.start()
+    }
+
+    /** Writes a scored string into the session and says how it went. */
+    private fun recordVideoOutcome(
+        outcome: VideoStringScorer.Outcome,
+        reg: TargetRegistration,
+        face: TargetFace,
+        rules: RuleSet,
+        shot: Bitmap
+    ) {
+        runCatching {
+            ScoredPhoto.set(this, reg.rectifyColour(shot), reg.uMinMm, reg.uMaxMm, reg.vMinMm, reg.vMaxMm)
+        }.onFailure { ScoredPhoto.clear(this) }
+
+        if (binding.cbReplace.isChecked) ScoringSession.startNew(face, rules, distanceFromField())
+        else ScoringSession.setDistance(distanceFromField())
+
+        val holes = outcome.holes
+        runCatching {
+            com.rfsat.bas.scoring.ShotCountCheck.check(rules, holes.size).message
+                ?.let { Logger.w("ImportActivity", it); notifyUser(it) }
+        }
+
+        // FIRING ORDER. The photograph path numbers shots from the centre out
+        // because a photograph has no order to give; a clip does, so shot 1
+        // here is the first shot fired. Where one report accounts for two
+        // holes nobody knows which came first, and the nearer goes first.
+        val bullet = ProfileRepository(this).getBullet()
+        val lines = ArrayList<String>()
+        for (find in outcome.shots) {
+            val ordered = find.holes.sortedBy { it.distanceFromCentreMm }
+            val values = ordered.map { hole ->
+                val index = ScoringSession.state.shots.count { !it.sighter } + 1
+                val s = ScoringEngine.scoreHole(
+                    hole, face, rules, bullet,
+                    index = index, series = ScoringEngine.seriesFor(index, rules)
+                )
+                ScoringSession.addShot(s, rules)
+                s.displayValue
+            }
+            lines += "  %2d   %6.2f s   %s".format(
+                find.index, find.reportTimeS,
+                when {
+                    find.note != null -> "— ${find.note}"
+                    values.isEmpty() -> "— no hole found"
+                    else -> values.joinToString(" + ")
+                })
+        }
+
+        if (holes.isEmpty()) {
+            binding.tvResult.text = buildString {
+                appendLine("${outcome.reportCount} shot report(s) were heard, but no holes were found.")
+                appendLine()
+                appendLine("Scored against: ${face.name}, gauge ${rules.gaugeDiameterMm} mm.")
+                outcome.notes.forEach { appendLine(); appendLine(it) }
+                appendLine()
+                append("The usual causes: the wrong face, a card too small in the frame to " +
+                    "resolve a ${rules.gaugeDiameterMm} mm hole, or a camera that moved.")
+            }
+            refreshStatus()
+            return
+        }
+
+        val res = ScoringSession.result(this)
+        val dist = ShotDistribution.of(ScoringSession.state.shots, face, rules)
+        binding.hdrDistribution.visibility = View.VISIBLE
+        binding.histogram.hideEmptyBuckets = face.zones.isNotEmpty()
+        binding.histogram.distribution = dist
+
+        binding.tvResult.text = buildString {
+            appendLine("${holes.size} shot(s) scored from the video, in firing order.")
+            appendLine()
+            appendLine("Total ${res.displayTotal}" +
+                if (res.maxScore > 0) " / ${"%.0f".format(res.maxScore)}" else "")
+            if (rules.countInnerTens && res.innerTens > 0) appendLine("Inner tens ${res.innerTens}")
+            appendLine(dist.summary())
+            appendLine()
+            appendLine("  shot  report    score")
+            lines.forEach { appendLine(it) }
+            appendLine()
+            // The two counts are independent measurements of the same
+            // events. Agreeing is the strongest evidence this screen can
+            // give; disagreeing is the first thing to check.
+            if (outcome.agrees) append("Every report produced exactly one hole: the sound and " +
+                "the pictures agree.")
+            else outcome.notes.forEach { appendLine(it) }
+        }
+        refreshStatus()
+        goToResults(holes.size)
     }
 
     /**
@@ -1001,6 +1271,18 @@ class ImportActivity : BaseActivity() {
         // nothing to draw shots on and no way to map what comes back.
         if (CloudSettings.engine(this) == ScoringSource.CLOUD) {
             scoreWithCloud(reg, shot)
+            return
+        }
+
+        // ---- VIDEO: one shot per muzzle report ----
+        //
+        // Only with reports to go by. A clip whose soundtrack gave none has
+        // nothing to say WHEN a hole appeared, and its last frame is scored
+        // below exactly as a photograph is — which is what the shooter was
+        // told when it loaded.
+        val clip = videoFile
+        if (clip != null && reportTimesS.isNotEmpty()) {
+            scoreVideo(reg, clip, shot)
             return
         }
         val rules = currentRules()

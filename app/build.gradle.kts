@@ -35,6 +35,86 @@ android {
         //   strictly greater than the last uploaded one, and a code reused
         //   during testing is impossible to tell apart afterwards.
         //
+        // 1.54.0 - score a STRING from a video, one shot at a time, timed by
+        //          the muzzle reports in the clip's own soundtrack.
+        //
+        //          The Score screen gains "…or a video of the whole string,
+        //          with sound" beside the two photo pickers. The clip's last
+        //          settled frame is shown and registered exactly as a
+        //          photograph is - rings, corner taps, every check unchanged.
+        //          Detection then goes back to the clip: for each report it
+        //          takes the frame just BEFORE the shot and the frame once the
+        //          paper has settled after it, and differences the pair. That
+        //          is the photograph path's own clean-reference comparison,
+        //          made once per shot at the camera's full resolution.
+        //
+        //          THE ROLLING REFERENCE. Each shot is differenced against the
+        //          frame after the PREVIOUS shot, never the clean card, so each
+        //          difference yields exactly the hole just made. Shots are
+        //          therefore recorded in FIRING ORDER, which a photograph can
+        //          never give (that path numbers shots centre-outward because
+        //          it has no order to offer). And the count becomes evidence:
+        //          the sound and the pictures are two independent counts of the
+        //          same events. When every report yields one hole the screen
+        //          says so; when a report yields none and the next yields two,
+        //          that is said too rather than averaged away.
+        //
+        //          capture/AudioShotDetector: the decode is now separate from
+        //          the choosing. It always built a peak per 5 ms window over
+        //          the whole track and kept only the first onset; now both
+        //          selectors read the arrays and are PURE functions.
+        //          detectShotTimeS (the ballistics t0) is unchanged in
+        //          behaviour and in its log lines. detectShotTimesS is new and
+        //          ports the LIVE microphone detector's algorithm - an
+        //          adaptive ambient floor fed only on quiet windows, a trigger
+        //          at 8x it, a 250 ms refractory - because "60% of the loudest
+        //          shot" silently drops the quieter shots of a string. Both
+        //          inherited constants are field-proven on live audio rather
+        //          than chosen here. The one-pole coefficient is DERIVED, not
+        //          copied: 0.02 on 23.2 ms blocks is a 1.16 s time constant,
+        //          which on 5 ms windows is 0.0043; carrying 0.02 across would
+        //          have adapted five times faster than the version that works.
+        //          Offline the floor is seeded from the track's own median, so
+        //          unlike live there is no settling period and a shot in the
+        //          first second is found.
+        //
+        //          detect/VideoStringScorer takes its frames through a
+        //          function, so the whole per-shot loop is unit-tested with no
+        //          codec or device. It never re-registers between shots: a
+        //          frame that changed by more than 10% overall is reported as a
+        //          probable camera movement, and the shooter decides.
+        //          capture/VideoFrames is the random-access frame source
+        //          (MediaMetadataRetriever, OPTION_CLOSEST, opened by file
+        //          path as the ballistics side does). Every frame is put
+        //          through exactly the lens and aspect correction the
+        //          registered frame had - tracked in appliedLensK, because the
+        //          lens FIELD can hold a value the picture does not.
+        //
+        //          FIXED ON THE WAY: "Score latest file" on a TACTACAM or
+        //          ShotKam fetches the camera's newest recording, which is a
+        //          VIDEO; it used to reach ImageLoader and fail with "try a
+        //          JPEG or PNG". A handed-over video now goes to the video path.
+        //
+        //          TESTED HERE: 11 onset tests (unequal loudness, echoes, rapid
+        //          fire at 800 ms, a rising noise floor, a shot at 120 ms, an
+        //          air rifle at a fortieth of the amplitude) and 8 scorer tests
+        //          (each report credited with its OWN hole, a missed frame
+        //          carried into the next difference and reported, a moved
+        //          camera warned about, truncated and empty clips refused with
+        //          a reason). Writing them found two real faults: an Int
+        //          overflow that made the onset detector report no shots at
+        //          all, and a noiseless test fixture that could never have
+        //          exercised the difference detector. Every name in the changed
+        //          files resolves against the offline type-check.
+        //
+        //          NOT YET MEASURED: DEFAULT_SETTLE_S (0.22 s) - how long the
+        //          paper takes to stop moving after a hit - is reasoned, not
+        //          measured, and is the number most likely to need changing.
+        //          The onset constants are inherited from working code but have
+        //          not yet seen this shooter's own recordings. One run of a
+        //          range clip already on the phone settles both, and needs no
+        //          trip to the range.
+        //
         // 1.53.0 - the AI service can be asked WHICH FACE this is, and its
         //          answer is cross-checked against the face a card was scored
         //          on.
@@ -5823,8 +5903,8 @@ android {
         //         Android 13+ monochrome layer.
         // 1.0.1 — correction: removed res/mipmap-hdpi/README.txt, which the
         //         resource merger rejects (res accepts only .xml and .png).
-        versionCode = 106
-        versionName = "1.53.0"
+        versionCode = 107
+        versionName = "1.54.0"
     }
 
     // Resolved once, here, rather than re-read from the environment in two
